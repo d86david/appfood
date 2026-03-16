@@ -17,14 +17,7 @@ import jakarta.persistence.Table;
 /**
  * Representa a receita padrão de um produto.
  *
- * Exemplo:
- *
- * Produto: Pizza Calabresa
- *
- * Ingredientes: - massa - molho - queijo - calabresa - cebola
- *
  * Essa composição NÃO deve ser alterada pelo pedido do cliente.
- *
  * Customizações são registradas separadamente em ItemCustomizacao.
  */
 @Entity

@@ -1,5 +1,7 @@
 package com.dsys.appfood.domain.model;
 
+import java.math.BigDecimal;
+import java.nio.channels.IllegalSelectorException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -29,29 +31,30 @@ public class Produto {
 		
 	}
 
-// CONSTRUTORES
+	//===============================
+	// CONSTRUTORES
+	//===============================
 
 	public Produto(String nome, Categoria categoria, List<PrecoVariavel> precosVariaveis) {
 		this.nome = nome;
 		this.categoria = categoria;
-		this.precosVariaveis = precosVariaveis;
 	}
-
-// GETTERS E SETTERS
+	
+	//===============================
+	// GETTERS E SETTERS
+	//===============================
+	
 	public Integer getId() {
 		return id;
 	}
 
-	public void setId(Integer id) {
-		this.id = id;
-	}
 
 	public String getNome() {
 		return nome;
 	}
 
 	public void setNome(String nome) {
-		this.nome = nome;
+		this.nome = Objects.requireNonNull(nome,"O nome não pode ser nulo");
 	}
 
 	public Categoria getCategoria() {
@@ -67,12 +70,28 @@ public class Produto {
 		return precosVariaveis;
 	}
 
-
-	public void setPrecosVariaveis(List<PrecoVariavel> precosVariaveis) {
-		this.precosVariaveis = precosVariaveis;
+	
+	/**
+     * Busca o preço do produto para um determinado tamanho.
+     *
+     * Este método é utilizado SOMENTE no momento
+     * da criação de um pedido.
+     *
+     * Depois que o pedido é criado, o preço deve
+     * ser armazenado como SNAPSHOT dentro do pedido.
+     */
+	public BigDecimal obterPrecoParaTamanho(Tamanho tamanho) {
+		return precosVariaveis.stream()
+				.filter(p -> p.getTamanho().equals(tamanho))
+				.map(PrecoVariavel::getValor)
+				.findFirst()
+				.orElseThrow(() -> 
+					new IllegalSelectorException());
 	}
 	
-// HASHCODE E EQUALS
+	//===============================
+	// HASHCODE E EQUALS
+	//===============================
 
 	@Override
 	public int hashCode() {

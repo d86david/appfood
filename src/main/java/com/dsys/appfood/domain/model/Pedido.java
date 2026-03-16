@@ -278,7 +278,7 @@ public class Pedido {
 	 * @param item
 	 */
 	public void adicionarItem(ItemPedido item) {
-		item.setPedido(this);
+		item.associarPedido(this);
 
 		itens.add(item);
 	}

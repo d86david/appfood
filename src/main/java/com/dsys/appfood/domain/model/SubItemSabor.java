@@ -8,9 +8,18 @@ import java.util.Objects;
 import jakarta.persistence.*;
 
 /**
- * Representa um sabor dentro de uma pizza.
+ * Representa um sabor dentro de um ItemPedido.
+ * 
+ * Um ItemPedido pode representar uma pizza inteira, meira pizza o multiplos sabores
+ * 
+ * Cada SubItemSabor representa um sabor específico da pizza escolhida
+ * 
  * Cada sabor pode possuir customizações
- * como adiocnar ou remover ingredientes 
+ * - adiocnar ingrediente 
+ * - remover ingrediente 
+ * 
+ * Esta Entidade também armazena um SNAPSHOT do preço do produto no momento da venda
+ * Isso garante que alterações futuras no catálogo não alterem pedidos ja realizados.
  */
 @Entity
 @Table(name = "subitem_sabor")
@@ -42,29 +51,35 @@ public class SubItemSabor {
 	 */
 	@OneToMany(mappedBy = "subItemSabor", cascade = CascadeType.ALL)
 	private List<ItemCustomizacao> customizacoes = new ArrayList<>();
+	
+	/**
+	 * SNAPSHOT do preço do sabor no memento da criação do pedido e nunca deve mudar
+	 */
+	@Column(name="preco_sabor")
+	private BigDecimal precoSabor;
 
+	//=====================================
 	// CONSTRUTORES
+	//=====================================
 	
 	public SubItemSabor() {
 		
 	}
 	
-	public SubItemSabor(ItemPedido item, Produto produto, List<ItemCustomizacao> customizacoes) {
-		super();
-		this.item = item;
-		this.produto = produto;
-		this.customizacoes = customizacoes;
+	public SubItemSabor(Produto produto, BigDecimal precoSabor) {
+		
+		this.produto = Objects.requireNonNull(produto, "O Produto não pode ser nulo");
+		this.precoSabor = Objects.requireNonNull(precoSabor, "O preço não pode ser nulo");
 	}
 
-// GETTERS E SETTERS
+	//=====================================
+	// GETTERS E SETTERS
+	//=====================================
 
 	public Integer getId() {
 		return id;
 	}
 
-	public void setId(Integer id) {
-		this.id = id;
-	}
 
 	public ItemPedido getItem() {
 		return item;
@@ -82,18 +97,11 @@ public class SubItemSabor {
 	public List<ItemCustomizacao> getCustomizacoes() {
 		return customizacoes;
 	}
-
-
-	/**
-	 * Método que retorna o preço para um determinado tamanho
-	 */
-	public BigDecimal getPrecoParaTamanho(Tamanho tamanho) {
-		return produto.getPrecosVariaveis().stream()
-				.filter(pv -> pv.getTamanho().equals(tamanho))
-				.map(PrecoVariavel::getValor)
-				.findFirst()
-				.orElse(BigDecimal.ZERO);
+	
+	public BigDecimal getPrecoSabor() {
+		return this.precoSabor;
 	}
+
 	
 	/**
 	 * Método para Associar um Item ao ItemPedido
@@ -110,11 +118,18 @@ public class SubItemSabor {
 	 */
 	public void adicionarCustomizacao(ItemCustomizacao customizacao) {
 		
-		Objects.requireNonNull(customizacao);
+		Objects.requireNonNull(customizacao, "Customização não pode ser nula");
 		
 		customizacao.associarSubItem(this);
 		
 		customizacoes.add(customizacao);
+	}
+	
+	/**
+	 * Remove uma customização do sabor
+	 */
+	public void removerCustomizacao(ItemCustomizacao customizacao) {
+		customizacoes.remove(customizacao);
 	}
 	
 	/**
@@ -129,8 +144,21 @@ public class SubItemSabor {
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
 	}
 	
+	/**
+	 * Calcula o preco final deste sabor
+	 * formula: precoSnapshot + customizações 
+	 * 
+	 * @return o preço final do sabor
+	 */
+	
+	
+	public BigDecimal calculaPrecoSabor() {
+		return precoSabor.add(calcularTotalCustomizacoes());
+	}
 
-//HASHCODE E EQUALS
+	//=====================================
+	//HASHCODE E EQUALS
+	//=====================================
 
 
 	@Override

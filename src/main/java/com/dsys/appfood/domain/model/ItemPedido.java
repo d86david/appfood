@@ -24,6 +24,7 @@ public class ItemPedido {
 	 *
 	 * Este design permite grande flexibilidade para modelar
 	 * pizzas com múltiplos sabores e customizações.
+	 * 
 	 */
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -61,10 +62,8 @@ public class ItemPedido {
 
 	}
 
-	public ItemPedido(Pedido pedido, Tamanho tamanho, List<SubItemSabor> subItens) {
-		this.pedido = pedido;
+	public ItemPedido(Tamanho tamanho) {
 		this.tamanho = tamanho;
-		this.subItens = subItens;
 	}
 
 	
@@ -80,10 +79,6 @@ public class ItemPedido {
 
 	public Pedido getPedido() {
 		return pedido;
-	}
-
-	public void setPedido(Pedido pedido) {
-		this.pedido = pedido;
 	}
 
 	public Tamanho getTamanho() {
@@ -118,7 +113,7 @@ public class ItemPedido {
      */
     public void adicionarSabor(SubItemSabor sabor){
 
-        Objects.requireNonNull(sabor);
+        Objects.requireNonNull(sabor,"O sabor não pode ser nulo");
 
         sabor.associarItem(this);
 
@@ -140,7 +135,7 @@ public class ItemPedido {
 		
 		for (SubItemSabor sabor : subItens) {
 			//1 Pega p preço do sabor para o tamanho desta pizza
-			BigDecimal precoSabor = sabor.getPrecoParaTamanho(this.tamanho);
+			BigDecimal precoSabor = sabor.getPrecoSabor();
 			
 			//2 Regra do Maior Valor: se este sabor for mais caro que o anterior, ele assume o posto
 			if (precoSabor.compareTo(precoMaiorSabor) > 0) {
