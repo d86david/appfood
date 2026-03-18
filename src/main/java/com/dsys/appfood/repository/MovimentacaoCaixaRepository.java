@@ -15,5 +15,8 @@ public interface MovimentacaoCaixaRepository extends JpaRepository<MovimentacaoC
 	
 	///--- PESQUISAR MOVIMENTAÇÃO POR DATA  ---
 	List<MovimentacaoCaixa> findByDataHoraMovimentoBetween(LocalDateTime dataInicio, LocalDateTime dataFim);
+	
+	// --- CONSULTAR MOVIMENTAÇÃO DE UM CAIXA ---
+	List<MovimentacaoCaixa> findByCaixaId(Integer caixaId);
 
 }

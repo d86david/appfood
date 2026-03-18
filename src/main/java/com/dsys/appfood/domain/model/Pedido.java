@@ -338,7 +338,7 @@ public class Pedido {
 
 		StatusPedido statusAtual = getStatusAtual();
 
-		if (statusAtual != StatusPedido.CONCLUIDO && statusAtual != StatusPedido.SAIU_PARA_ENTREGA) {
+		if (statusAtual != StatusPedido.PRONTO && statusAtual != StatusPedido.SAIU_PARA_ENTREGA) {
 
 			throw new IllegalStateException("Pedido não está em um status que permita finalização.");
 		}

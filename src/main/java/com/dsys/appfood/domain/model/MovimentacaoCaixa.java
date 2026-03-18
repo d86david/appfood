@@ -36,6 +36,8 @@ public class MovimentacaoCaixa {
 	
 	private String origem;
 	
+	@ManyToOne
+	@JoinColumn(name = "usuario_id")
 	private Usuario gerente;
 	
 	//===========================================

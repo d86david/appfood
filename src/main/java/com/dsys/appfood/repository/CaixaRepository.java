@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import com.dsys.appfood.domain.enums.StatusCaixa;
 import com.dsys.appfood.domain.model.Caixa;
+import com.dsys.appfood.domain.model.Usuario;
 
 @Repository
 public interface CaixaRepository extends JpaRepository<Caixa, Integer>{
@@ -35,6 +36,9 @@ public interface CaixaRepository extends JpaRepository<Caixa, Integer>{
 	
 	//--- PESQUISAR STATUS DO CAIXA --- 
 	Optional<Caixa> findFirstByStatusOrderByDataAberturaDesc(StatusCaixa status);
+	
+	//--- PESQUISA POR OPERADOR ---
+	Optional<Caixa> findByOperadorAndStatus(Usuario operador, StatusCaixa status);
 
 
 }
