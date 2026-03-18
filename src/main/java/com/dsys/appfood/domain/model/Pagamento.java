@@ -36,7 +36,10 @@ public class Pagamento {
 
 	private BigDecimal troco;
 
-//CONSTRUTORES
+	//===========================================
+	//CONSTRUTORES
+	//===========================================
+	
 	public Pagamento() {
 
 	}
@@ -51,7 +54,9 @@ public class Pagamento {
 		
 	}
 
-//GETTERS E SETTERS
+	//===========================================
+	//GETTERS E SETTERS
+	//===========================================
 
 	public Integer getId() {
 		return id;
@@ -89,7 +94,9 @@ public class Pagamento {
 		this.pedido = pedido;
 	}
 
-// HASHCODE E EQUALS
+	//===========================================
+	// HASHCODE E EQUALS
+	//===========================================
 
 	@Override
 	public int hashCode() {

@@ -40,7 +40,9 @@ public class PrecoVariavel {
 		this.valor = valor;
 	}
 
-//GETTERS E SETTERS
+	//===========================================
+	//GETTERS E SETTERS
+	//===========================================
 	
 	public Integer getId() {
 		return id;
@@ -75,7 +77,9 @@ public class PrecoVariavel {
 	}
 	
 
-//HASHCODE E EQUALS
+	//===========================================
+	//HASHCODE E EQUALS
+	//===========================================
 
 	@Override
 	public int hashCode() {

@@ -16,7 +16,9 @@ public class Tamanho {
 	@Column(nullable = false)
 	private String nome;
 
-// CONSTRUTORES
+	//=====================================
+	// CONSTRUTORES
+	//=====================================
 	
 	public Tamanho() {
 	}
@@ -25,7 +27,9 @@ public class Tamanho {
 		this.nome = nome;
 	}
 
-// GETTERS E SETTERS
+	//=====================================
+	// GETTERS E SETTERS
+	//=====================================
 
 	public Integer getId() {
 		return id;
@@ -43,7 +47,9 @@ public class Tamanho {
 		this.nome = nome;
 	}
 
-// HASHCODE E EQUALS
+	//=====================================
+	// HASHCODE E EQUALS
+	//=====================================
 	
 	@Override
 	public int hashCode() {

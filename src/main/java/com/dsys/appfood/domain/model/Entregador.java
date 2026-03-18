@@ -22,7 +22,9 @@ public class Entregador {
 	@Column(name = "valor_por_entrega")
 	private BigDecimal valorPorEntrega;
 
-// CONSTRUTORES
+	//===========================================
+	// CONSTRUTORES
+	//===========================================
 	
 	public Entregador() {
 		
@@ -34,7 +36,9 @@ public class Entregador {
 		this.valorPorEntrega = valorPorEntrega;
 	}
 	
-// GETTERS E SETTERS
+	//===========================================
+	// GETTERS E SETTERS
+	//===========================================
 
 	public Integer getId() {
 		return id;
@@ -68,7 +72,9 @@ public class Entregador {
 		this.valorPorEntrega = valorPorEntrega;
 	}
 	
-// HASHCODE E EQUALS
+	//===========================================
+	// HASHCODE E EQUALS
+	//===========================================
 
 	@Override
 	public int hashCode() {

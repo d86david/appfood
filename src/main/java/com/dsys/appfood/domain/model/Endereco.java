@@ -29,8 +29,10 @@ public class Endereco {
 	
 	private String uf;
 	
+	//===========================================
+	// CONSTRUTORES
+	//===========================================
 	
-// CONSTRUTORES
 	public Endereco() {
 		
 	}
@@ -46,7 +48,9 @@ public class Endereco {
 		this.uf = uf;
 	}
 
-// GETTERS E SETTERS
+	//===========================================
+	// GETTERS E SETTERS
+	//===========================================
 
 	public Integer getId() {
 		return id;
@@ -112,7 +116,9 @@ public class Endereco {
 		this.uf = uf;
 	}
 
-// HASHCODE E EQUALS
+	//===========================================
+	// HASHCODE E EQUALS
+	//===========================================
 
 	@Override
 	public int hashCode() {

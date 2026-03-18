@@ -22,7 +22,9 @@ public class Cliente {
 	@JoinColumn(name = "endereco_id")
 	private Endereco endereco;
 
-// CONSTRUTORES
+	//===========================================
+	// CONSTRUTORES
+	//===========================================
 	public Cliente() {
 	}
 
@@ -31,15 +33,13 @@ public class Cliente {
 		this.telefone = telefone;
 		this.endereco = endereco;
 	}
-
-// GETTERS E SETTERS
+	
+	//===========================================
+	// GETTERS E SETTERS
+	//===========================================
 
 	public Integer getId() {
 		return id;
-	}
-
-	public void setId(Integer id) {
-		this.id = id;
 	}
 
 	public String getNome() {
@@ -66,7 +66,9 @@ public class Cliente {
 		this.endereco = endereco;
 	}
 
-// HASHCODE E EQUALS
+	//===========================================
+	// HASHCODE E EQUALS
+	//===========================================
 
 	@Override
 	public int hashCode() {

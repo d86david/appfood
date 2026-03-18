@@ -42,19 +42,20 @@ public class ComposicaoPadrao {
 	@JoinTable(name = "composicao_ingrediente", joinColumns = @JoinColumn(name = "composicao_id"), inverseJoinColumns = @JoinColumn(name = "ingrediente_id"))
 	private List<Ingrediente> ingredientes = new ArrayList<>();
 
-//CONSTRUTOR
+	//===========================================
+	//CONSTRUTOR
+	//===========================================
+	
 	public ComposicaoPadrao() {
 
 	}
 
-// GETTERS E SETTERS
+	//===========================================
+	// GETTERS E SETTERS
+	//===========================================
 
 	public Integer getId() {
 		return id;
-	}
-
-	public void setId(Integer id) {
-		this.id = id;
 	}
 
 	public Produto getProduto() {
@@ -88,8 +89,10 @@ public class ComposicaoPadrao {
         ingredientes.remove(ingrediente);
     }
 
-// HASHCODE E EQUALS
-
+  //===========================================
+  // HASHCODE E EQUALS
+  //===========================================
+    
 	@Override
 	public int hashCode() {
 		return Objects.hash(id);

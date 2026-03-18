@@ -21,7 +21,9 @@ public class Ingrediente {
 	 */
 	private BigDecimal valorAdicional;
 
-// CONSTRUTORES
+	//===========================================
+	// CONSTRUTORES
+	//===========================================
 
 	public Ingrediente() {
 
@@ -32,7 +34,9 @@ public class Ingrediente {
 		this.valorAdicional = valorAdicional;
 	}
 
-// GETTERS E SETTERS
+	//===========================================
+	// GETTERS E SETTERS
+	//===========================================
 
 	public Integer getId() {
 		return id;
@@ -66,6 +70,10 @@ public class Ingrediente {
 
 		this.valorAdicional = novoValor;
 	}
+	
+	//===========================================
+	//HASHCODE E EQUALS
+	//===========================================
 
 	@Override
 	public int hashCode() {

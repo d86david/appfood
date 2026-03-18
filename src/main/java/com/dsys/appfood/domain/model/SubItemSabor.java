@@ -156,9 +156,9 @@ public class SubItemSabor {
 		return precoSabor.add(calcularTotalCustomizacoes());
 	}
 
-	//=====================================
+	//====================================
 	//HASHCODE E EQUALS
-	//=====================================
+	//====================================
 
 
 	@Override

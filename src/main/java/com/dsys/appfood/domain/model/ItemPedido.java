@@ -56,7 +56,9 @@ public class ItemPedido {
 	@OneToMany(mappedBy = "item", cascade = CascadeType.ALL)
 	private List<SubItemSabor> subItens = new ArrayList<>();
 
-// CONSTRUTORES
+	//===========================================
+	// CONSTRUTORES
+	//===========================================
 	
 	public ItemPedido() {
 
@@ -66,8 +68,9 @@ public class ItemPedido {
 		this.tamanho = tamanho;
 	}
 
-	
-// GETTERS E SETTERS
+	//===========================================
+	// GETTERS E SETTERS
+	//===========================================
 
 	public Integer getId() {
 		return id;
@@ -93,8 +96,9 @@ public class ItemPedido {
 		return subItens;
 	}
 
-
-// MÉTODOS AUXILIARES
+	//===========================================
+	// MÉTODOS AUXILIARES
+	//===========================================
 	
 	 /**
      * Associa este ItemPedido a um Pedido.
@@ -150,8 +154,10 @@ public class ItemPedido {
 		return precoMaiorSabor.add(totalAdicionais);
 	}
 
-// HASCODE E EQUALS
-	
+	//===========================================
+	// HASCODE E EQUALS
+	//===========================================
+
 	@Override
 	public int hashCode() {
 		return Objects.hash(id);

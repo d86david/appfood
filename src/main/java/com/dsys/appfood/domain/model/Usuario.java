@@ -8,7 +8,7 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "usuario")
-public abstract class Usuario {
+public class Usuario {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,7 +29,9 @@ public abstract class Usuario {
 	@Enumerated(EnumType.STRING)
 	private TipoUsuario tipo;
 
-// CONSTRUTORES
+	//=====================================
+	// CONSTRUTORES
+	//=====================================
 	
 	public Usuario() {
 		
@@ -45,7 +47,9 @@ public abstract class Usuario {
 		this.tipo = tipo;
 	}
 
-//GETTERS E SETTERS
+	//=====================================
+	//GETTERS E SETTERS
+	//=====================================
 
 	public Integer getId() {
 		return id;
@@ -95,7 +99,9 @@ public abstract class Usuario {
 		this.tipo = tipo;
 	}
 	
-// hashCode e 
+	//=====================================
+	// HASHCODE E EQUALS
+	//=====================================
 
 	@Override
 	public int hashCode() {

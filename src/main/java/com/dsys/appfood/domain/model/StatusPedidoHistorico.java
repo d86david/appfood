@@ -29,7 +29,9 @@ public class StatusPedidoHistorico {
 	@JoinColumn(name = "usuario_id")
 	private Usuario usuario;
 
+	//===============================
 	//CONSTRUTORES 
+	//===============================
 	
 	public StatusPedidoHistorico() {
 		
@@ -45,8 +47,9 @@ public class StatusPedidoHistorico {
 		this.usuario = usuario;
 	}
 	
+	//===============================
 	//GETTERS E SETTERS 
-	
+	//===============================
 
 	public Integer getId() {
 		return id;
@@ -89,7 +92,9 @@ public class StatusPedidoHistorico {
 	}
 	
 
-//hashcode e equals
+	//===============================
+	//hashcode e equals
+	//===============================
 
 	@Override
 	public int hashCode() {

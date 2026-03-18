@@ -38,7 +38,9 @@ public class MovimentacaoCaixa {
 	
 	private Usuario gerente;
 	
-// GETTERS E SETTERS
+	//===========================================
+	// GETTERS E SETTERS
+	//===========================================
 	
 	public Integer getId() {
 		return id;
@@ -97,7 +99,9 @@ public class MovimentacaoCaixa {
 		this.gerente = gerente;
 	}
 	
-// HASHCODE E EQUALS
+	//===========================================
+	// HASHCODE E EQUALS
+	//===========================================
 
 	@Override
 	public int hashCode() {
@@ -116,7 +120,9 @@ public class MovimentacaoCaixa {
 		return Objects.equals(id, other.id);
 	}
 
-// --- METODOS DE FÁBRICA (STATIC FACTORY METHODS) ---
+	//=====================================================
+	// --- METODOS DE FÁBRICA (STATIC FACTORY METHODS) ---
+	//=====================================================
 	/**
 	 * Cria uma movimentação de entrada referente a uma venda concluída.
 	 */
@@ -152,7 +158,10 @@ public class MovimentacaoCaixa {
 		mov.setDescricao("Sangria: " + motivo);
 		return mov;
 	}
+	
+	//===========================================
 	//Metodos Auxiliares
+	//===========================================
 	
 	/**
 	 * Métodos Auxiliar para formatar a descrição da movimentação para relatórios

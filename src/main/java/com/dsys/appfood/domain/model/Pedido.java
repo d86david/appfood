@@ -76,7 +76,9 @@ public class Pedido {
 	@OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<ItemPedido> itens = new ArrayList<>();
 
-// CONSTRUTORES
+	//===========================================
+	// CONSTRUTORES
+	//===========================================
 
 	public Pedido() {
 
@@ -100,7 +102,9 @@ public class Pedido {
 		alteraStatus(status, operador);
 	}
 
-// GETTERS E SETTERS
+	//===========================================
+	// GETTERS E SETTERS
+	//===========================================
 
 	public Integer getId() {
 		return id;
@@ -270,7 +274,9 @@ public class Pedido {
 		historicoStatus.add(historico);
 	}
 
-// Métodos de Adição 
+	//===========================================
+	// Métodos de Adição 
+	//===========================================
 
 	/**
 	 * Método responsavel por adicionar um item ao pedido.
@@ -405,7 +411,9 @@ public class Pedido {
 		return restante;
 	}
 
-//HASHCODE E EQUALS
+	//===========================================
+	//HASHCODE E EQUALS
+	//===========================================
 
 	@Override
 	public int hashCode() {

@@ -45,7 +45,9 @@ public class ItemCustomizacao {
      */
 	private BigDecimal valorCobrado;
 
-// CONSTRUTORES
+	//===========================================
+	// CONSTRUTORES
+	//===========================================
 
 	public ItemCustomizacao() {
 
@@ -59,7 +61,9 @@ public class ItemCustomizacao {
 		this.valorCobrado = valorCobrado;
 	}
 
-// GETTERS E SETTERS
+	//===========================================
+	// GETTERS E SETTERS
+	//===========================================
 
 	public Integer getId() {
 		return id;
@@ -110,7 +114,9 @@ public class ItemCustomizacao {
 		this.valorCobrado = valorCobrado;
 	}
 	
-// HASHCODE E EQUALS
+	//===========================================
+	// HASHCODE E EQUALS
+	//===========================================
 
 	@Override
 	public int hashCode() {

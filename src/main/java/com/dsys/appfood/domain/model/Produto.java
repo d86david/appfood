@@ -31,9 +31,9 @@ public class Produto {
 		
 	}
 
-	//===============================
+	//==============================
 	// CONSTRUTORES
-	//===============================
+	//==============================
 
 	public Produto(String nome, Categoria categoria, List<PrecoVariavel> precosVariaveis) {
 		this.nome = nome;

@@ -51,7 +51,10 @@ public class Caixa {
 	@JoinColumn(name = "gerente_id")
 	private Usuario gerente;
 
-// Construtores
+	//===========================================
+	// Construtores
+	//===========================================
+	
 	public Caixa() {
 
 	}
@@ -63,14 +66,12 @@ public class Caixa {
 		this.operador = operador;
 	}
 
-//Getters e Setters
+	//===========================================
+	//Getters e Setters
+	//===========================================
 
 	public Integer getId() {
 		return id;
-	}
-
-	public void setId(Integer id) {
-		this.id = id;
 	}
 
 	public StatusCaixa getStatus() {
@@ -118,7 +119,9 @@ public class Caixa {
 		this.gerente = gerente;
 	}
 	
-// HASHCODE E EQUALS
+	//===========================================
+	// HASHCODE E EQUALS
+	//===========================================
 	
 	@Override
 	public int hashCode() {
@@ -137,7 +140,9 @@ public class Caixa {
 		return Objects.equals(id, other.id);
 	}
 
-// Métodos Auxiliares
+	//===========================================
+	// Métodos Auxiliares
+	//===========================================
 
 	/**
 	 * Método responsavel por abrir o Caixa quando o mesmo estiver fechado,
