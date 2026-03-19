@@ -20,6 +20,9 @@ public class Produto {
 	@Column(nullable = false)
 	private String nome;
 	
+	@Column(name="imprime_cozinha")
+	private boolean imprimeCozinha;
+	
 	@ManyToOne
 	@JoinColumn(name = "categoria_id")
 	private Categoria categoria;
@@ -55,6 +58,14 @@ public class Produto {
 
 	public void setNome(String nome) {
 		this.nome = Objects.requireNonNull(nome,"O nome não pode ser nulo");
+	}
+
+	public boolean isImprimeCozinha() {
+		return imprimeCozinha;
+	}
+
+	public void setImprimeCozinha(boolean imprimeCozinha) {
+		this.imprimeCozinha = imprimeCozinha;
 	}
 
 	public Categoria getCategoria() {

@@ -99,6 +99,22 @@ public class Usuario {
 		this.tipo = tipo;
 	}
 	
+	/**
+	 * Verifica se este usuário tem perfil de gerência.
+	 * Gerentes e Admins podem autorizar operações restritas.
+	 */
+	public boolean isGerente() {
+		return this.tipo == TipoUsuario.GERENTE 
+				|| this.tipo == TipoUsuario.ADM;
+	}
+	
+	/**
+	 * Verifica se este usuário é um operador de caixa.
+	 */
+	public boolean isOperador() {
+	    return this.tipo == TipoUsuario.OPERADOR;
+	}
+	
 	//=====================================
 	// HASHCODE E EQUALS
 	//=====================================
