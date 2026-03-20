@@ -177,6 +177,10 @@ public class CaixaService {
 					gerente, 
 					"Sangria automática no fechamento do caixa"
 					);
+			
+			//Deduzir o saldo do caixa atual usando o tipo da movimentação
+			caixa.atualizarSaldo(caixa.getSaldo(), sangriaFechamento.getTipo());
+			
 			movimentacaoRepository.save(sangriaFechamento);
 		}
 		

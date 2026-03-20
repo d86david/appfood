@@ -28,44 +28,33 @@ public class PrecoVariavel {
 	@JoinColumn(name = "tamanho_id")
 	private Tamanho tamanho;
 
-//CONSTRUTORES
-	
+	// ===========================================
+	// CONSTRUTORES
+	// ===========================================
+
 	public PrecoVariavel() {
 
 	}
 
 	public PrecoVariavel(Produto produto, Tamanho tamanho, BigDecimal valor) {
-		this.produto = produto;
-		this.tamanho = tamanho;
-		this.valor = valor;
+		
+		configurarProdutoPorTamanho( produto,  tamanho,  valor);
 	}
 
-	//===========================================
-	//GETTERS E SETTERS
-	//===========================================
-	
+	// ===========================================
+	// GETTERS
+	// ===========================================
+
 	public Integer getId() {
 		return id;
-	}
-
-	public void setId(Integer id) {
-		this.id = id;
 	}
 
 	public BigDecimal getValor() {
 		return valor;
 	}
 
-	public void setValor(BigDecimal valor) {
-		this.valor = valor;
-	}
-
 	public Produto getProduto() {
 		return produto;
-	}
-
-	public void setProduto(Produto produto) {
-		this.produto = produto;
 	}
 
 	public Tamanho getTamanho() {
@@ -75,11 +64,35 @@ public class PrecoVariavel {
 	public void setTamanho(Tamanho tamanho) {
 		this.tamanho = tamanho;
 	}
-	
 
-	//===========================================
-	//HASHCODE E EQUALS
-	//===========================================
+	// ===========================================
+	// ASSOCIAR PROÇO DO PRODUTO AO TAMANHO
+	// ===========================================
+	private void configurarProdutoPorTamanho(Produto produto, Tamanho tamanho, BigDecimal valor) {
+
+		// Verifica se o produto está nulo
+		if (produto == null) {
+			throw new IllegalArgumentException("O produto deve ser informado");
+		}
+
+		// Verifica se o tamanho está nulo
+		if (tamanho == null) {
+			throw new IllegalArgumentException("O tamanho deve ser informado");
+		}
+		
+		//Verifica se o Valor não é negativo
+		if(valor.signum() == -1 ) {
+			throw new IllegalArgumentException("O valor não pode ser negativo");
+		}
+
+		this.produto = produto;
+		this.tamanho = tamanho;
+		this.valor = valor;
+	}
+
+	// ===========================================
+	// HASHCODE E EQUALS
+	// ===========================================
 
 	@Override
 	public int hashCode() {
@@ -97,6 +110,5 @@ public class PrecoVariavel {
 		PrecoVariavel other = (PrecoVariavel) obj;
 		return Objects.equals(id, other.id);
 	}
-	
 
 }
