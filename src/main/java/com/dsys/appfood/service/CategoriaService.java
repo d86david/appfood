@@ -105,7 +105,7 @@ public class CategoriaService {
 	}
 	
 	//=============================================================
-	// LISTA - Carregar Categorias Cadastradas
+	// LISTA - Carregar todas as Cadastradas
 	//=============================================================
 	@Transactional(readOnly = true)
 	public List<Categoria> listarTodas(){

@@ -37,8 +37,25 @@ public class PrecoVariavel {
 	}
 
 	public PrecoVariavel(Produto produto, Tamanho tamanho, BigDecimal valor) {
+
+		// Verifica se o produto está nulo
+		if (produto == null) {
+			throw new IllegalArgumentException("O produto deve ser informado");
+		}
+
+		// Verifica se o Valor não é negativo
+		if (valor.signum() == -1) {
+			throw new IllegalArgumentException("O valor não pode ser negativo");
+		}
 		
-		configurarProdutoPorTamanho( produto,  tamanho,  valor);
+		// Adicione de volta no construtor
+		if (tamanho == null) {
+		    throw new IllegalArgumentException("O tamanho deve ser informado");
+		}
+
+		this.produto = produto;
+		this.tamanho = tamanho;
+		this.valor = valor;
 	}
 
 	// ===========================================
@@ -61,33 +78,12 @@ public class PrecoVariavel {
 		return tamanho;
 	}
 
-	public void setTamanho(Tamanho tamanho) {
-		this.tamanho = tamanho;
-	}
-
-	// ===========================================
-	// ASSOCIAR PROÇO DO PRODUTO AO TAMANHO
-	// ===========================================
-	private void configurarProdutoPorTamanho(Produto produto, Tamanho tamanho, BigDecimal valor) {
-
-		// Verifica se o produto está nulo
-		if (produto == null) {
-			throw new IllegalArgumentException("O produto deve ser informado");
-		}
-
-		// Verifica se o tamanho está nulo
-		if (tamanho == null) {
-			throw new IllegalArgumentException("O tamanho deve ser informado");
-		}
-		
-		//Verifica se o Valor não é negativo
-		if(valor.signum() == -1 ) {
-			throw new IllegalArgumentException("O valor não pode ser negativo");
-		}
-
+	
+	/**
+	 * Método para Associar um PrecoVariavel ao Produto
+	 */
+	public void associarProduto(Produto produto) {
 		this.produto = produto;
-		this.tamanho = tamanho;
-		this.valor = valor;
 	}
 
 	// ===========================================

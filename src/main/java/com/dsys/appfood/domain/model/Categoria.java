@@ -14,6 +14,9 @@ public class Categoria {
 
 	@Column(nullable = false)
 	private String nome;
+	
+	@Column(name = "tem_tamanho")
+	private boolean temTamanho;
 
 	//===========================================
 	// CONTRUTORES
@@ -41,6 +44,14 @@ public class Categoria {
 
 	public void setNome(String nome) {
 		this.nome = nome;
+	}
+	
+	public boolean isTemTamanho() {
+		return temTamanho;
+	}
+
+	public void setTemTamanho(boolean temTamanho) {
+		this.temTamanho = temTamanho;
 	}
 
 	//===========================================

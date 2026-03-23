@@ -84,7 +84,6 @@ public class MovimentacaoCaixa {
 		return dataHoraMovimento;
 	}
 
-
 	public String getOrigem() {
 		return origem;
 	}
