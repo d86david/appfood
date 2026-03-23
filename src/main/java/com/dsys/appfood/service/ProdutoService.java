@@ -1,8 +1,7 @@
 package com.dsys.appfood.service;
 
 import java.math.BigDecimal;
-import java.util.List;import java.util.stream.Collector;
-import java.util.stream.Collectors;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,7 +12,7 @@ import com.dsys.appfood.domain.model.Produto;
 import com.dsys.appfood.domain.model.Tamanho;
 import com.dsys.appfood.dto.PrecoTamanhoRequest;
 import com.dsys.appfood.repository.ProdutoRepository;
-import com.dsys.appfood.repository.TamanhoRepository;
+
 
 /**
  * Classe responsavel por gerenciar os Produtos do cardápio.
