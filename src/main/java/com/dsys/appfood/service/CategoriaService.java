@@ -1,5 +1,6 @@
 package com.dsys.appfood.service;
 
+import com.dsys.appfood.repository.ProdutoRepository;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -19,11 +20,13 @@ import com.dsys.appfood.repository.CategoriaRepository;
 @Service
 public class CategoriaService {
 	
+	private final ProdutoRepository produtoRepository;
 	private final CategoriaRepository categoriaRepository;
 	
-	public CategoriaService(CategoriaRepository categoriaRepository) {
+	public CategoriaService(CategoriaRepository categoriaRepository, ProdutoRepository produtoRepository) {
 		
 		this.categoriaRepository = categoriaRepository;
+		this.produtoRepository = produtoRepository;
 	}
 
 	//=============================================================
@@ -57,7 +60,7 @@ public class CategoriaService {
 	// EDIÇÃO
 	//=============================================================
 	@Transactional
-	public Categoria editar(Integer id, String novoNome) {
+	public Categoria editarCategoria(Integer id, String novoNome) {
 		
 		//Validação sem banco
 		if(novoNome == null || novoNome.isBlank()) {
@@ -91,16 +94,19 @@ public class CategoriaService {
 	// EXCLUSÃO
 	//=============================================================
 	@Transactional
-	public void excluir (Integer id) {
+	public void excluirCategoria (Integer id) {
 		// Confirma que existe antes de tentar excluir 
 		// Sem isso, deleteById lança exceção generiaca e confusa
 		if(!categoriaRepository.existsById(id)) {
 			throw new IllegalArgumentException("Categoria não encontrada: id "+ id);
 		}
 		
-		// Aqui no futuro você vai querer verificar se a categoria
-        // tem produtos vinculados antes de excluir.
-        // Por enquanto, exclui diretamente.
+		// Verificar se a categoria tem produtos vinculados antes de excluir.
+		if(produtoRepository.existsByCategoriaId(id)) {
+			throw new IllegalArgumentException("Essa categoria não pode ser excluída!"
+					+ "\nExistem produtos cadastrados");
+		}
+        // Excluir
 		categoriaRepository.deleteById(id);
 	}
 	
@@ -108,12 +114,12 @@ public class CategoriaService {
 	// LISTA - Carregar todas as Cadastradas
 	//=============================================================
 	@Transactional(readOnly = true)
-	public List<Categoria> listarTodas(){
+	public List<Categoria> listarTodasCategorias(){
 		return categoriaRepository.findAll();
 	}
 	
 	@Transactional(readOnly = true)
-    public Categoria buscarPorId(Integer id) {
+    public Categoria buscarCategoriaPorId(Integer id) {
         return categoriaRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException(
                 "Categoria não encontrada: id " + id));

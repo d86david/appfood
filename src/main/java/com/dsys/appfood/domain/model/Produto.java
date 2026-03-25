@@ -26,7 +26,7 @@ public class Produto {
 	@JoinColumn(name = "categoria_id")
 	private Categoria categoria;
 
-	@OneToMany(mappedBy = "produto", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "produto", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<PrecoVariavel> precosVariaveis = new ArrayList<>();
 
 	// ==============================

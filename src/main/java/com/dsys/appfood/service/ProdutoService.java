@@ -51,6 +51,8 @@ public class ProdutoService {
 				throw new IllegalArgumentException("O nome do produto deve ser informado");
 			}
 			
+			String nomePadronizado = nome.trim();
+			
 			//2. lista de preços nula ou vazia
 			if(precos == null || precos.isEmpty()) {
 				throw new IllegalArgumentException("Os preços do produto devem ser informado");
@@ -65,7 +67,7 @@ public class ProdutoService {
 			// VALIDAÇÕES COM BANCO
 			
 			//4. buscar categoria pelo id
-			Categoria categoria = categoriaService.buscarPorId(categoriaId);
+			Categoria categoria = categoriaService.buscarCategoriaPorId(categoriaId);
 			
 			//5. verificar se já existe produto com esse nome nessa categoria
 			
@@ -79,7 +81,7 @@ public class ProdutoService {
 			 // MONTAR E SALVAR
 			
 			//6. criar objeto 
-			Produto produto = new Produto(nome, categoria, imprimeCozinha);
+			Produto produto = new Produto(nomePadronizado, categoria, imprimeCozinha);
 			
 			// 7. Para cada preço recebido, criar PrecoVariavel e adicionar no Produto
 			for(PrecoTamanhoRequest preco : precos) {
@@ -91,9 +93,132 @@ public class ProdutoService {
 		
 			// RETORNAR
 			return produtoRepository.save(produto);
+		}
+		
+
+		//=============================================================
+		// EDIÇÃO
+		//=============================================================
+		@Transactional
+		public Produto editarProduto(Integer id, String novoNome, Integer categoriaId, boolean imprimeCozinha, List<PrecoTamanhoRequest> precos) {
+			
+			//VALIDAÇÕES SEM BANCO
+			//1. nome nulo ou vazio
+			if(novoNome == null || novoNome.isBlank()) {
+				throw new IllegalArgumentException("O nome do produto deve ser informado");
+			}
+			
+			String nomePadronizado = novoNome.trim();
+			
+			//2. lista de preços nula ou vazia
+			if(precos == null || precos.isEmpty()) {
+				throw new IllegalArgumentException("Os preços do produto devem ser informado");
+			}
+			
+			//3. algum valor negativo na lista			
+			if(precos.stream().anyMatch(p ->p.getValor().compareTo(BigDecimal.ZERO) < 0 )) {
+				throw new IllegalArgumentException("O preço do produto não pode ser negativo.");
+			}
+			
+			//4. buscar categoria e produto pelo id
+			Categoria categoria = categoriaService.buscarCategoriaPorId(categoriaId);
+			 
+			Produto produto = produtoRepository.findById(id)
+					.orElseThrow(() -> new IllegalArgumentException("produto não encontrado: id " + id));
+			
+			//5 Verificar se existe um produto com mesmo nome nessa Categoria
+			// (ignora o próprio registro que está sendo editado)
+			produtoRepository.findByNomeIgnoreCaseAndCategoria(nomePadronizado, categoria)
+			.ifPresent(existente -> {
+				if(!existente.getId().equals(id)) {
+					throw new IllegalStateException(
+							"Já existe um produto com o nome: '"+ nomePadronizado
+							+ "' na categoria " + categoria.getNome());
+				}
+			});
+			
+			//ATUALIZA OS DADO
+			
+			//6 Atualiza nome, categoria e imprime cozinha
+			produto.setNome(nomePadronizado);
+			produto.setCategoria(categoria);
+			produto.setImprimeCozinha(imprimeCozinha); 
+			
+			//7 limpa a lista de preço antigas e adiciona os novos 
+			//remove os antigos
+			produto.getPrecosVariaveis().clear();
+			
+			//adiciona os novos
+			for(PrecoTamanhoRequest preco : precos) {
+				Tamanho tamanho = tamanhoService.buscarPorId(preco.getTamanhoId());
+				PrecoVariavel pv = new PrecoVariavel(produto, tamanho, preco.getValor());
+				produto.adicionarPreco(pv);
+			}
+			
+			//SALVAR
+			
+			//8 Salvar e retornar
+			return produtoRepository.save(produto);
 			
 		}
 		
 		
+		//=============================================================
+		// EXCLUSÃO
+		//=============================================================
+		
+		@Transactional
+		public void excluirProduto(Integer id) {
+			// Confirma que existe antes de tentar excluir
+			if(!produtoRepository.existsById(id)) {
+				throw new IllegalArgumentException(
+						"Produto não encontrado id: " + id);
+			}
+			
+			produtoRepository.deleteById(id);
+		}
+		 
+		
+		
+		//=============================================================
+		// CONSULTAS
+		//=============================================================
+		
+		@Transactional(readOnly = true)
+		public Produto buscarProdutoPorId(Integer id) {
+			return produtoRepository.findById(id)
+					.orElseThrow(() -> new IllegalArgumentException(
+							"Produto não encontrado: id " + id));
+		}
+		
+		@Transactional(readOnly = true)
+		public List<Produto> listarTodosProdutos(){
+			return produtoRepository.findAll();
+		}
+		
+		
+		@Transactional(readOnly = true)
+		public List<Produto> buscarProdutoPorNome(String nome){
+			
+			//Validações
+			if(nome == null || nome.isBlank()) {
+				throw new IllegalArgumentException("O nome do produto deve ser informado");
+			}
+			
+			return produtoRepository.findByNomeContainingIgnoreCase(nome);
+		}
+		
+		@Transactional(readOnly = true)
+		public List<Produto> listarProdutoPorCategoria(Integer categoriaId){
+			Categoria categoria = categoriaService.buscarCategoriaPorId(categoriaId);
+			
+			return produtoRepository.findByCategoria(categoria);
+			
+		}
+		
+		@Transactional(readOnly = true)
+		public boolean isProdutoNaCategoria(Integer categoriaId) {
+			return produtoRepository.existsByCategoriaId(categoriaId);
+		}
 
 }

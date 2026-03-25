@@ -1,6 +1,7 @@
 package com.dsys.appfood.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -11,6 +12,9 @@ import com.dsys.appfood.domain.model.Produto;
 @Repository
 public interface ProdutoRepository extends JpaRepository<Produto, Integer>{
 
+	// --- BUSCAR PRODUTO PELO NOME E CATEGORIA ---
+	Optional<Produto> findByNomeIgnoreCaseAndCategoria(String nome, Categoria categoria);
+	
 	// --- LISTAR PRODUTOS PELO NOME ---
 	List<Produto> findByNomeContainingIgnoreCase(String nome);
 	
@@ -25,6 +29,9 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer>{
     // Vai ser necessário no Service para evitar duplicata
     // Ex: não pode ter duas "Pizza Calabresa" na categoria Pizzas
 	boolean existsByNomeIgnoreCaseAndCategoria(String nome, Categoria categoria);
+	
+	// --- VERIFICAR SE EXISTE PRODUTO COM NA CATEGORIA PELO ID ---
+	boolean existsByCategoriaId(Integer categoriaId);
 	
 	
 }
