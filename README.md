@@ -237,8 +237,8 @@ O projeto está em desenvolvimento ativo. Camadas concluídas:
 
 - [x] Model — todas as entidades mapeadas
 - [x] Repository — todos os repositórios com queries customizadas
-- [x] Service — CaixaService, CategoriaService, ProdutoService, TamanhoService, UsuarioService
-- [ ] Service — PedidoService (em andamento)
+- [x] Services Completos — CaixaService, CategoriaService, ProdutoService, TamanhoService, UsuarioService
+- [ ] Service — EntregadorService (em andamento)
 - [ ] DTOs completos
 - [ ] Controllers
 - [ ] Tratamento global de exceções
