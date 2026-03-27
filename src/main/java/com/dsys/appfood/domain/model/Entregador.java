@@ -19,6 +19,11 @@ public class Entregador {
 	
 	private String telefone;
 	
+	private boolean ativo = true;
+	
+	@Column(name = "valor_diaria")
+	private BigDecimal valorDiaria;
+	
 	@Column(name = "valor_por_entrega")
 	private BigDecimal valorPorEntrega;
 
@@ -30,10 +35,9 @@ public class Entregador {
 		
 	}
 	
-	public Entregador(String nome, String telefone, BigDecimal valorPorEntrega) {
+	public Entregador(String nome, String telefone) {
 		this.nome = nome;
 		this.telefone = telefone;
-		this.valorPorEntrega = valorPorEntrega;
 	}
 	
 	//===========================================
@@ -42,10 +46,6 @@ public class Entregador {
 
 	public Integer getId() {
 		return id;
-	}
-
-	public void setId(Integer id) {
-		this.id = id;
 	}
 
 	public String getNome() {
@@ -63,13 +63,67 @@ public class Entregador {
 	public void setTelefone(String telefone) {
 		this.telefone = telefone;
 	}
+	
+	public boolean isAtivo() {
+		return this.ativo;
+	}
+	
+	public BigDecimal getValorDiaria() {
+		return this.valorDiaria;
+	}
 
 	public BigDecimal getValorPorEntrega() {
 		return valorPorEntrega;
 	}
-
-	public void setValorPorEntrega(BigDecimal valorPorEntrega) {
-		this.valorPorEntrega = valorPorEntrega;
+	
+	//===========================================
+	// DEFINIR VALOR DA ENTREGA
+	//===========================================
+	
+	public void definirValorPorEntrega(BigDecimal valor) {
+		
+		if(valor == null) {
+			this.valorPorEntrega = BigDecimal.ZERO;
+			return;
+		}
+		
+		if(valor.signum() == -1) {
+			throw new IllegalArgumentException("O Valor por entrega não pode ser negativo");
+		}
+		
+		this.valorPorEntrega = valor;
+		
+	}
+	
+	//===========================================
+		// DEFINIR VALOR DA DIÁRIA
+		//===========================================
+		
+		public void definirValorDiaria(BigDecimal valor) {
+			
+			if(valor == null) {
+				this.valorDiaria = BigDecimal.ZERO;
+				return;
+			}
+			
+			if(valor.signum() == -1) {
+				throw new IllegalArgumentException("O valor não pode ser negativo");
+			}
+			
+			this.valorDiaria = valor;
+			
+		}
+	
+	//===========================================
+	// ATIVAR E INATIVAR
+	//===========================================
+	
+	public void ativar() {
+		this.ativo = true;
+	}
+	
+	public void inativar() {
+		this.ativo = false;
 	}
 	
 	//===========================================

@@ -17,6 +17,8 @@ public class Cliente {
 	private String nome;
 
 	private String telefone;
+	
+	private boolean ativo = true;
 
 	@OneToOne
 	@JoinColumn(name = "endereco_id")
@@ -57,6 +59,10 @@ public class Cliente {
 	public void setTelefone(String telefone) {
 		this.telefone = telefone;
 	}
+	
+	public boolean isAtivo() {
+		return ativo;
+	}
 
 	public Endereco getEndereco() {
 		return endereco;
@@ -64,6 +70,17 @@ public class Cliente {
 
 	public void setEndereco(Endereco endereco) {
 		this.endereco = endereco;
+	}
+	
+	//===========================================
+	// ATIVAR E DESATIVAR CLIENTE
+	//===========================================
+	public void ativar() {
+		this.ativo = true;
+	}
+	
+	public void inativar() {
+		this.ativo = false;
 	}
 
 	//===========================================

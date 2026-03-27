@@ -119,6 +119,12 @@ public class CategoriaService {
 	}
 	
 	@Transactional(readOnly = true)
+	public Categoria buscarCategoriaPorNome(String nome){
+		return categoriaRepository.findByNomeIgnoreCase(nome)
+				.orElseThrow(() -> new IllegalArgumentException("Nenhuma categoria encontrada com o nome: " + nome ));
+	}
+	
+	@Transactional(readOnly = true)
     public Categoria buscarCategoriaPorId(Integer id) {
         return categoriaRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException(

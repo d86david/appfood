@@ -33,8 +33,8 @@ public class UsuarioService {
 	@Transactional
 	public Usuario cadastrar (Usuario usuario, String SenhaDigitada) {
 		
-		// Verifica se o login já existe 
-		if(usuarioRepository.findByLogin(usuario.getLogin()).isPresent()) {
+		// Verifica se o login já existe e se está Ativo 
+		if(usuarioRepository.findByLoginAndAtivoTrue(usuario.getLogin()).isPresent()) {
 			throw new IllegalArgumentException("Login já cadastrado.");
 		}
 		
@@ -47,6 +47,49 @@ public class UsuarioService {
 		
 		return usuarioRepository.save(usuario);
 	}
+	
+	//=============================================================
+	// ATIVAR
+	//=============================================================
+	@Transactional
+	public void ativarUsuario(Integer id) {
+				
+		//Busca Usuario e lança exceção se não existi 
+		Usuario usuario =  usuarioRepository.findById(id).orElseThrow(
+				() -> new IllegalArgumentException("Usuario não encontrado id: " + id));
+		
+		//Confirma se usuario está inativo
+		if(usuario.isAtivo()) {
+			throw new IllegalArgumentException("Usuario ja ativo id: " + id );
+		}
+		
+		usuario.ativar();
+		
+		usuarioRepository.save(usuario);
+		
+	}
+	
+	//=============================================================
+		// ATIVAR
+		//=============================================================
+		@Transactional
+		public void inativarUsuario(Integer id) {
+					
+			//Busca Usuario e lança exceção se não existir 
+			Usuario usuario = usuarioRepository.findById(id).orElseThrow(
+					() -> new IllegalArgumentException("Usuario não encontrado id: " + id));
+			
+			//Confirma se usuario está ativo
+			if(!usuario.isAtivo()) {
+				throw new IllegalArgumentException("Usuario ja inativo id: " + id );
+			}
+			
+			usuario.inativar();
+			
+			usuarioRepository.save(usuario);
+			
+		}
+	
 	
 
 	//=============================================================
@@ -62,7 +105,7 @@ public class UsuarioService {
 	@Transactional(readOnly = true)
 	public Usuario autenticar(String login, String senhaDigitada) {
 		
-		Usuario usuario = usuarioRepository.findByLogin(login)
+		Usuario usuario = usuarioRepository.findByLoginAndAtivoTrue(login)
 				.orElseThrow(() -> new IllegalArgumentException("Login ou senha inválidos"));
 		
 		//=============================================================

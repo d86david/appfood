@@ -23,6 +23,8 @@ public class Usuario {
 	@Column(nullable = false)
 	private String senha;
 	
+	private boolean ativo = true;
+	
 	@Column(nullable = false)
 	private String telefone;
 	
@@ -55,9 +57,6 @@ public class Usuario {
 		return id;
 	}
 
-	public void setId(Integer id) {
-		this.id = id;
-	}
 
 	public String getNome() {
 		return nome;
@@ -81,6 +80,10 @@ public class Usuario {
 
 	public void setSenha(String senha) {
 		this.senha = senha;
+	}
+	
+	public boolean isAtivo() {
+		return this.ativo;
 	}
 
 	public String getTelefone() {
@@ -113,6 +116,20 @@ public class Usuario {
 	 */
 	public boolean isOperador() {
 	    return this.tipo == TipoUsuario.OPERADOR;
+	}
+	
+	/**
+	 * Ativa Usuario
+	 */
+	public void ativar() {
+		this.ativo = true;
+	}
+	
+	/**
+	 * Inativa usuario
+	 */
+	public void inativar() {
+		this.ativo = false;
 	}
 	
 	//=====================================
