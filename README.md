@@ -118,7 +118,22 @@ src/main/java/com/dsys/appfood/
 ├── 📂dto/                             # Data Transfer Objects
 │   └── PrecoTamanhoRequest.java     # tamanhoId + valor
 │
-├── 📂exception/                       # Exceções de negócio (em construção)
+├── 📂exception/                      
+│   ├── CaixaFechadoException.java
+│   ├── CaixaNaoEncontradoException.java
+│   ├── CategoriaNaoEncontradaException.java
+│   ├── ClienteNaoEncontradoException.java
+│   ├── EntidadeNaoEncontradaException.java
+│   ├── EntregadorNaoEncontradoException.java
+│   ├── ErroResponse.java
+│   ├── GlobalExceptionHandler.java
+│   ├── IngredienteNaoEncontradoException.java
+│   ├── NegocioException.java
+│   ├── PedidoNaoEncontradoException.java
+│   ├── ProdutoNaoEncontradoException.java
+│   ├── TamanhoNaoEncontradoException.java
+│   ├── UsuarioNaoEncontradoException.java
+│   └── ...
 │
 ├── 📂mapper/                          # Conversores Entity ↔ DTO (em construção)
 │
@@ -133,7 +148,7 @@ src/main/java/com/dsys/appfood/
 │   ├── UsuarioRepository.java
 │   └── ...
 │
-└── 📂service/                         # Camada de negócio
+└── 📂service/                       # Camada de negócio
     ├── CaixaService.java            # abertura, sangria, fechamento
     ├── CategoriaService.java        # CRUD de categorias
     ├── ProdutoService.java          # cadastro e gestão de produtos
