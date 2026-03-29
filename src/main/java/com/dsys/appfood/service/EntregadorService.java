@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.dsys.appfood.domain.model.Entregador;
+import com.dsys.appfood.exception.EntregadorNaoEncontradoException;
 import com.dsys.appfood.repository.EntregadorRepository;
 
 /**
@@ -83,7 +84,7 @@ public class EntregadorService {
 		
 		//Busca o entregadoe no banco 
 		Entregador entregador = entregadorRepository.findById(id)
-				.orElseThrow(() -> new IllegalArgumentException("Entregador não encontrado id: " + id));
+				.orElseThrow(() -> new EntregadorNaoEncontradoException(id));
 		
 		// Verifica se outro registro tem o mesmo telefone
 		entregadorRepository.findByTelefoneIgnoreCaseAndAtivoTrue(novoTelefone)
@@ -113,7 +114,7 @@ public class EntregadorService {
 		
 		// BUSCA ENTREGADOR POR ID
 		Entregador entregador =  entregadorRepository.findById(id)
-				.orElseThrow(() -> new IllegalArgumentException("Entregador não encontrado id: " + id));
+				.orElseThrow(() -> new EntregadorNaoEncontradoException(id));
 		
 		//USA O OBJETO EM MEÓRIA 
 		if(entregador.isAtivo()) {
@@ -135,7 +136,7 @@ public class EntregadorService {
 		
 		// BUSCA ENTREGADOR POR ID
 		Entregador entregador = entregadorRepository.findById(id)
-				.orElseThrow(() -> new IllegalArgumentException("Entregador não encontrado id: " + id));
+				.orElseThrow(() -> new EntregadorNaoEncontradoException(id));
 		
 		//VERIFICA SE O ENTREGADOR JA ESTÁ INATIVO 
 		if(!entregador.isAtivo()) {
@@ -164,7 +165,7 @@ public class EntregadorService {
 	@Transactional(readOnly = true)
 	public Entregador buscarEntregadorPorId(Integer id) {
 		return entregadorRepository.findById(id)
-				.orElseThrow(() -> new IllegalStateException("Entregador não encontrado id" + id));
+				.orElseThrow(() -> new EntregadorNaoEncontradoException(id));
 	}
 
 	// Busca Entregador pelo nome

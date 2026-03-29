@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.dsys.appfood.domain.model.Tamanho;
+import com.dsys.appfood.exception.TamanhoNaoEncontradoException;
 import com.dsys.appfood.repository.TamanhoRepository;
 
 /**
@@ -41,7 +42,7 @@ public class TamanhoService {
 		}
 
 		// Padroniza o nome antes de verificar duplicata e salvar
-		String nomePadronizado = nome.trim();
+		String nomePadronizado = nome.trim().toUpperCase();
 
 		// Verifica se o tamanho ja existe no banco
 		if (tamanhoRepository.findByNomeIgnoreCase(nomePadronizado).isPresent()) {
@@ -65,11 +66,11 @@ public class TamanhoService {
 			throw new IllegalArgumentException("O tamanho não pode ser vazio.");
 		}
 
-		String nomePadronizado = novoNome.trim();
+		String nomePadronizado = novoNome.trim().toUpperCase();
 
 		// Busca o tamanho - laça Exeção se não existir
 		Tamanho tamanho = tamanhoRepository.findById(id)
-				.orElseThrow(() -> new IllegalArgumentException("Tamanho não encontrado id: " + id));
+				.orElseThrow(() -> new TamanhoNaoEncontradoException(id));
 
 		// Verifica se outro registro ja usa esse nome
 		tamanhoRepository.findByNomeIgnoreCase(nomePadronizado).ifPresent(existente -> {
@@ -91,7 +92,7 @@ public class TamanhoService {
 	public void excluirTamanho(Integer id) {
 		// Confirma que existe antes de tentar excluir 
 		if(!tamanhoRepository.existsById(id)) {
-			throw new IllegalArgumentException("tamanho não encontrado: id "+ id);
+			throw new TamanhoNaoEncontradoException(id);
 		}
 		
 		
@@ -112,7 +113,7 @@ public class TamanhoService {
 	@Transactional(readOnly = true)
 	public Tamanho buscarPorId(Integer id) {
 		return tamanhoRepository.findById(id)
-				.orElseThrow(() -> new IllegalArgumentException("Tamanho não encontrado " + id));
+				.orElseThrow(() -> new TamanhoNaoEncontradoException(id));
 	}
 	
 	// Listar todos

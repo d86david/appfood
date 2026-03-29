@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.dsys.appfood.domain.model.Usuario;
+import com.dsys.appfood.exception.NegocioException;
+import com.dsys.appfood.exception.UsuarioNaoEncontradoException;
 import com.dsys.appfood.repository.UsuarioRepository;
 
 /**
@@ -56,11 +58,11 @@ public class UsuarioService {
 				
 		//Busca Usuario e lança exceção se não existi 
 		Usuario usuario =  usuarioRepository.findById(id).orElseThrow(
-				() -> new IllegalArgumentException("Usuario não encontrado id: " + id));
+				() -> new UsuarioNaoEncontradoException(id));
 		
 		//Confirma se usuario está inativo
 		if(usuario.isAtivo()) {
-			throw new IllegalArgumentException("Usuario ja ativo id: " + id );
+			throw new NegocioException("Usuario ja ativo id: " + id );
 		}
 		
 		usuario.ativar();
@@ -77,11 +79,11 @@ public class UsuarioService {
 					
 			//Busca Usuario e lança exceção se não existir 
 			Usuario usuario = usuarioRepository.findById(id).orElseThrow(
-					() -> new IllegalArgumentException("Usuario não encontrado id: " + id));
+					() -> new UsuarioNaoEncontradoException(id));
 			
 			//Confirma se usuario está ativo
 			if(!usuario.isAtivo()) {
-				throw new IllegalArgumentException("Usuario ja inativo id: " + id );
+				throw new NegocioException("Usuario ja inativo id: " + id );
 			}
 			
 			usuario.inativar();
@@ -134,7 +136,7 @@ public class UsuarioService {
 		
 		//Confirma que conhece a senha atual antes de trocar
 		if(!passwordEncoder.matches(senhaAtual, usuario.getSenha())) {
-			throw new IllegalArgumentException("Senha atual incoreta");
+			throw new IllegalArgumentException("Senha atual inválida");
 		}
 		
 		// Valida a nova senha (regras do negócio)
@@ -156,7 +158,7 @@ public class UsuarioService {
 		Usuario usuario = autenticar(login, senha); // Já usa o BCrypt
 		
 		if(!usuario.isGerente()) {
-			throw new IllegalArgumentException("Acesso negado. Apenas Gerente");
+			throw new NegocioException("Acesso negado. Apenas Gerente");
 		}
 		
 		return usuario;
@@ -170,8 +172,7 @@ public class UsuarioService {
 	@Transactional (readOnly = true)
 	public Usuario buscaPorId(Integer id) {
 		return usuarioRepository.findById(id)
-				.orElseThrow(() -> new IllegalArgumentException(
-						"Usuário não encontrado: id " + id));
+				.orElseThrow(() -> new UsuarioNaoEncontradoException(id));
 	}
 	
 

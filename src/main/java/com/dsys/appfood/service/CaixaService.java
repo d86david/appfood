@@ -9,6 +9,9 @@ import com.dsys.appfood.domain.enums.StatusCaixa;
 import com.dsys.appfood.domain.model.Caixa;
 import com.dsys.appfood.domain.model.MovimentacaoCaixa;
 import com.dsys.appfood.domain.model.Usuario;
+import com.dsys.appfood.exception.CaixaFechadoException;
+import com.dsys.appfood.exception.CaixaNaoEncontradoException;
+import com.dsys.appfood.exception.NegocioException;
 import com.dsys.appfood.repository.CaixaRepository;
 import com.dsys.appfood.repository.MovimentacaoCaixaRepository;
 
@@ -73,7 +76,7 @@ public class CaixaService {
 				.isPresent();
 		
 		if(temCaixaAberto) {
-			throw new IllegalStateException(
+			throw new NegocioException(
 					"O operador "+ operador.getNome() +" já possui um caixa aberto.");
 		}
 		
@@ -98,7 +101,7 @@ public class CaixaService {
 											BigDecimal valorPago) {
 		//Validação sem acessar o banco 
 		if(valorPago == null || valorPago.compareTo(BigDecimal.ZERO) <= 0) {
-			throw new IllegalArgumentException("Valor do pagamento deve ser positivo.");
+			throw new NegocioException("Valor do pagamento deve ser positivo.");
 		}
 		
 		//Busca o caixa
@@ -141,7 +144,7 @@ public class CaixaService {
 		
 		// REGRA: não pode fazer sangria maior que o saldo atual
 		if (valor.compareTo(caixa.getSaldo()) > 0) {
-			throw new IllegalStateException(
+			throw new NegocioException(
 					"Valor da sangria (R$" + valor + ") excede o saldo atual do caixa.");
 		}
 		
@@ -200,7 +203,7 @@ public class CaixaService {
 	public List<MovimentacaoCaixa> consMovimentacaoCaixas(Integer caixaId){
 		// Confirma que o caixa existe antes de buscar movimentações
 		caixaRepository.findById(caixaId)
-			.orElseThrow(() -> new IllegalArgumentException("Caixa não encontrado: Id " + caixaId));
+			.orElseThrow(() -> new CaixaNaoEncontradoException(caixaId));
 		
 		return movimentacaoRepository.findByCaixaId(caixaId);
 	}
@@ -211,11 +214,9 @@ public class CaixaService {
 	//=========================================================
 	private Caixa buscaCaixaAberto(Integer caixaId) {
 		Caixa caixa = caixaRepository.findById(caixaId)
-				.orElseThrow(() -> new IllegalArgumentException(
-						"Caixa não encontrado " + caixaId));
+				.orElseThrow(() -> new CaixaNaoEncontradoException(caixaId));
 		if(caixa.getStatus() != StatusCaixa.ABERTO) {
-			throw new IllegalStateException(
-					"Esta operação requer um caixa aberto. Status atual: " + caixa.getStatus());
+			throw new CaixaFechadoException(caixaId);
 		}
 		
 		return caixa;

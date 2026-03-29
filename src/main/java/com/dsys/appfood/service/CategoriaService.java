@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.dsys.appfood.domain.model.Categoria;
+import com.dsys.appfood.exception.CategoriaNaoEncontradaException;
+import com.dsys.appfood.exception.NegocioException;
 import com.dsys.appfood.repository.CategoriaRepository;
 
 /**
@@ -72,8 +74,7 @@ public class CategoriaService {
 		
 		//Busca a categoria - laça Exeção se não existir 
 		Categoria categoria = categoriaRepository.findById(id)
-				.orElseThrow(() -> new IllegalArgumentException(
-						"Categoria não encontrada: id " + id));
+				.orElseThrow(() -> new CategoriaNaoEncontradaException(id));
 		
 		// Verifica se outro registro ja usa esse nome
 		// (ignora o próprio registro que está sendo editado)
@@ -98,12 +99,12 @@ public class CategoriaService {
 		// Confirma que existe antes de tentar excluir 
 		// Sem isso, deleteById lança exceção generiaca e confusa
 		if(!categoriaRepository.existsById(id)) {
-			throw new IllegalArgumentException("Categoria não encontrada: id "+ id);
+			throw new CategoriaNaoEncontradaException(id);
 		}
 		
 		// Verificar se a categoria tem produtos vinculados antes de excluir.
 		if(produtoRepository.existsByCategoriaId(id)) {
-			throw new IllegalArgumentException("Essa categoria não pode ser excluída!"
+			throw new NegocioException("Essa categoria não pode ser excluída!"
 					+ "\nExistem produtos cadastrados");
 		}
         // Excluir
@@ -127,7 +128,6 @@ public class CategoriaService {
 	@Transactional(readOnly = true)
     public Categoria buscarCategoriaPorId(Integer id) {
         return categoriaRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException(
-                "Categoria não encontrada: id " + id));
+            .orElseThrow(() -> new CategoriaNaoEncontradaException(id));
     }
 }

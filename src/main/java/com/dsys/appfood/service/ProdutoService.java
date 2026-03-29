@@ -11,6 +11,8 @@ import com.dsys.appfood.domain.model.PrecoVariavel;
 import com.dsys.appfood.domain.model.Produto;
 import com.dsys.appfood.domain.model.Tamanho;
 import com.dsys.appfood.dto.PrecoTamanhoRequest;
+import com.dsys.appfood.exception.NegocioException;
+import com.dsys.appfood.exception.ProdutoNaoEncontradoException;
 import com.dsys.appfood.repository.ProdutoRepository;
 
 
@@ -74,7 +76,7 @@ public class ProdutoService {
 			boolean temProDutoNaCategoria = produtoRepository.existsByNomeIgnoreCaseAndCategoria(nome, categoria);
 			
 			if(temProDutoNaCategoria) {
-				throw new IllegalArgumentException(
+				throw new IllegalStateException(
 						"Já existe o produto: " + nome + " na categoria " + categoria.getNome());
 			}
 			
@@ -124,7 +126,7 @@ public class ProdutoService {
 			Categoria categoria = categoriaService.buscarCategoriaPorId(categoriaId);
 			 
 			Produto produto = produtoRepository.findById(id)
-					.orElseThrow(() -> new IllegalArgumentException("produto não encontrado: id " + id));
+					.orElseThrow(() -> new ProdutoNaoEncontradoException(id));
 			
 			//5 Verificar se existe um produto com mesmo nome nessa Categoria
 			// (ignora o próprio registro que está sendo editado)
@@ -137,7 +139,7 @@ public class ProdutoService {
 				}
 			});
 			
-			//ATUALIZA OS DADO
+			//ATUALIZA OS DADOS
 			
 			//6 Atualiza nome, categoria e imprime cozinha
 			produto.setNome(nomePadronizado);
@@ -171,8 +173,7 @@ public class ProdutoService {
 		public void excluirProduto(Integer id) {
 			// Confirma que existe antes de tentar excluir
 			if(!produtoRepository.existsById(id)) {
-				throw new IllegalArgumentException(
-						"Produto não encontrado id: " + id);
+				throw new ProdutoNaoEncontradoException(id);
 			}
 			
 			produtoRepository.deleteById(id);
@@ -187,8 +188,7 @@ public class ProdutoService {
 		@Transactional(readOnly = true)
 		public Produto buscarProdutoPorId(Integer id) {
 			return produtoRepository.findById(id)
-					.orElseThrow(() -> new IllegalArgumentException(
-							"Produto não encontrado: id " + id));
+					.orElseThrow(() -> new ProdutoNaoEncontradoException(id));
 		}
 		
 		@Transactional(readOnly = true)
