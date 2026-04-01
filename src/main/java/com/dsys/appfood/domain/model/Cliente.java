@@ -3,6 +3,8 @@ package com.dsys.appfood.domain.model;
 
 import java.util.Objects;
 
+import com.dsys.appfood.domain.enums.TipoDocumento;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -19,6 +21,12 @@ public class Cliente {
 	private String telefone;
 	
 	private boolean ativo = true;
+	
+	@Column(name = "tipo_documento")
+	private TipoDocumento tipoDocumento;
+	
+	@Column
+	private String documento;
 
 	@OneToOne
 	@JoinColumn(name = "endereco_id")
@@ -30,6 +38,14 @@ public class Cliente {
 	public Cliente() {
 	}
 
+	public Cliente(String nome, String telefone,Endereco endereco, TipoDocumento tipoDocumento, String documento) {
+		this.nome = nome;
+		this.telefone = telefone;
+		this.endereco = endereco;
+		this.tipoDocumento = tipoDocumento;
+		this.documento = documento;
+	}
+	
 	public Cliente(String nome, String telefone,Endereco endereco) {
 		this.nome = nome;
 		this.telefone = telefone;
@@ -62,6 +78,22 @@ public class Cliente {
 	
 	public boolean isAtivo() {
 		return ativo;
+	}
+
+	public TipoDocumento getTipoDocumento() {
+		return tipoDocumento;
+	}
+
+	public void setTipoDocumento(TipoDocumento tipoDocumento) {
+		this.tipoDocumento = tipoDocumento;
+	}
+
+	public String getDocumento() {
+		return documento;
+	}
+
+	public void setDocumento(String documento) {
+		this.documento = documento;
 	}
 
 	public Endereco getEndereco() {

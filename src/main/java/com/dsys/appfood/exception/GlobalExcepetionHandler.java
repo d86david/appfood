@@ -1,6 +1,9 @@
 package com.dsys.appfood.exception;
 
+import java.util.stream.Collectors;
+
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -39,6 +42,21 @@ public class GlobalExcepetionHandler {
 	public ErroResponse handleArgumento(IllegalArgumentException ex) {
 		return new ErroResponse("ARGUMENTO_INVALIDO", ex.getMessage());
 	}
+	
+	// --- Argumento Inválido -> HTTP 400 --- 
+		@ExceptionHandler(MethodArgumentNotValidException.class)
+		@ResponseStatus(HttpStatus.BAD_REQUEST)
+		public ErroResponse handleValidacao(MethodArgumentNotValidException ex) {
+			
+			//Pega todos os erros de todos os campos
+			String mensagem = ex.getBindingResult()
+					.getFieldErrors()
+					.stream()
+					.map(erro -> erro.getField() + ": " + erro.getDefaultMessage())
+					.collect(Collectors.joining(", "));
+			
+			return new ErroResponse("VALIDAÇÃO", mensagem);
+		}
 	
 	// --- Estado inválido → HTTP 409 Conflict ---
     @ExceptionHandler(IllegalStateException.class)

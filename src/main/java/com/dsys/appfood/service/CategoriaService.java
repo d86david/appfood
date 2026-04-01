@@ -82,7 +82,7 @@ public class CategoriaService {
 			.ifPresent(existente -> {
 				if(!existente.getId().equals(id)) {
 					throw new IllegalStateException(
-							"Ja existe uma categoria como nome: " + nomePadronizado);
+							"Ja existe uma categoria com o nome: " + nomePadronizado);
 				}
 			});
 		

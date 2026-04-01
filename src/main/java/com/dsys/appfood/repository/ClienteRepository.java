@@ -11,10 +11,13 @@ import com.dsys.appfood.domain.model.Cliente;
 @Repository
 public interface ClienteRepository extends JpaRepository<Cliente, Integer>{
 	
-	//--- BUSCAR CLIENTE POR NOME ---
+	//--- LISTAR CLIENTE POR NOME ---
 	List<Cliente> findByNomeContainingIgnoreCase(String nome);
 	
 	//--- BUSCAR CLIENTE POR TELEFONE ---
 	Optional<Cliente> findByTelefone(String telefone);
+	
+	// --- VERIFICA SE CLIENTE EXISTE E ESTA ATIVO PELO TELEFONE --- 
+	boolean existsByTelefoneAndAtivoTrue(String telefone);
 
 }

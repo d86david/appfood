@@ -5,67 +5,58 @@ import java.util.Objects;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name= "endereco")
+@Table(name = "endereco")
 public class Endereco {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
+
+	@Column(nullable = false)
+	private String logradouro;
+
+	private String numero;
+
+	private String complemento;
+
+	@Column(nullable = false)
+	private String bairro;
+
+	private String cidade;
+
+	private String uf;
 	
 	private String cep;
 	
-	@Column(nullable = false)
-	private String logradouro;
-	
-	@Column(nullable = false)
-	private String endereco;
-	
-	private String numero;
-	
-	@Column(nullable = false)
-	private String bairro;
-	
-	private String cidade;
-	
-	private String uf;
-	
-	//===========================================
+	@Column(name = "ponto_referencia")
+	private String pontoReferencia;
+
+	// ===========================================
 	// CONSTRUTORES
-	//===========================================
-	
+	// ===========================================
+
 	public Endereco() {
-		
+
 	}
-	
-	public Endereco(String cep, String logradouro, String endereco, String numero, 
-			String bairro, String cidade, String uf) {
-		this.cep = cep;
+
+	public Endereco(String logradouro, String numero, String complemento, String bairro, String cidade,
+			String uf, String cep, String pontoReferencia) {
 		this.logradouro = logradouro;
-		this.endereco = endereco;
 		this.numero = numero;
+		this.complemento = complemento;
 		this.bairro = bairro;
 		this.cidade = cidade;
 		this.uf = uf;
+		this.cep = cep;
+		this.pontoReferencia = pontoReferencia;
 	}
 
-	//===========================================
+	// ===========================================
 	// GETTERS E SETTERS
-	//===========================================
+	// ===========================================
 
 	public Integer getId() {
 		return id;
-	}
-
-	public void setId(Integer id) {
-		this.id = id;
-	}
-
-	public String getCep() {
-		return cep;
-	}
-
-	public void setCep(String cep) {
-		this.cep = cep;
 	}
 
 	public String getLogradouro() {
@@ -76,20 +67,20 @@ public class Endereco {
 		this.logradouro = logradouro;
 	}
 
-	public String getEndereco() {
-		return endereco;
-	}
-
-	public void setEndereco(String endereco) {
-		this.endereco = endereco;
-	}
-
 	public String getNumero() {
 		return numero;
 	}
 
 	public void setNumero(String numero) {
 		this.numero = numero;
+	}
+	
+	public String getComplemento() {
+		return complemento;
+	}
+	
+	public void setComplemento(String complemento) {
+		this.complemento = complemento;
 	}
 
 	public String getBairro() {
@@ -115,10 +106,26 @@ public class Endereco {
 	public void setUf(String uf) {
 		this.uf = uf;
 	}
+	
+	public String getCep() {
+		return cep;
+	}
 
-	//===========================================
+	public void setCep(String cep) {
+		this.cep = cep;
+	}
+	
+	public String getPontoReferencia() {
+		return pontoReferencia;
+	}
+
+	public void setPontoReferencia(String pontoReferencia) {
+		this.pontoReferencia = pontoReferencia;
+	}
+
+	// ===========================================
 	// HASHCODE E EQUALS
-	//===========================================
+	// ===========================================
 
 	@Override
 	public int hashCode() {
@@ -135,5 +142,5 @@ public class Endereco {
 			return false;
 		Endereco other = (Endereco) obj;
 		return Objects.equals(id, other.id);
-	}	
+	}
 }

@@ -11,7 +11,6 @@ import com.dsys.appfood.domain.model.PrecoVariavel;
 import com.dsys.appfood.domain.model.Produto;
 import com.dsys.appfood.domain.model.Tamanho;
 import com.dsys.appfood.dto.PrecoTamanhoRequest;
-import com.dsys.appfood.exception.NegocioException;
 import com.dsys.appfood.exception.ProdutoNaoEncontradoException;
 import com.dsys.appfood.repository.ProdutoRepository;
 

@@ -12,5 +12,9 @@ public class ClienteNaoEncontradoException extends EntidadeNaoEncontradaExceptio
 	public ClienteNaoEncontradoException(Integer id) {
 		super("Cliente não encontrado: id "+ id,id);
 	}
+	
+	public ClienteNaoEncontradoException(String telefone) {
+		super("Nenhum Cliente encontrado com o telefone: " + telefone);
+	}
 
 }

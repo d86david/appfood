@@ -1,6 +1,7 @@
 package com.dsys.appfood.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -14,9 +15,9 @@ public interface EnderecoRepository extends JpaRepository<Endereco, Integer> {
 	List<Endereco> findByEnderecoContainingIgnoreCase(String endereco);
 
 	//--- PESQUISA ENDERECO POR CEP ---
-	List<Endereco> findByCep(String cep);
+	Optional<Endereco> findByCep(String cep);
 
 	//--- PESQUISA ENDERECO POR BAIRRO---
-	List<Endereco> findByBairro(String bairro);
+	List<Endereco> findByBairroContainingIgnoreCase(String bairro);
 
 }
