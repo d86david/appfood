@@ -28,6 +28,12 @@ public class GlobalExcepetionHandler {
 	// ↑ Um único handler captura: EntregadorNaoEncontrado, ClienteNaoEncontrado, ProdutoNaoEncontrado — todos!
 	}
 	
+	// --- Endidade jpa cadastrada → HTTP 409 Conflict ---
+    @ExceptionHandler(EntidadeJaCadastradaException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErroResponse handleEstado(EntidadeJaCadastradaException ex) {
+        return new ErroResponse("CONFLITO", ex.getMessage());
+    }
 	
 	// --- Regra de negócio violada -> HTTP 422 --- 
 	@ExceptionHandler(NegocioException.class)

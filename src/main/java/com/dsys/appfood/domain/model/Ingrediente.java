@@ -19,6 +19,7 @@ public class Ingrediente {
 	/**
 	 * Valor adicional cobrado caso seja adicionado ao pedido.
 	 */
+	@Column(name = "valor_adicional")
 	private BigDecimal valorAdicional;
 
 	//===========================================
@@ -40,10 +41,6 @@ public class Ingrediente {
 
 	public Integer getId() {
 		return id;
-	}
-
-	public void setId(Integer id) {
-		this.id = id;
 	}
 
 	public String getNome() {

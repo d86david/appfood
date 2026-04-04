@@ -1,6 +1,5 @@
 package com.dsys.appfood.domain.model;
 
-
 import java.util.Objects;
 
 import com.dsys.appfood.domain.enums.TipoDocumento;
@@ -18,43 +17,58 @@ public class Cliente {
 	@Column(nullable = false)
 	private String nome;
 
-	private String telefone;
-	
+	@Column(name = "telefone_principal")
+	private String telefonePrincipal;
+
+	@Column(name = "telefone_secundario")
+	private String telefoneSecundario;
+
 	private boolean ativo = true;
-	
+
 	@Column(name = "tipo_documento")
 	private TipoDocumento tipoDocumento;
-	
+
 	@Column
 	private String documento;
+
+	private String email;
+
+	@Column(name = "observacao_cliente")
+	private String observacaoCliente;
 
 	@OneToOne
 	@JoinColumn(name = "endereco_id")
 	private Endereco endereco;
 
-	//===========================================
+	// ===========================================
 	// CONSTRUTORES
-	//===========================================
+	// ===========================================
 	public Cliente() {
 	}
 
-	public Cliente(String nome, String telefone,Endereco endereco, TipoDocumento tipoDocumento, String documento) {
+	public Cliente(String nome, String telefonePrincipal, String telefoneSecundario, TipoDocumento tipoDocumento,
+			String documento, String email, String observacaoCliente, Endereco endereco) {
 		this.nome = nome;
-		this.telefone = telefone;
-		this.endereco = endereco;
+		this.telefonePrincipal = telefonePrincipal;
+		this.telefoneSecundario = telefoneSecundario;
 		this.tipoDocumento = tipoDocumento;
 		this.documento = documento;
+		this.email = email;
+		this.observacaoCliente = observacaoCliente;
+		this.endereco = endereco;
+
 	}
-	
-	public Cliente(String nome, String telefone,Endereco endereco) {
+
+	public Cliente(String nome, String telefonePrincipal, String observacaoCliente, Endereco endereco) {
 		this.nome = nome;
-		this.telefone = telefone;
+		this.telefonePrincipal = telefonePrincipal;
+		this.observacaoCliente = observacaoCliente;
 		this.endereco = endereco;
 	}
-	
-	//===========================================
+
+	// ===========================================
 	// GETTERS E SETTERS
-	//===========================================
+	// ===========================================
 
 	public Integer getId() {
 		return id;
@@ -68,14 +82,18 @@ public class Cliente {
 		this.nome = nome;
 	}
 
-	public String getTelefone() {
-		return telefone;
+	public String getTelefonePrincipal() {
+		return telefonePrincipal;
 	}
 
-	public void setTelefone(String telefone) {
-		this.telefone = telefone;
+	public String getTelefoneSecundario() {
+		return telefoneSecundario;
 	}
-	
+
+	public void setTelefoneSecundario(String telefoneSecundario) {
+		this.telefoneSecundario = telefoneSecundario;
+	}
+
 	public boolean isAtivo() {
 		return ativo;
 	}
@@ -96,6 +114,22 @@ public class Cliente {
 		this.documento = documento;
 	}
 
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public String getObservacaoCliente() {
+		return observacaoCliente;
+	}
+
+	public void setObservacaoCliente(String observacaoCliente) {
+		this.observacaoCliente = observacaoCliente;
+	}
+
 	public Endereco getEndereco() {
 		return endereco;
 	}
@@ -103,21 +137,38 @@ public class Cliente {
 	public void setEndereco(Endereco endereco) {
 		this.endereco = endereco;
 	}
-	
-	//===========================================
+
+	// ===========================================
+	// ALTERAR TELEFONE PRINCIPAL
+	// ===========================================
+	public void alterarTelefonePrincipal(String telefone) {
+
+		if (telefone.equals(telefoneSecundario)) {
+			if (telefone == null || telefone.isBlank()) {
+				throw new IllegalArgumentException("Telefone não pode ser vazio.");
+			}
+			if (telefone.equals(telefoneSecundario)) {
+				throw new IllegalArgumentException("O telefone principal deve ser diferente do secundário.");
+			}
+
+			this.telefonePrincipal = telefone;
+		}
+	}
+
+	// ===========================================
 	// ATIVAR E DESATIVAR CLIENTE
-	//===========================================
+	// ===========================================
 	public void ativar() {
 		this.ativo = true;
 	}
-	
+
 	public void inativar() {
 		this.ativo = false;
 	}
 
-	//===========================================
+	// ===========================================
 	// HASHCODE E EQUALS
-	//===========================================
+	// ===========================================
 
 	@Override
 	public int hashCode() {

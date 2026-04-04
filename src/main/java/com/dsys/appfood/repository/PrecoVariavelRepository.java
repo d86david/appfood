@@ -8,7 +8,7 @@ import com.dsys.appfood.domain.model.PrecoVariavel;
 @Repository
 public interface PrecoVariavelRepository extends JpaRepository<PrecoVariavel, Integer>{
 	
-	// --- VERIFICAR SE EXISTE PRECOVARIAVEL COM O TAMANNHOID ---
+	// --- VERIFICAR SE EXISTE PRECO VARIAVEL COM O TAMANNHOID ---
 	boolean existsByTamanhoId(Integer id);
 
 }

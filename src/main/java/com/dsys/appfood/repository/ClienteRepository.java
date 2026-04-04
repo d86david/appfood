@@ -14,8 +14,8 @@ public interface ClienteRepository extends JpaRepository<Cliente, Integer>{
 	//--- LISTAR CLIENTE POR NOME ---
 	List<Cliente> findByNomeContainingIgnoreCase(String nome);
 	
-	//--- BUSCAR CLIENTE POR TELEFONE ---
-	Optional<Cliente> findByTelefone(String telefone);
+	//--- BUSCAR CLIENTE POR TELEFONE PRINCIPAL---
+	Optional<Cliente> findByTelefonePrincipal(String telefone);
 	
 	// --- VERIFICA SE CLIENTE EXISTE E ESTA ATIVO PELO TELEFONE --- 
 	boolean existsByTelefoneAndAtivoTrue(String telefone);

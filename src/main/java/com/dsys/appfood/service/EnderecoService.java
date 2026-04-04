@@ -51,15 +51,12 @@ public class EnderecoService {
 		// Padroniza os nomes
 		String logradouroPadronizado = logradouro.trim();
 		String numeroPadronizado = numero.trim();
-		String complementoPadronizado = complemento.trim();
 		String bairroPadronizado = bairro.trim();
-		String cidadePadronizado = cidade.trim();
-		String referenciaPadronizada = pontoReferencia.trim();
 
 		// MONTAR E SALVAR
 
-		Endereco endereco = new Endereco(logradouroPadronizado, numeroPadronizado, complementoPadronizado,
-				bairroPadronizado, cidadePadronizado, uf, cep,referenciaPadronizada );
+		Endereco endereco = new Endereco(logradouroPadronizado, numeroPadronizado, complemento,
+				bairroPadronizado, cidade, uf, cep,pontoReferencia );
 
 		return enderecoRepository.save(endereco);
 
@@ -89,10 +86,7 @@ public class EnderecoService {
 		// Padroniza os nomes
 		String logradouroPadronizado = logradouroNovo.trim();
 		String numeroPadronizado = numeroNovo.trim();
-		String complementoPadronizado = complementoNovo.trim();
 		String bairroPadronizado = bairroNovo.trim();
-		String cidadePadronizado = cidadeNova.trim();
-		String referenciaPadronizada = novoPontoReferencia.trim();
 
 		// BUSCA ENDEREÇO E LANÇA EXCEÇÃO SE NÃO EXISTIR
 		Endereco endereco = enderecoRepository.findById(id).orElseThrow(() -> new EnderecoNaoEncontradoException(id));
@@ -100,12 +94,12 @@ public class EnderecoService {
 		// MONTAR E SALVAR
 		endereco.setLogradouro(logradouroPadronizado);
 		endereco.setNumero(numeroPadronizado);
-		endereco.setComplemento(complementoPadronizado);
+		endereco.setComplemento(complementoNovo);
 		endereco.setBairro(bairroPadronizado);
-		endereco.setCidade(cidadePadronizado);
+		endereco.setCidade(cidadeNova);
 		endereco.setUf(ufNovo);
 		endereco.setCep(cepNovo);
-		endereco.setPontoReferencia(referenciaPadronizada);
+		endereco.setPontoReferencia(novoPontoReferencia);
 
 		return enderecoRepository.save(endereco);
 
@@ -123,8 +117,11 @@ public class EnderecoService {
 
 	// Listar enderecos por bairro
 	@Transactional(readOnly = true)
-	public List<Endereco> listarEnderecosPoBairro() {
-		return enderecoRepository.findByBairroContainingIgnoreCase(null);
+	public List<Endereco> listarEnderecosPorBairro(String bairro) {
+		if (bairro == null || bairro.isBlank()) {
+	        throw new IllegalArgumentException("Bairro deve ser informado.");
+	    }
+	    return enderecoRepository.findByBairroContainingIgnoreCase(bairro);
 	}
 
 }

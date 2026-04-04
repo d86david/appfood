@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.dsys.appfood.domain.model.Tamanho;
+import com.dsys.appfood.exception.NegocioException;
+import com.dsys.appfood.exception.TamanhoJaCadastradoException;
 import com.dsys.appfood.exception.TamanhoNaoEncontradoException;
 import com.dsys.appfood.repository.TamanhoRepository;
 
@@ -46,7 +48,7 @@ public class TamanhoService {
 
 		// Verifica se o tamanho ja existe no banco
 		if (tamanhoRepository.findByNomeIgnoreCase(nomePadronizado).isPresent()) {
-			throw new IllegalStateException("Já existe o tamanho : " + nomePadronizado);
+			throw new TamanhoJaCadastradoException(nomePadronizado);
 		}
 
 		// Tudo validado — cria e salva
@@ -75,7 +77,7 @@ public class TamanhoService {
 		// Verifica se outro registro ja usa esse nome
 		tamanhoRepository.findByNomeIgnoreCase(nomePadronizado).ifPresent(existente -> {
 			if (!existente.getId().equals(id)) {
-				throw new IllegalStateException("Ja existe um tamanho com o nome: " + nomePadronizado);
+				throw new TamanhoJaCadastradoException(nomePadronizado, id);
 			}
 		});
 		
@@ -98,7 +100,7 @@ public class TamanhoService {
 		
 		// Verificar se o tamanho tem produtos vinculados antes de excluir.
 		if(precoVariavelRepository.existsByTamanhoId(id)) {
-			throw new IllegalStateException("Esse Tamanho não pode ser excluído!"
+			throw new NegocioException("Esse Tamanho não pode ser excluído!"
 					+ "\nExistem precos cadastrados");
 		}
 		

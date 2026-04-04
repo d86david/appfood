@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.dsys.appfood.domain.model.Categoria;
+import com.dsys.appfood.exception.CategoriaJaCadastradaException;
 import com.dsys.appfood.exception.CategoriaNaoEncontradaException;
 import com.dsys.appfood.exception.NegocioException;
 import com.dsys.appfood.repository.CategoriaRepository;
@@ -50,7 +51,7 @@ public class CategoriaService {
 		
 		// Verifica se a Categoria ja existe no banco
 		if(categoriaRepository.findByNomeIgnoreCase(nomePadronizado).isPresent()) {
-			throw new IllegalStateException("Já existe uma categoria com o nome: " + nomePadronizado);
+			throw new CategoriaJaCadastradaException(nomePadronizado);
 		}
 		
 		// Tudo validado — agora sim cria e salva
@@ -81,8 +82,7 @@ public class CategoriaService {
 		categoriaRepository.findByNomeIgnoreCase(nomePadronizado)
 			.ifPresent(existente -> {
 				if(!existente.getId().equals(id)) {
-					throw new IllegalStateException(
-							"Ja existe uma categoria com o nome: " + nomePadronizado);
+					throw new CategoriaJaCadastradaException(nomePadronizado);
 				}
 			});
 		

@@ -4,7 +4,7 @@ package com.dsys.appfood.exception;
  *  EXCEÇÃO - para Cliente já cadastrado e ativo
  * 
  */
-public class ClienteJaCadastradoException extends RuntimeException{
+public class ClienteJaCadastradoException extends EntidadeJaCadastradaException{
 
 
 	private static final long serialVersionUID = 1L;

@@ -11,8 +11,8 @@ import com.dsys.appfood.domain.model.Endereco;
 @Repository
 public interface EnderecoRepository extends JpaRepository<Endereco, Integer> {
 
-	//--- PESQUISA POR ENDERECO ---
-	List<Endereco> findByEnderecoContainingIgnoreCase(String endereco);
+	//--- PESQUISA POR LOGRADOURO ---
+	List<Endereco> findByLogradouroContainingIgnoreCase(String logradouro);
 
 	//--- PESQUISA ENDERECO POR CEP ---
 	Optional<Endereco> findByCep(String cep);

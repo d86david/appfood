@@ -7,7 +7,6 @@ import com.dsys.appfood.exception.ClienteJaCadastradoException;
 import com.dsys.appfood.exception.ClienteNaoEncontradoException;
 import com.dsys.appfood.exception.NegocioException;
 import com.dsys.appfood.repository.ClienteRepository;
-import com.dsys.appfood.repository.EnderecoRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,56 +26,124 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ClienteService {
 
-	private final EnderecoRepository enderecoRepository;
 	private final ClienteRepository clienteRepository;
 
-	public ClienteService(ClienteRepository clienteRepository, EnderecoRepository enderecoRepository) {
+	public ClienteService(ClienteRepository clienteRepository) {
 
 		this.clienteRepository = clienteRepository;
-		this.enderecoRepository = enderecoRepository;
 	}
 
 	// =============================================================
-	// CADASTRAR
+	// CADASTRO RAPIDO
 	// =============================================================
 
+	/**
+	 * Cadastro de cliente rápido apenas com as informações importante para o pedido
+	 * Usado na tela de pedido quando não tiver o cliente cadastrado e precisar
+	 * realizar um cadastro mais rapido com o minimo de informação possivel
+	 * 
+	 */
 	@Transactional
-	public Cliente cadastrarCliente(String nome, String telefone, Endereco endereco) {
+	public Cliente cadastrarClienteRapido(String nome, String telefonePrincipal, String observacaoCliente,
+			Endereco endereco) {
 
 		// VALIDAÇÕES SEM BANCO
 		if (nome == null || nome.isBlank()) {
 			throw new IllegalArgumentException("O nome deve ser informado");
 		}
 
-		if (telefone == null || telefone.isBlank()) {
+		if (telefonePrincipal == null || telefonePrincipal.isBlank()) {
 			throw new IllegalArgumentException("O telefone deve ser informado");
 		}
+
+		String nomePadronizado = nome.trim();
 
 		// VALIDAÇÕES COM BANCO
 
 		// Busca e trata o cenário de cliente já existente
-		Optional<Cliente> clienteExistente = clienteRepository.findByTelefone(telefone);
+		Optional<Cliente> clienteExistente = clienteRepository.findByTelefonePrincipal(telefonePrincipal);
 
 		if (clienteExistente.isPresent()) {
 			Cliente existente = clienteExistente.get();
 
 			if (existente.isAtivo()) {
-				throw new ClienteJaCadastradoException(telefone);
+				throw new ClienteJaCadastradoException(telefonePrincipal);
 			}
 
 			// Reativa e atualiza os dados
 			existente.ativar();
-			existente.setNome(nome);
+			existente.setNome(nomePadronizado);
 			existente.setEndereco(endereco);
+			existente.setObservacaoCliente(observacaoCliente);
 
-			return existente;
+			return clienteRepository.save(existente);
 
 		}
 
 		// MONTAR E SALVAR
 
 		// Se não existe, cria um novo
-		Cliente cliente = new Cliente(nome, telefone, endereco);
+		Cliente cliente = new Cliente(nomePadronizado, telefonePrincipal, observacaoCliente, endereco);
+
+		return clienteRepository.save(cliente);
+	}
+
+	// =============================================================
+	// CADASTRO COMPLETO
+	// =============================================================
+
+	/**
+	 * Cadastro de cliente completo com todas as informações 
+	 * Usado na tela de cadastros quando o operador não estiver em atendimento
+	 * 
+	 */
+	@Transactional
+	public Cliente cadastrarClienteCompleto(String nome, String telefonePrincipal, String telefoneSecundario, TipoDocumento tipoDocumento,
+			String documento, String email, String observacaoCliente, Endereco endereco) {
+
+		// VALIDAÇÕES SEM BANCO
+		if (nome == null || nome.isBlank()) {
+			throw new IllegalArgumentException("O nome deve ser informado");
+		}
+
+		if (telefonePrincipal == null || telefonePrincipal.isBlank()) {
+			throw new IllegalArgumentException("O telefone deve ser informado");
+		}
+
+		String nomePadronizado = nome.trim();
+		String emailPadronizado = email.trim();
+
+		// VALIDAÇÕES COM BANCO
+
+		// Busca e trata o cenário de cliente já existente
+		Optional<Cliente> clienteExistente = clienteRepository.findByTelefonePrincipal(telefonePrincipal);
+
+		if (clienteExistente.isPresent()) {
+			Cliente existente = clienteExistente.get();
+
+			if (existente.isAtivo()) {
+				throw new ClienteJaCadastradoException(telefonePrincipal);
+			}
+
+			// Reativa e atualiza os dados
+			existente.ativar();
+			existente.setNome(nomePadronizado);
+			existente.setTelefoneSecundario(telefoneSecundario);
+			existente.setTipoDocumento(tipoDocumento);
+			existente.setDocumento(documento);
+			existente.setEmail(emailPadronizado);
+			existente.setEndereco(endereco);
+			existente.setObservacaoCliente(observacaoCliente);
+
+			return clienteRepository.save(existente);
+
+		}
+
+		// MONTAR E SALVAR
+
+		// Se não existe, cria um novo
+		Cliente cliente = new Cliente(nomePadronizado, telefonePrincipal, telefoneSecundario, tipoDocumento, 
+				documento, emailPadronizado, observacaoCliente, endereco);
 
 		return clienteRepository.save(cliente);
 	}
@@ -86,43 +153,41 @@ public class ClienteService {
 	// =============================================================
 
 	@Transactional
-	public Cliente editarCliente(Integer id, String novoNome, String novoTelefone, TipoDocumento novoTpDocumento,
-			String novoDocumento, Endereco novoEndereco) {
+	public Cliente editarCliente(Integer id, String novoNome, String novoTelefonePrincipal, String novoTelefoneSecundario, TipoDocumento novoTipoDocumento,
+			String novoDocumento, String novoEmail, String novaObservacaoCliente, Endereco novoEndereco) {
 
 		// VALIDAÇÕES SEM BANCO
 		if (novoNome == null || novoNome.isBlank()) {
 			throw new IllegalArgumentException("O nome deve ser informado");
 		}
 
-		if (novoTelefone == null || novoTelefone.isBlank()) {
+		if (novoTelefonePrincipal == null || novoTelefonePrincipal.isBlank()) {
 
 			throw new IllegalArgumentException("O telefone deve ser informado");
 		}
 
 		String nomePadronizado = novoNome.trim();
-		String telefonePadronizado = novoTelefone.trim();
-		String documentoPadronizado = novoDocumento.trim();
+		String emailPadronizado = novoEmail.trim();
 
 		Cliente cliente = clienteRepository.findById(id).orElseThrow(() -> new ClienteNaoEncontradoException(id));
 
-		clienteRepository.findByTelefone(telefonePadronizado).ifPresent(existente -> {
-			if (!existente.getTelefone().equals(telefonePadronizado)) {
-				throw new IllegalStateException("Ja existe um cliente com o telefone: " + telefonePadronizado);
+		clienteRepository.findByTelefonePrincipal(novoTelefonePrincipal).ifPresent(existente -> {
+			if (!existente.getId().equals(id)) {
+				throw new IllegalStateException("Ja existe um cliente com o telefone: " + novoTelefonePrincipal);
 			}
 		});
 
 		if (novoEndereco != null) {
-			if (enderecoRepository.existsById(novoEndereco.getId())) {
-				throw new IllegalStateException("Ja existe um cliente com esse endereço");
-			}
-
 			cliente.setEndereco(novoEndereco);
 		}
 
 		cliente.setNome(nomePadronizado);
-		cliente.setTelefone(telefonePadronizado);
-		cliente.setTipoDocumento(novoTpDocumento);
-		cliente.setDocumento(documentoPadronizado);
+		cliente.alterarTelefonePrincipal(novoTelefonePrincipal);
+		cliente.setTelefoneSecundario(novoTelefoneSecundario);
+		cliente.setTipoDocumento(novoTipoDocumento);
+		cliente.setDocumento(novoDocumento);
+		cliente.setEmail(emailPadronizado);
+		cliente.setObservacaoCliente(novaObservacaoCliente);
 
 		return clienteRepository.save(cliente);
 
@@ -150,6 +215,7 @@ public class ClienteService {
 	// =============================================================
 	// INATIVAR
 	// =============================================================
+	@Transactional
 	public void inativarCliente(Integer id) {
 
 		// Busca Cliente e lança Exceção se não existir
@@ -160,7 +226,7 @@ public class ClienteService {
 			throw new NegocioException("Cliente já ativo id: " + id);
 		}
 
-		cliente.ativar();
+		cliente.inativar();
 
 		clienteRepository.save(cliente);
 	}
@@ -183,17 +249,16 @@ public class ClienteService {
 
 		return clienteRepository.findByNomeContainingIgnoreCase(nome);
 	}
-	
+
 	@Transactional(readOnly = true)
-	public Cliente buscarClientePeloTelefone(String telefone){
-		return clienteRepository.findByTelefone(telefone)
+	public Cliente buscarClientePeloTelefone(String telefone) {
+		return clienteRepository.findByTelefonePrincipal(telefone)
 				.orElseThrow(() -> new ClienteNaoEncontradoException(telefone));
 	}
-	
+
 	@Transactional(readOnly = true)
 	public Cliente buscarClientePorId(Integer id) {
-		return clienteRepository.findById(id).orElseThrow(
-				() -> new ClienteNaoEncontradoException(id));
+		return clienteRepository.findById(id).orElseThrow(() -> new ClienteNaoEncontradoException(id));
 	}
 
 }
