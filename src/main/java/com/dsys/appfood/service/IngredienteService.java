@@ -1,6 +1,8 @@
 package com.dsys.appfood.service;
 
+import com.dsys.appfood.domain.model.ComposicaoPadrao;
 import com.dsys.appfood.domain.model.Ingrediente;
+import com.dsys.appfood.domain.model.Produto;
 import com.dsys.appfood.exception.IngredienteJaCadastradoException;
 import com.dsys.appfood.exception.IngredienteNaoEncontradoException;
 import com.dsys.appfood.exception.NegocioException;
@@ -9,6 +11,7 @@ import com.dsys.appfood.repository.IngredienteRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -131,5 +134,19 @@ public class IngredienteService {
 				.orElseThrow(() -> new IngredienteNaoEncontradoException(id));
 	}
 
+	@Transactional(readOnly = true)
+	public List<Produto> buscarProdutosPorIngrediente(Integer ingredienteId){
+		
+		// garante que o ingrediente existe
+		buscarIngredientePorId(ingredienteId);
+		
+		// busca todas as receitas que tem esse ingrediente
+		List<ComposicaoPadrao> composicoes = composicaoPadadraoRepository.findByIngredientesId(ingredienteId);
+		
+		// Extrai apenas o Produto de dentro de cada Composição com stream
+		return composicoes.stream()
+				.map(ComposicaoPadrao::getProduto)
+				.collect(Collectors.toList());
+	}
 	
 }
