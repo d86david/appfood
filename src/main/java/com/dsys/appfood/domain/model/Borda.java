@@ -6,11 +6,11 @@ import java.util.Objects;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "ingrediente")
-public class Ingrediente {
+@Table(name = "borda")
+public class Borda {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY) 
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 
 	@Column(nullable = false)
@@ -26,11 +26,11 @@ public class Ingrediente {
 	// CONSTRUTORES
 	//===========================================
 
-	public Ingrediente() {
+	public Borda() {
 
 	}
 
-	public Ingrediente(String nome, BigDecimal valorAdicional) {
+	public Borda(String nome, BigDecimal valorAdicional) {
 		this.nome = nome;
 		this.valorAdicional = valorAdicional;
 	}
@@ -56,7 +56,7 @@ public class Ingrediente {
 	}
 
 	/**
-	 * Atualiza o valor adicional do ingrediente.
+	 * Atualiza o valor Adicional da Borda.
 	 *
 	 * Esse método deve ser usado apenas por administração do sistema.
 	 */
@@ -86,7 +86,7 @@ public class Ingrediente {
 		if (getClass() != obj.getClass())
 			return false;
 		Ingrediente other = (Ingrediente) obj;
-		return Objects.equals(id, other.id);
+		return Objects.equals(id, other.getId());
 	}
 
 }

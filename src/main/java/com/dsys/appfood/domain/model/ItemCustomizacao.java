@@ -23,6 +23,20 @@ public class ItemCustomizacao {
 	@ManyToOne
 	@JoinColumn(name = "subitem_id")
 	private SubItemSabor subItemSabor;
+	
+	/**
+     * ItemPedido ao qual esta customização Global pertence.
+     */
+	@ManyToOne
+	@JoinColumn(name = "itemPedido_id")
+	private ItemPedido itemPedido;
+	
+	/**
+     * Borda envolvida na customização.
+     */
+	@ManyToOne
+	@JoinColumn(name = "borda_id")
+	private Borda borda;
 
 	/**
      * Ingrediente envolvido na customização.
@@ -58,7 +72,7 @@ public class ItemCustomizacao {
 		this.subItemSabor = subItemSabor;
 		this.ingrediente = ingrediente;
 		this.tipoCustomizacao = tipoCustomizacao;
-		this.valorCobrado = valorCobrado;
+		adicionarValorACustomizacao(valorCobrado);
 	}
 
 	//===========================================
@@ -69,9 +83,6 @@ public class ItemCustomizacao {
 		return id;
 	}
 
-	public void setId(Integer id) {
-		this.id = id;
-	}
 
 	public SubItemSabor getSubItemSabor() {
 		return subItemSabor;
@@ -83,6 +94,14 @@ public class ItemCustomizacao {
 
 	public void setIngrediente(Ingrediente ingrediente) {
 		this.ingrediente = ingrediente;
+	}
+	
+	public Borda getBorda() {
+		return borda;
+	}
+
+	public void setBorda(Borda borda) {
+		this.borda = borda;
 	}
 
 	public TipoCustomizacao getTipoCustomizacao() {
@@ -100,8 +119,15 @@ public class ItemCustomizacao {
 	/*
 	 * Método para associar ItemCustomização ao SubItemSabor
 	 */
-	void associarSubItem(SubItemSabor subItem) {
+	public void associarSubItem(SubItemSabor subItem) {
 		this.subItemSabor = subItem;
+	}
+	
+	/*
+	 * Método para associar ItemCustomização ao ItemPedido
+	 */
+	public void associarItemPedido(ItemPedido itemPedido) {
+		this.itemPedido = itemPedido;
 	}
 	
 	/**

@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Classe responsavel por orquestar todas as regras de negócio relacionadas ao Caixa
  * 
- * Responsabilidade ÚNICA: gerencias o ciclo de vida do Caixa (abertura -> movimentação -> fechamento)
+ * Responsabilidade ÚNICA: gerenciar o ciclo de vida do Caixa (abertura -> movimentação -> fechamento)
  * 
  * Este Service NÃO sabe nada sobre HTTP, Apenas processa e lança exceções de negócio.
  */

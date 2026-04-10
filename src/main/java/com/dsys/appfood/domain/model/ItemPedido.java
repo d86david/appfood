@@ -55,6 +55,12 @@ public class ItemPedido {
      */
 	@OneToMany(mappedBy = "item", cascade = CascadeType.ALL)
 	private List<SubItemSabor> subItens = new ArrayList<>();
+	
+	/**
+	 * Lista de customizações aplicadas ao Item independente so sabor.
+	 */
+	@OneToMany(mappedBy = "itemPedido", cascade = CascadeType.ALL)
+	private List<ItemCustomizacao> customizacoesGlobais = new ArrayList<>();
 
 	//===========================================
 	// CONSTRUTORES
@@ -94,6 +100,10 @@ public class ItemPedido {
 
 	public List<SubItemSabor> getSubItens() {
 		return subItens;
+	}
+	
+	public List<ItemCustomizacao> getCustomizacoesGlobais() {
+		return customizacoesGlobais;
 	}
 
 	//===========================================
@@ -152,6 +162,28 @@ public class ItemPedido {
 		
 		//retorna o maior valor entre os sabores + a soma de todos os adicionais
 		return precoMaiorSabor.add(totalAdicionais);
+	}
+	
+	/**
+	 * Método reponsavel por por adicionar uma customização ao Item por inteiro
+	 * Este método garante a integridade da relação entre ItemPedido e ItemCustomizacao
+	 * para customizações que indepenem do sabor
+	 * @return
+	 */
+	public void adicionarCustomizacaoGlobal(ItemCustomizacao customizacao) {
+		
+		Objects.requireNonNull(customizacao, "Customização não pode ser nula");
+		
+		customizacao.associarItemPedido(this);
+		
+		customizacoesGlobais.add(customizacao);
+	}
+	
+	/**
+	 * Remove uma customização do Item
+	 */
+	public void removerCustomizacaoGlobal(ItemCustomizacao customizacao) {
+		customizacoesGlobais.remove(customizacao);
 	}
 
 	//===========================================
