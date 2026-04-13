@@ -5,9 +5,11 @@ import com.dsys.appfood.domain.enums.TipoCustomizacao;
 import com.dsys.appfood.domain.enums.TipoPedido;
 import com.dsys.appfood.domain.model.Borda;
 import com.dsys.appfood.domain.model.Cliente;
+import com.dsys.appfood.domain.model.Entregador;
 import com.dsys.appfood.domain.model.Ingrediente;
 import com.dsys.appfood.domain.model.ItemCustomizacao;
 import com.dsys.appfood.domain.model.ItemPedido;
+import com.dsys.appfood.domain.model.Mesa;
 import com.dsys.appfood.domain.model.Pedido;
 import com.dsys.appfood.domain.model.Produto;
 import com.dsys.appfood.domain.model.SubItemSabor;
@@ -19,6 +21,7 @@ import com.dsys.appfood.repository.ItemPedidoRepository;
 import com.dsys.appfood.repository.PedidoRepository;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +38,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class PedidoService {
 
+	private final EntregadorService entregadorService;
+	private final MesaService mesaService;
 	private final BordaService bordaService;
 	private final IngredienteService ingredienteService;
 	private final PedidoRepository pedidoRepository;
@@ -45,7 +50,8 @@ public class PedidoService {
 
 	public PedidoService(ItemPedidoRepository itemPedidoRepository, ClienteService clienteService,
 			UsuarioService usuarioService, ProdutoService produtoService, TamanhoService tamanhoService,
-			PedidoRepository pedidoRepository, IngredienteService ingredienteService, BordaService bordaService) {
+			PedidoRepository pedidoRepository, IngredienteService ingredienteService, BordaService bordaService,
+			MesaService mesaService, EntregadorService entregadorService) {
 
 		this.clienteService = clienteService;
 		this.usuarioService = usuarioService;
@@ -54,6 +60,8 @@ public class PedidoService {
 		this.pedidoRepository = pedidoRepository;
 		this.ingredienteService = ingredienteService;
 		this.bordaService = bordaService;
+		this.mesaService = mesaService;
+		this.entregadorService = entregadorService;
 
 	}
 
@@ -61,40 +69,58 @@ public class PedidoService {
 	// 1. NASCIMENTO DO PEDIDO (ABERTURA)
 	// =============================================================
 	@Transactional
-	public Pedido iniciarPedido(Integer clienteId, Integer operadorId, TipoPedido tipo, String nomeBalcao) {
+	public Pedido iniciarPedido(Integer clienteId, Integer operadorId, TipoPedido tipo, String nomeBalcao,
+			Integer numeroMesa, String obsPedido) {
 
 		// 1. Busca o Operador
 		Usuario operador = usuarioService.buscaPorId(operadorId);
 
-		// 2. Validação de Entrega
+		// 2. Validação para mesa
+		if (tipo == TipoPedido.MESA && numeroMesa == null) {
+			throw new NegocioException("Para pedidos de mesa, é obrigatório informar o número da mesa.");
+		}
+
+		// 2.1 Se for mesa verificar se a mesa existe e está livre
+		if (tipo == TipoPedido.MESA) {
+			Mesa mesa = mesaService.buscarPorNumero(numeroMesa);
+			if (mesa.isOcupada()) {
+				throw new NegocioException("A mesa " + numeroMesa + " já está ocupada.");
+			}
+
+			mesaService.ocuparMesa(numeroMesa);
+		}
+
+		// 3. Validação de Entrega
 		if (tipo == TipoPedido.ENTREGA && clienteId == null) {
 			throw new NegocioException("Para pedidos de entrega, é obrigatório informar o cliente.");
 		}
 
-		// 3. Validação de Balcão (Nome é obrigatório se não houver ID)
+		// 4. Validação de Balcão (Nome é obrigatório se não houver ID)
 		if (tipo == TipoPedido.BALCAO && clienteId == null && (nomeBalcao == null || nomeBalcao.isEmpty())) {
 
 			throw new NegocioException("Para pedidos de balcão sem cadastro, informe o nome do cliente");
 		}
 
-		// 4. Busca o Cliente apenas se o ID foi enviado (Evita erro de busca nula)
+		// 5. Busca o Cliente apenas se o ID foi enviado (Evita erro de busca nula)
 		Cliente cliente = null;
 		if (clienteId != null) {
 			cliente = clienteService.buscarClientePorId(clienteId);
 		}
 
-		// 5. Instancia e configura
+		// 6. Instancia e configura
 		Pedido pedido = new Pedido();
 		pedido.setTipo(tipo);
 		pedido.setOperador(operador);
 		pedido.setCliente(cliente);
 		pedido.setNomeBalcao(nomeBalcao);
+		pedido.setNumeroMesa(numeroMesa);
+		pedido.setObsPedido(obsPedido);
 
-		// 6. Registra o status inicial (Usando seu método da Model que já grava
+		// 7. Registra o status inicial (Usando seu método da Model que já grava
 		// histórico)
 		pedido.alteraStatus(StatusPedido.PEDIDO_INICIADO, operador);
 
-		// Salvar no repository e retornar.
+		// 8. Salvar no repository e retornar.
 		return pedidoRepository.save(pedido);
 	}
 
@@ -122,7 +148,7 @@ public class PedidoService {
 		// Adicionar o item ao pedido
 		pedido.adicionarItem(item);
 
-		// TODO 6: Salvar o Pedido. O CascadeType.ALL que você colocou na Model vai
+		// Salvar o Pedido. O CascadeType.ALL que você colocou na Model vai
 		// salvar o ItemPedido automaticamente!
 		return pedidoRepository.save(pedido);
 	}
@@ -154,19 +180,19 @@ public class PedidoService {
 	}
 
 	// =============================================================
-	// CUSTOMIZAÇÕES
+	// 3. CUSTOMIZAÇÕES
 	// =============================================================
-	
+
 	// --- 1. ADICIONAR INGREDIENTE AO SABOR ---
 	@Transactional
-	public Pedido adicionarCustomizacao(Integer pedidoId, Integer itemId, Integer subItemId,
-			Integer ingredienteId, TipoCustomizacao tipo) {
-		
-		//Verifica se o tipo de customização é Adição ou Remoção 
-			if(tipo != TipoCustomizacao.ADICIONAL && tipo != TipoCustomizacao.REMOCAO) {
-				throw new NegocioException("Customização " + tipo + "não permitida em sabores.");
-			}
-		
+	public Pedido adicionarCustomizacao(Integer pedidoId, Integer itemId, Integer subItemId, Integer ingredienteId,
+			TipoCustomizacao tipo) {
+
+		// Verifica se o tipo de customização é Adição ou Remoção
+		if (tipo != TipoCustomizacao.ADICIONAL && tipo != TipoCustomizacao.REMOCAO) {
+			throw new NegocioException("Customização " + tipo + "não permitida em sabores.");
+		}
+
 		// Buscar Pedido
 		Pedido pedido = buscarPorId(pedidoId);
 
@@ -177,24 +203,21 @@ public class PedidoService {
 		}
 
 		// Achar o Item do Pedido
-		ItemPedido itemEncontrado = pedido.getItens().stream()
-				.filter(item -> item.getId().equals(itemId))
-				.findFirst()
+		ItemPedido itemEncontrado = pedido.getItens().stream().filter(item -> item.getId().equals(itemId)).findFirst()
 				.orElseThrow(() -> new NegocioException(
 						"Item ID " + itemId + " não encontrado no pedido ID " + pedido.getId()));
 
-		// Achar o sabor dentro do item 
+		// Achar o sabor dentro do item
 		SubItemSabor saborEncontrado = itemEncontrado.getSubItens().stream()
-				.filter(sub ->sub.getId().equals(subItemId))
-				.findFirst()
+				.filter(sub -> sub.getId().equals(subItemId)).findFirst()
 				.orElseThrow(() -> new NegocioException("Sabor não encontrado nesse item"));
-		
+
 		// Buscar o Ingrediente
 		Ingrediente ingrediente = ingredienteService.buscarIngredientePorId(ingredienteId);
-		
+
 		// Definir o valor.
 		BigDecimal preco = (tipo == TipoCustomizacao.REMOCAO) ? BigDecimal.ZERO : ingrediente.getValorAdicional();
-		
+
 		// Instanciar a Customizacao
 		ItemCustomizacao custimizacao = new ItemCustomizacao();
 		custimizacao.associarSubItem(saborEncontrado);
@@ -202,125 +225,259 @@ public class PedidoService {
 		custimizacao.setTipoCustomizacao(tipo);
 		custimizacao.adicionarValorACustomizacao(preco);
 
-		//Adicionar na Lista
+		// Adicionar na Lista
 		saborEncontrado.adicionarCustomizacao(custimizacao);
-		
-		//Recalcular e Salvar
+
+		// Recalcular e Salvar
 		pedido.calcularTotal();
 		return pedidoRepository.save(pedido);
 	}
-	
-	// --- 2. ADICIONAR BORDA AO ITEM --- 
+
+	// --- 2. ADICIONAR BORDA AO ITEM ---
 	@Transactional
 	public Pedido adicionarBordaAoItem(Integer pedidoId, Integer itemId, Integer bordaId) {
-		
-		//Buscar Pedido
+
+		// Buscar Pedido
 		Pedido pedido = buscarPorId(pedidoId);
-		
-		//Achar o Item 
-		ItemPedido itemEncontrado = pedido.getItens().stream()
-				.filter(item -> item.getId().equals(itemId))
-				.findFirst()
+
+		// Achar o Item
+		ItemPedido itemEncontrado = pedido.getItens().stream().filter(item -> item.getId().equals(itemId)).findFirst()
 				.orElseThrow(() -> new NegocioException("Item não encontrado"));
-		
+
 		// Buscar o Ingrediete da borda
-		Borda borda =  bordaService.buscarBordaPorId(bordaId);
-		
+		Borda borda = bordaService.buscarBordaPorId(bordaId);
+
 		// Instanciar a customização ligada direto ao item (não ao sabor)
 		ItemCustomizacao customizacao = new ItemCustomizacao();
 		customizacao.associarItemPedido(itemEncontrado);
 		customizacao.setBorda(borda);
 		customizacao.setTipoCustomizacao(TipoCustomizacao.BORDA);
 		customizacao.adicionarValorACustomizacao(borda.getValorAdicional());
-		
-		// Adicionar ao item 
+
+		// Adicionar ao item
 		itemEncontrado.adicionarCustomizacaoGlobal(customizacao);
-		
-		//Calcular Total 
+
+		// Calcular Total
 		pedido.calcularTotal();
-		
-		//Salvar e retornar
+
+		// Salvar e retornar
 		return pedidoRepository.save(pedido);
 	}
-	
+
 	// --- 3. REMOVER INGREDIENTE DO SABOR ---
-		@Transactional
-		public Pedido removerCustomizacao(Integer pedidoId, Integer itemId, Integer subItemId,
-				Integer ingredienteId) {
-			
-			// Buscar Pedido
-			Pedido pedido = buscarPorId(pedidoId);
+	@Transactional
+	public Pedido removerCustomizacao(Integer pedidoId, Integer itemId, Integer subItemId, Integer ingredienteId) {
 
-			// Validar Status
-			if (pedido.getStatus() != StatusPedido.PEDIDO_INICIADO && pedido.getStatus() != StatusPedido.PENDENTE) {
+		// Buscar Pedido
+		Pedido pedido = buscarPorId(pedidoId);
 
-				throw new NegocioException("O status atual (" + pedido.getStatus() + ") não permite customizações.");
-			}
+		// Validar Status
+		if (pedido.getStatus() != StatusPedido.PEDIDO_INICIADO && pedido.getStatus() != StatusPedido.PENDENTE) {
 
-			// Achar o Item do Pedido
-			ItemPedido itemEncontrado = pedido.getItens().stream()
-					.filter(item -> item.getId().equals(itemId))
-					.findFirst()
-					.orElseThrow(() -> new NegocioException(
-							"Item ID " + itemId + " não encontrado no pedido ID " + pedido.getId()));
-
-			// Achar o sabor dentro do item 
-			SubItemSabor saborEncontrado = itemEncontrado.getSubItens().stream()
-					.filter(sub ->sub.getId().equals(subItemId))
-					.findFirst()
-					.orElseThrow(() -> new NegocioException("Sabor não encontrado nesse item"));
-			
-			//Encontrar a customização REAL que está na lista para poder remover
-			ItemCustomizacao customizacaoExistente = saborEncontrado.getCustomizacoes().stream()
-					.filter(c -> c.getIngrediente().getId().equals(ingredienteId))
-					.findFirst()
-					.orElseThrow(() -> new NegocioException("Esta customização não existe neste sabor."));
-
-			//Remover da Lista
-			saborEncontrado.removerCustomizacao(customizacaoExistente);
-			
-			//Recalcular e Salvar
-			pedido.calcularTotal();
-			return pedidoRepository.save(pedido);
+			throw new NegocioException("O status atual (" + pedido.getStatus() + ") não permite customizações.");
 		}
-		
-		// --- 4. REMOVER BORDA DO ITEM --- 
-		@Transactional
-		public Pedido removerBordaDoItem(Integer pedidoId, Integer itemId, Integer bordaId) {
-			
-			//Buscar Pedido
-			Pedido pedido = buscarPorId(pedidoId);
-			
-			//Achar o Item 
-			ItemPedido itemEncontrado = pedido.getItens().stream()
-					.filter(item -> item.getId().equals(itemId))
-					.findFirst()
-					.orElseThrow(() -> new NegocioException("Item não encontrado"));
-			
-			//Encontrar a customização REAL que está na lista para poder remover
-			ItemCustomizacao bordaExistente = itemEncontrado.getCustomizacoesGlobais().stream()
-					.filter(c -> c.getBorda().getId().equals(bordaId))
-					.findFirst()
-					.orElseThrow(() -> new NegocioException("Esta borda não existe neste Item."));
-			
-			// Adicionar ao item 
-			itemEncontrado.removerCustomizacaoGlobal(bordaExistente);
-			
-			//Calcular Total 
-			pedido.calcularTotal();
-			
-			//Salvar e retornar
-			return pedidoRepository.save(pedido);
-		}
-	
-	
+
+		// Achar o Item do Pedido
+		ItemPedido itemEncontrado = pedido.getItens().stream().filter(item -> item.getId().equals(itemId)).findFirst()
+				.orElseThrow(() -> new NegocioException(
+						"Item ID " + itemId + " não encontrado no pedido ID " + pedido.getId()));
+
+		// Achar o sabor dentro do item
+		SubItemSabor saborEncontrado = itemEncontrado.getSubItens().stream()
+				.filter(sub -> sub.getId().equals(subItemId)).findFirst()
+				.orElseThrow(() -> new NegocioException("Sabor não encontrado nesse item"));
+
+		// Encontrar a customização REAL que está na lista para poder remover
+		ItemCustomizacao customizacaoExistente = saborEncontrado.getCustomizacoes().stream()
+				.filter(c -> c.getIngrediente().getId().equals(ingredienteId)).findFirst()
+				.orElseThrow(() -> new NegocioException("Esta customização não existe neste sabor."));
+
+		// Remover da Lista
+		saborEncontrado.removerCustomizacao(customizacaoExistente);
+
+		// Recalcular e Salvar
+		pedido.calcularTotal();
+		return pedidoRepository.save(pedido);
+	}
+
+	// --- 4. REMOVER BORDA DO ITEM ---
+	@Transactional
+	public Pedido removerBordaDoItem(Integer pedidoId, Integer itemId, Integer bordaId) {
+
+		// Buscar Pedido
+		Pedido pedido = buscarPorId(pedidoId);
+
+		// Achar o Item
+		ItemPedido itemEncontrado = pedido.getItens().stream().filter(item -> item.getId().equals(itemId)).findFirst()
+				.orElseThrow(() -> new NegocioException("Item não encontrado"));
+
+		// Encontrar a customização REAL que está na lista para poder remover
+		ItemCustomizacao bordaExistente = itemEncontrado.getCustomizacoesGlobais().stream()
+				.filter(c -> c.getBorda().getId().equals(bordaId)).findFirst()
+				.orElseThrow(() -> new NegocioException("Esta borda não existe neste Item."));
+
+		// Adicionar ao item
+		itemEncontrado.removerCustomizacaoGlobal(bordaExistente);
+
+		// Calcular Total
+		pedido.calcularTotal();
+
+		// Salvar e retornar
+		return pedidoRepository.save(pedido);
+	}
 
 	// =============================================================
-	// MÉTODOS PRIVADOS AUXILIARES
+	// 4. FINALIZAR PEDIDO
+	// =============================================================
+
+	public Pedido finalizarPedido(Integer pedidoId, Integer operadorId) {
+
+		// BUSCAR E VALIDAR ENTIDADES
+
+		Pedido pedido = buscarPorId(pedidoId);
+		Usuario operador = usuarioService.buscaPorId(operadorId);
+
+		// FINALIZAR PEDIDOS, AS VALIDAÇÕES SÃO FEITAS NA MODEL
+		pedido.finalizarPedido(operador);
+
+		// LIBERAR RECURSOS (pós-finalização)
+
+		// Se for MESA, libera a mesa para novos clientes
+		if (pedido.getTipo() == TipoPedido.MESA && pedido.getNumeroMesa() != null) {
+			try {
+				mesaService.liberarMesa(pedido.getNumeroMesa());
+			} catch (Exception e) {
+				// Log do erro, mas não impede a finalização do pedido
+				// (a mesa pode já ter sido liberada manualmente)
+				System.err.println(
+						"Aviso: Não foi possível liberar a mesa " + pedido.getNumeroMesa() + ": " + e.getMessage());
+			}
+		}
+
+		// Se for ENTREGA, o entregador fica disponível novamente
+		// (não precisa fazer nada, o entregador não tem estado "ocupado" no modelo
+		// atual)
+
+		// PERSISTIR E RETORNAR
+
+		return pedidoRepository.save(pedido);
+
+	}
+
+	// =============================================================
+	// 5. VINCULA UM ENTREGADOR AO PEDIDO
+	// =============================================================
+	@Transactional
+	public Pedido vincularEntregador(Integer pedidoId, Integer entregadorId, Integer operadorId) {
+
+		Pedido pedido = buscarPorId(pedidoId);
+		Entregador entregador = entregadorService.buscarEntregadorPorId(entregadorId);
+
+		// Vincula o entregador as validações são feitas na model
+		pedido.vincularEntregador(entregador);
+
+		// Registra no histórico (opcional, mas útil para auditoria)
+		// Poderia criar um StatusPedidoHistorico com observação
+
+		return pedidoRepository.save(pedido);
+	}
+
+	// =============================================================
+	// 6. CANCELAR PEDIDO
+	// =============================================================
+	@Transactional
+	public Pedido cancelarPedido(Integer pedidoId, Integer operadorId, Integer gerenteId, String motivo) {
+
+		// Busca entidades
+		Pedido pedido = buscarPorId(pedidoId);
+		Usuario operador = usuarioService.buscaPorId(operadorId);
+		Usuario gerente = usuarioService.buscaPorId(gerenteId);
+
+		// Cancela pedido, as validações são feitas na model
+		pedido.cancelarPedido(operador, gerente, motivo);
+
+		// Libera a mesa se for o caso
+		if (pedido.getTipo() == TipoPedido.MESA && pedido.getNumeroMesa() != null) {
+			mesaService.liberarMesa(pedido.getNumeroMesa());
+		}
+
+		// Salva e retorna
+		return pedidoRepository.save(pedido);
+	}
+
+	// =============================================================
+	// 7. REABRIR PEDIDO PEDIDO CANCELADO
+	// =============================================================
+	@Transactional
+	public Pedido reabrirPedidoCancelado(Integer pedidoId, Integer gerenteId, Integer operadorId, String motivo) {
+		
+		// Busca entidades
+		Pedido pedido = buscarPorId(pedidoId);
+		Usuario operador = usuarioService.buscaPorId(operadorId);
+		Usuario gerente = usuarioService.buscaPorId(gerenteId);
+		
+		// Reabrir pedido, as validações são feitas na model
+		pedido.reabrirPedidoCancelado(gerente, operador);
+		
+		// Se for MESA, verifica se a mesa está livre e ocupa novamente
+	    if (pedido.getTipo() == TipoPedido.MESA && pedido.getNumeroMesa() != null) {
+	        Mesa mesa = mesaService.buscarPorNumero(pedido.getNumeroMesa());
+	        if (mesa.isOcupada()) {
+	            throw new NegocioException(
+	                "Não é possível reabrir o pedido. A mesa " + 
+	                pedido.getNumeroMesa() + " já está ocupada por outro pedido."
+	            );
+	        }
+	        mesaService.ocuparMesa(pedido.getNumeroMesa());
+	    }
+		
+	    // Salva e Retorna 
+		return pedidoRepository.save(pedido);
+	}
+
+	// =============================================================
+	// 4. FLUXO DE STATUS
+	// =============================================================
+	@Transactional
+	public Pedido mudarStatus(Integer pedidoId, StatusPedido novoStatus, Integer operadorId, String motivo) {
+		Pedido pedido = buscarPorId(pedidoId);
+		Usuario operador = usuarioService.buscaPorId(operadorId);
+		
+
+		if (pedido.getStatus() == StatusPedido.CANCELADO || pedido.getStatus() == StatusPedido.FINALIZADO) {
+			throw new NegocioException("Não é possível alterar o status de um pedido já encerrado.");
+		}
+		
+
+		if(novoStatus != StatusPedido.CANCELADO) {
+			motivo = "PEDIDO " + novoStatus;
+		}
+		pedido.alteraStatus(novoStatus, operador);
+
+		return pedidoRepository.save(pedido);
+	}
+
+	// =============================================================
+	// 5. MÉTODOS PRIVADOS AUXILIARES
 	// =============================================================
 	@Transactional(readOnly = true)
 	private Pedido buscarPorId(Integer id) {
 		return pedidoRepository.findById(id).orElseThrow(() -> new PedidoNaoEncontradoException(id));
+	}
+
+	// =============================================================
+	// 6. BUSCAS
+	// =============================================================
+
+	@Transactional(readOnly = true)
+	public List<Pedido> buscarPedidosAtivosDaMesa(Integer numeroMesa) {
+
+		// Definindo aqui o que NÃO queremos pedidos encerrados
+		List<StatusPedido> statusFechados = List.of(StatusPedido.FINALIZADO, StatusPedido.CANCELADO,
+				StatusPedido.SAIU_PARA_ENTREGA);
+
+		// Chamando o repository passando os filtros "fixos" da regra de negócio
+		return pedidoRepository.findByTipoAndNumeroMesaAndStatusNotIn(TipoPedido.MESA, numeroMesa, statusFechados);
 	}
 
 }

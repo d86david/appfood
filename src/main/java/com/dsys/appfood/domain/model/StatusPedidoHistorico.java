@@ -28,6 +28,9 @@ public class StatusPedidoHistorico {
 	@ManyToOne
 	@JoinColumn(name = "usuario_id")
 	private Usuario usuario;
+	
+	@Column(name = "motivo")
+	private String motivo;
 
 	//===============================
 	//CONSTRUTORES 
@@ -38,13 +41,14 @@ public class StatusPedidoHistorico {
 	}
 
 	public StatusPedidoHistorico(Integer id, StatusPedido status, LocalDateTime dataHora, Pedido pedido,
-			Usuario usuario) {
+			Usuario usuario, String motivo) {
 		super();
 		this.id = id;
 		this.status = status;
 		this.dataHora = dataHora;
 		this.pedido = pedido;
 		this.usuario = usuario;
+		this.motivo = motivo;
 	}
 	
 	//===============================
@@ -91,7 +95,14 @@ public class StatusPedidoHistorico {
 		this.usuario = usuario;
 	}
 	
+	public String getMotivo() {
+		return motivo;
+	}
 
+	public void setMotivo(String motivo) {
+		this.motivo = motivo;
+	}
+	
 	//===============================
 	//hashcode e equals
 	//===============================

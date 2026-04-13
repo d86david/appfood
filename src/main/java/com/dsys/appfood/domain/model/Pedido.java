@@ -8,6 +8,8 @@ import java.util.Objects;
 
 import com.dsys.appfood.domain.enums.StatusPedido;
 import com.dsys.appfood.domain.enums.TipoPedido;
+import com.dsys.appfood.exception.NegocioException;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -76,9 +78,18 @@ public class Pedido {
 	@OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<ItemPedido> itens = new ArrayList<>();
 
-	//===========================================
+	@Column(name = "numero_mesa")
+	private Integer numeroMesa;
+
+	@Column(name = "obs_pedido")
+	private String obsPedido;
+	
+	@Column(name = "motivo_cancelamento")
+	private String motivoCancelamento;
+
+	// ===========================================
 	// CONSTRUTORES
-	//===========================================
+	// ===========================================
 
 	public Pedido() {
 
@@ -86,7 +97,7 @@ public class Pedido {
 
 	public Pedido(Cliente cliente, TipoPedido tipo, String nomeBalcao, BigDecimal valorBruto, BigDecimal desconto,
 			Usuario operador, Usuario gerenteAutorizador, Entregador entregador, List<ItemPedido> itens,
-			List<Pagamento> pagamentos) {
+			List<Pagamento> pagamentos, String obsPedido) {
 		this.cliente = cliente;
 		this.tipo = tipo;
 		this.nomeBalcao = nomeBalcao;
@@ -97,14 +108,15 @@ public class Pedido {
 		this.entregador = entregador;
 		this.itens = itens;
 		this.pagamentos = pagamentos;
+		this.obsPedido = obsPedido;
 		this.dtHoraAbertura = LocalDateTime.now();
 		this.status = StatusPedido.PEDIDO_INICIADO;
 		alteraStatus(status, operador);
 	}
 
-	//===========================================
+	// ===========================================
 	// GETTERS E SETTERS
-	//===========================================
+	// ===========================================
 
 	public Integer getId() {
 		return id;
@@ -186,10 +198,6 @@ public class Pedido {
 		return entregador;
 	}
 
-	public void setEntregador(Entregador entregador) {
-		this.entregador = entregador;
-	}
-
 	public List<ItemPedido> getItens() {
 		return itens;
 	}
@@ -212,6 +220,22 @@ public class Pedido {
 
 	public boolean getPedidoPago() {
 		return pedidoPago;
+	}
+
+	public Integer getNumeroMesa() {
+		return numeroMesa;
+	}
+
+	public void setNumeroMesa(Integer numeroMesa) {
+		this.numeroMesa = numeroMesa;
+	}
+
+	public String getObsPedido() {
+		return obsPedido;
+	}
+
+	public void setObsPedido(String obsPedido) {
+		this.obsPedido = obsPedido;
 	}
 
 	/**
@@ -274,9 +298,9 @@ public class Pedido {
 		historicoStatus.add(historico);
 	}
 
-	//===========================================
-	// Métodos de Adição 
-	//===========================================
+	// ===========================================
+	// Métodos de Adição
+	// ===========================================
 
 	/**
 	 * Método responsavel por adicionar um item ao pedido.
@@ -332,15 +356,58 @@ public class Pedido {
 	 */
 	public void finalizarPedido(Usuario usuario) {
 
-		if (!isPago()) {
-			throw new IllegalStateException("O pedido ainda não foi pago");
+		Integer numeroPedido = this.getId();
+		StatusPedido statusAtual = this.getStatusAtual();
+		TipoPedido tipoAtual = this.getTipo();
+		Entregador entregador = this.getEntregador();
+
+		// REGRAS GERAIS PARA FINALIZAÇÃO
+
+		// REGRA 1: O pedido não pode ja estar finalizado ou cancelado
+		if (statusAtual == StatusPedido.FINALIZADO) {
+			throw new NegocioException("O Pedido #" + numeroPedido + "já está finalizado");
 		}
 
-		StatusPedido statusAtual = getStatusAtual();
+		if (statusAtual == StatusPedido.CANCELADO) {
+			throw new NegocioException("O Pedido #" + numeroPedido + "está cancelado e não pode ser finalizado.");
+		}
 
+		// REGRA 2: O pedido deve estar totalmente pago
+		if (!isPago()) {
+			throw new NegocioException(String.format("Pedido #/d não pode ser finalizado. Valor restante R$ %.2f",
+					numeroPedido, getValorRestante()));
+		}
+
+		// REGRA 3: Status deve ser compatível com a finalização
 		if (statusAtual != StatusPedido.PRONTO && statusAtual != StatusPedido.SAIU_PARA_ENTREGA) {
 
-			throw new IllegalStateException("Pedido não está em um status que permita finalização.");
+			throw new NegocioException(String.format(
+					"Pedido #%d está com status '%s'. "
+							+ "Para finalizar, o pedido deve estar PRONTO ou SAIU PARA ENTREGA.",
+					numeroPedido, statusAtual));
+		}
+
+		// REGRAS ESPECÍFICAS POR POR TIPO DE PEDIDO
+
+		// VALIDAÇÃO PARA ENTREGA: Deve ter entregador vinculado
+		if (tipoAtual == TipoPedido.ENTREGA) {
+			if (entregador == null) {
+				throw new NegocioException("Pedido de ENTREGA #" + numeroPedido
+						+ " não possui entregador vinculado. Informe um entregador antes de finalizar.");
+			}
+
+			// Verifica se o entregador está ativo
+			if (!entregador.isAtivo()) {
+				throw new NegocioException(
+						"O entregador " + entregador.getNome() + " está inativo e não pode finalizar entregas");
+			}
+
+		}
+
+		// VALIDAÇÃO PARA MESA: Número da mesa deve estar preenchido
+		if (tipoAtual == TipoPedido.MESA && getNumeroMesa() == null) {
+			throw new NegocioException("pedido de MESA #" + numeroPedido + " não possui numero de mesa informado.");
+
 		}
 
 		this.dtHoraFinalizacao = LocalDateTime.now();
@@ -350,13 +417,86 @@ public class Pedido {
 	}
 
 	/**
-	 * Métodopara cancelar Pedido
+	 * Método para cancelar Pedido
 	 */
-	public void cancelarPedido() {
-		if (getStatusAtual() == StatusPedido.FINALIZADO) {
-			throw new IllegalStateException("O pedido já está finalizado");
+	public void cancelarPedido(Usuario operador, Usuario gerente, String motivo) {
+
+		Usuario gerAutorizador = gerente;
+
+		// VALIDAÇÕES
+
+		// Verifica se o pedido já está finalizado, se estiver lança exceção
+		if (this.getStatus() == StatusPedido.FINALIZADO) {
+			throw new NegocioException("Não é possivel cancelar um pedido ja finalizado");
 		}
+
+		// Verifica se o pedido ja está cancelado
+		if (this.getStatus() == StatusPedido.CANCELADO) {
+			throw new NegocioException("O pedido já está cancelado");
+		}
+
+		// Se já houve pagamento, exige autorização do gerente
+		if (!this.getPagamentos().isEmpty()) {
+			if (gerAutorizador == null) {
+				throw new NegocioException("Este pedido possui pagamentos registrados. "
+						+ "É necessária autorização de um gerente para cancelar.");
+			}
+
+			if (!gerAutorizador.isGerente()) {
+				throw new NegocioException("Apenas gerentes podem autorizar o cancelamento de pedidos com pagamento.");
+			}
+		}
+
+		// Valida motivo do cancelamento
+		if (motivo == null || motivo.isBlank()) {
+			throw new IllegalArgumentException("É obrigatório informar o motivo do cancelamento.");
+		}
+
+		// Executa o cancelamento
 		alteraStatus(StatusPedido.CANCELADO, operador);
+		this.motivoCancelamento = motivo;
+
+		
+	}
+
+	/**
+	 * 
+	 * Método para reabrir um pedido, útil quando um pedido foi cancelado por
+	 * engano. Requer autorização de gerente.
+	 * 
+	 * @param pedido   - pedido que foi cancelado
+	 * @param gerente  - Gerente autorizador
+	 * @param operador - Operador que está reabrindo
+	 */
+
+	public void reabrirPedidoCancelado(Usuario gerente, Usuario operador) {
+
+		// VALIDAÇÕES
+
+		// Valida Gerente
+		if (!gerente.isGerente()) {
+			throw new NegocioException("Apenas gerentes podem reabrir pedidos cancelados.");
+		}
+
+		// Valida se o pedido está mesmo cancelado
+		if (this.getStatus() != StatusPedido.CANCELADO) {
+			throw new NegocioException(
+					"Apenas pedidos CANCELADOS podem ser reabertos. Status atual: " + this.getStatus());
+		}
+
+		// ATULIZAÇÕES DE STATUS
+
+		// Determina novo status baseao no que faz sentido
+		StatusPedido novoStatus;
+		if (this.getItens().isEmpty()) {
+			novoStatus = StatusPedido.PEDIDO_INICIADO;
+		} else {
+			novoStatus = StatusPedido.PENDENTE;
+		}
+
+		alteraStatus(novoStatus, operador);
+		setGerenteAutorizador(gerente);
+
 	}
 
 	/**
@@ -375,9 +515,7 @@ public class Pedido {
 	 * @return o valor dos pagamentos somados
 	 */
 	public BigDecimal getTotalPago() {
-		return pagamentos.stream()
-				.map(Pagamento::getValor)
-				.reduce(BigDecimal.ZERO, BigDecimal::add);
+		return pagamentos.stream().map(Pagamento::getValor).reduce(BigDecimal.ZERO, BigDecimal::add);
 	}
 
 	/**
@@ -396,6 +534,39 @@ public class Pedido {
 	}
 
 	/**
+	 * Método para vincular um entregador e um pedido. Necessário para pedidos de
+	 * ENTREGA antes de enviar para entrega.
+	 * 
+	 * @param pedidoId     - ID do pedido
+	 * @param entregadorId - ID do entregador
+	 * @param operadorId   - Operador que está vinculando
+	 * 
+	 */
+	public void vincularEntregador(Entregador entregador) {
+
+		// VALIDAÇÕES
+
+		// Verifica se o Tipo do pedido é ENTREGA
+		if (this.getTipo() != TipoPedido.ENTREGA) {
+			throw new NegocioException("Apenas pedidos do tipo ENTREGA podem ter entregador vinculado.");
+		}
+
+		// Verifica se o entregador está ativo
+		if (!entregador.isAtivo()) {
+			throw new NegocioException("O entregador " + entregador.getNome() + " está inativo.");
+		}
+
+		// Verifica se o pedido está pronto
+		if (this.getStatus() != StatusPedido.PRONTO) {
+			throw new NegocioException("O pedido #" + this.getId() + "não está pronto.");
+		}
+
+		// VINCULA O ENTREGADOR AO PEDIDO
+		this.entregador = entregador;
+
+	}
+
+	/**
 	 * Método que sabe quanto falta Pagar
 	 * 
 	 * @return
@@ -411,9 +582,9 @@ public class Pedido {
 		return restante;
 	}
 
-	//===========================================
-	//HASHCODE E EQUALS
-	//===========================================
+	// ===========================================
+	// HASHCODE E EQUALS
+	// ===========================================
 
 	@Override
 	public int hashCode() {
