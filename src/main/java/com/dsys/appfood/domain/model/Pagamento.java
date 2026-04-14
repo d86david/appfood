@@ -36,10 +36,14 @@ public class Pagamento {
 
 	private BigDecimal troco;
 
-	//===========================================
-	//CONSTRUTORES
-	//===========================================
-	
+	@ManyToOne
+	@JoinColumn(name = "operador_id")
+	private Usuario operador;
+
+	// ===========================================
+	// CONSTRUTORES
+	// ===========================================
+
 	public Pagamento() {
 
 	}
@@ -51,19 +55,15 @@ public class Pagamento {
 		this.caixa = caixa;
 		this.formaPagamento = formaPagamento;
 		this.valor = valor;
-		
+
 	}
 
-	//===========================================
-	//GETTERS E SETTERS
-	//===========================================
+	// ===========================================
+	// GETTERS E SETTERS
+	// ===========================================
 
 	public Integer getId() {
 		return id;
-	}
-
-	public void setId(Integer id) {
-		this.id = id;
 	}
 
 	public Pedido getPedido() {
@@ -82,21 +82,37 @@ public class Pagamento {
 		return formaPagamento;
 	}
 
+	public void setFormaPagamento(FormaPagamento formaPagamento) {
+		this.formaPagamento = formaPagamento;
+	}
+
 	public BigDecimal getValor() {
 		return valor;
+	}
+
+	public void setValor(BigDecimal valor) {
+		this.valor = valor;
 	}
 
 	public BigDecimal getTroco() {
 		return troco;
 	}
-	
-	void associarPedido(Pedido pedido) {
+
+	public void associarPedido(Pedido pedido) {
 		this.pedido = pedido;
 	}
 
-	//===========================================
+	public Usuario getOperador() {
+		return operador;
+	}
+
+	public void setOperador(Usuario operador) {
+		this.operador = operador;
+	}
+
+	// ===========================================
 	// HASHCODE E EQUALS
-	//===========================================
+	// ===========================================
 
 	@Override
 	public int hashCode() {

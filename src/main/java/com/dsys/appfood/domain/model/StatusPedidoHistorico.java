@@ -29,8 +29,6 @@ public class StatusPedidoHistorico {
 	@JoinColumn(name = "usuario_id")
 	private Usuario usuario;
 	
-	@Column(name = "motivo")
-	private String motivo;
 
 	//===============================
 	//CONSTRUTORES 
@@ -48,7 +46,6 @@ public class StatusPedidoHistorico {
 		this.dataHora = dataHora;
 		this.pedido = pedido;
 		this.usuario = usuario;
-		this.motivo = motivo;
 	}
 	
 	//===============================
@@ -93,14 +90,6 @@ public class StatusPedidoHistorico {
 
 	public void setUsuario(Usuario usuario) {
 		this.usuario = usuario;
-	}
-	
-	public String getMotivo() {
-		return motivo;
-	}
-
-	public void setMotivo(String motivo) {
-		this.motivo = motivo;
 	}
 	
 	//===============================

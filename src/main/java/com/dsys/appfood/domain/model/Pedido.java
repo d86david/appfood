@@ -222,6 +222,10 @@ public class Pedido {
 		return pedidoPago;
 	}
 
+	public void setPedidoPago(boolean pedidoPago) {
+		this.pedidoPago = pedidoPago;
+	}
+
 	public Integer getNumeroMesa() {
 		return numeroMesa;
 	}

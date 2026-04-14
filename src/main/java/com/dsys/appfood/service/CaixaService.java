@@ -158,6 +158,7 @@ public class CaixaService {
 		return movimentacaoRepository.save(sangria);
 	}
 	
+	
 	//================================================================================
 	// 4º Ação do CAIXA - Fechar Caixa
 	// Regaras da Ação: caixa ABERTO | gerente autoriza | sangria automática do saldo
@@ -208,11 +209,52 @@ public class CaixaService {
 		return movimentacaoRepository.findByCaixaId(caixaId);
 	}
 	
+	//================================================================================
+		// 6º Ação do CAIXA - Registrar Estorno (saída autorizada pelo gerente)
+		// Regaras da Ação: gerente autoriza | caixa ABERTO | valor > 0 | saldo suficiente
+		//================================================================================
+		
+		@Transactional
+		public MovimentacaoCaixa registrarEstorno(Integer caixaId, 
+												BigDecimal valor, 
+												Usuario gerenteAturizador,
+												String motivo) {
+			//Validações sem acessar o banco
+			if(valor == null || valor.compareTo(BigDecimal.ZERO) <= 0 ) {
+				throw new IllegalArgumentException("O valor não pode ser negativo");
+			}
+			
+			if (motivo == null || motivo.isBlank()) {
+				throw new IllegalArgumentException("Informe o motivo do estorno");
+			}
+			
+			//Autentica o Gerente
+			Usuario gerente = usuarioService.autenticarGerente(gerenteAturizador.getLogin(), gerenteAturizador.getSenha());
+			
+			//Busca o caixa aberto
+			Caixa caixa = buscaCaixaAberto(caixaId);
+			
+			// REGRA: não pode fazer estorno maior que o saldo atual
+			if (valor.compareTo(caixa.getSaldo()) > 0) {
+				throw new NegocioException(
+						"Estorno (R$" + valor + ") excede o saldo atual do caixa.");
+			}
+			
+			// Usa o Static Factory Method já valida gerente e valor
+			MovimentacaoCaixa estorno = MovimentacaoCaixa.criarSaidaSangria(caixa, valor, gerente, motivo);
+			
+			//Atualiza o saldo do caixa
+			caixa.atualizarSaldo(valor, estorno.getTipo());
+			
+			caixaRepository.save(caixa);
+			return movimentacaoRepository.save(estorno);
+		}
+	
 	//=========================================================
-	//MÉTODO PRIVADO - reutilizado internamente, 
+	//MÉTODO BUSCAR CAIXA ABERTO 
 	//evita repetição nos métodos que precisam dessa verificação
 	//=========================================================
-	private Caixa buscaCaixaAberto(Integer caixaId) {
+	public Caixa buscaCaixaAberto(Integer caixaId) {
 		Caixa caixa = caixaRepository.findById(caixaId)
 				.orElseThrow(() -> new CaixaNaoEncontradoException(caixaId));
 		if(caixa.getStatus() != StatusCaixa.ABERTO) {

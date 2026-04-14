@@ -436,10 +436,10 @@ public class PedidoService {
 	}
 
 	// =============================================================
-	// 4. FLUXO DE STATUS
+	// 8. FLUXO DE STATUS
 	// =============================================================
 	@Transactional
-	public Pedido mudarStatus(Integer pedidoId, StatusPedido novoStatus, Integer operadorId, String motivo) {
+	public Pedido mudarStatus(Integer pedidoId, StatusPedido novoStatus, Integer operadorId) {
 		Pedido pedido = buscarPorId(pedidoId);
 		Usuario operador = usuarioService.buscaPorId(operadorId);
 		
@@ -448,27 +448,19 @@ public class PedidoService {
 			throw new NegocioException("Não é possível alterar o status de um pedido já encerrado.");
 		}
 		
-
-		if(novoStatus != StatusPedido.CANCELADO) {
-			motivo = "PEDIDO " + novoStatus;
-		}
 		pedido.alteraStatus(novoStatus, operador);
 
 		return pedidoRepository.save(pedido);
 	}
 
 	// =============================================================
-	// 5. MÉTODOS PRIVADOS AUXILIARES
+	// 9. BUSCAS
 	// =============================================================
 	@Transactional(readOnly = true)
-	private Pedido buscarPorId(Integer id) {
+	public Pedido buscarPorId(Integer id) {
 		return pedidoRepository.findById(id).orElseThrow(() -> new PedidoNaoEncontradoException(id));
 	}
-
-	// =============================================================
-	// 6. BUSCAS
-	// =============================================================
-
+	
 	@Transactional(readOnly = true)
 	public List<Pedido> buscarPedidosAtivosDaMesa(Integer numeroMesa) {
 
