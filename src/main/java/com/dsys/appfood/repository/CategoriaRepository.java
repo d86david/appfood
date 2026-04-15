@@ -10,7 +10,7 @@ import com.dsys.appfood.domain.model.Categoria;
 @Repository
 public interface CategoriaRepository extends JpaRepository<Categoria, Integer>{
 	
-	//--- BUSCAR CATERORIA POR NOME ---
+	// --- BUSCAR CATERORIA POR NOME ---
 		Optional<Categoria> findByNomeIgnoreCase(String nome);
 
 }

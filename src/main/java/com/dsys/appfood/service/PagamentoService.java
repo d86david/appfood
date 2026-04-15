@@ -3,6 +3,7 @@ package com.dsys.appfood.service;
 import com.dsys.appfood.domain.enums.FormaPagamento;
 import com.dsys.appfood.domain.enums.StatusPedido;
 import com.dsys.appfood.domain.model.Caixa;
+import com.dsys.appfood.domain.model.ContaCorrente;
 import com.dsys.appfood.domain.model.Pagamento;
 import com.dsys.appfood.domain.model.Pedido;
 import com.dsys.appfood.domain.model.Usuario;
@@ -29,18 +30,20 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class PagamentoService {
 
+	private final ContaCorrenteService contaCorrenteService;
 	private final UsuarioService usuarioService;
 	private final CaixaService caixaService;
 	private final PedidoService pedidoService;
 	private final PagamentoRepository pagamentoRepository;
 
 	public PagamentoService(PagamentoRepository pagamentoRepository, PedidoService pedidoService,
-			CaixaService caixaService, UsuarioService usuarioService) {
+			CaixaService caixaService, UsuarioService usuarioService, ContaCorrenteService contaCorrenteService) {
 
 		this.pagamentoRepository = pagamentoRepository;
 		this.pedidoService = pedidoService;
 		this.caixaService = caixaService;
 		this.usuarioService = usuarioService;
+		this.contaCorrenteService = contaCorrenteService;
 	}
 
 	// ============================================================
@@ -107,14 +110,25 @@ public class PagamentoService {
 		// Salva o pagamento
 		Pagamento pagamentoSalvo = pagamentoRepository.save(pagamento);
 
-		// 5. SE FOR DINHEIRO, REGISTRA ENTRADA NO CAIXA
+		// 5. TRATAMENTO DIFERENCIADO POR FORMA 
+		
+		// 5.1 Se for dinheiro, registra entrada no caixa
 
 		// PagamentoService delega para CaixaService a responsabilidade de registrar a
 		// movimentação financeira
-		if (forma == FormaPagamento.DINHEIRO)
+		if (forma == FormaPagamento.DINHEIRO) {
 			// Registra a entrada física no caixa
 			caixaService.registrarVenda(caixaId, pedidoId, valor);
-
+		}else {
+			 // Para todas as outras formas (PIX, CREDITO, DEBITO, VOUCHER)
+			ContaCorrente conta = contaCorrenteService.getContaPadraoParaformaPagamento(forma);
+			contaCorrenteService.registrarEntrada(
+					conta.getId(), 
+					valor, 
+					String.format("Venda Pedido #%d - %s", pedidoId, forma), 
+					operador, 
+					pagamentoSalvo); // referência ao pagamento recém-criado
+		}
 		// 6. VERIFICAR SE PEDIDO FOI QUITADO
 
 		// Se o pedido ficou totalmente salvo atualiza o status
