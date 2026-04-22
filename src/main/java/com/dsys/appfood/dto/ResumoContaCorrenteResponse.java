@@ -5,23 +5,24 @@ import java.math.BigDecimal;
 /**
  * DTO interno para transporte dos dados de resumo
  */
-public class ResumoCaixaRequest {
+public class ResumoContaCorrenteResponse {
 
-	private final Integer caixaId;
+	private final Integer contaId;
 	private final BigDecimal totalEntradas;
 	private final BigDecimal totalSaidas;
 	private final BigDecimal saldoLiquido;
 
-	public ResumoCaixaRequest(Integer caixaId, BigDecimal totalEntradas, BigDecimal totalSaidas, BigDecimal saldoLiquido) {
-		this.caixaId = caixaId;
+	public ResumoContaCorrenteResponse(Integer contaId, BigDecimal totalEntradas, BigDecimal totalSaidas, BigDecimal saldoLiquido) {
+		this.contaId = contaId;
 		this.totalEntradas = totalEntradas;
 		this.totalSaidas = totalSaidas;
 		this.saldoLiquido = saldoLiquido;
 	}
+	
+	// GETTERS
 
-	// Getters
-	public Integer getCaixaId() {
-		return caixaId;
+	public Integer getContaId() {
+		return contaId;
 	}
 
 	public BigDecimal getTotalEntradas() {
@@ -35,5 +36,9 @@ public class ResumoCaixaRequest {
 	public BigDecimal getSaldoLiquido() {
 		return saldoLiquido;
 	}
+	
 
+	
+	
+	
 }

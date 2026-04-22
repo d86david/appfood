@@ -113,10 +113,6 @@ public class ContaCorrente {
 		return saldoAtual;
 	}
 
-	public void setSaldoAtual(BigDecimal saldoAtual) {
-		this.saldoAtual = saldoAtual;
-	}
-
 	public boolean isAtiva() {
 		return ativa;
 	}

@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.dsys.appfood.domain.model.MovimentacaoCaixa;
-import com.dsys.appfood.dto.ResumoCaixaRequest;
+import com.dsys.appfood.dto.ResumoCaixaResponse;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -40,17 +40,17 @@ public interface MovimentacaoCaixaRepository extends JpaRepository<MovimentacaoC
 	BigDecimal totalSaidas(@Param("caixaId") Integer caixaId);
 	
 	/**
-	 * Realiza uma projeção direta do Banco de Dados para a classe ResumoCaixaRequest.
+	 * Realiza uma projeção direta do Banco de Dados para a classe ResumoCaixaResponse.
 	 * 
 	 * CONCEITOS CHAVE:
-	 * - 'SELECT new ...': Instancia o objeto Java ResumoCaixaRequest diretamente na query.
+	 * - 'SELECT new ...': Instancia o objeto Java ResumoCaixaResponse diretamente na query.
 	 * - 'CASE WHEN': Funciona como um "if/else" dentro do SQL para separar os valores.
 	 * - 'COALESCE(..., 0)': Garante que se a soma for nula (sem registros), o resultado seja 0.
 	 * - 'GROUP BY': Agrupa os registros por caixa para permitir as funções de soma (SUM).
 	 * 
 	 * Este método é o mais "inteligente", pois ele já cria o objeto DTO e calcula tudo de uma vez no banco.
 	 */ 
-	@Query("SELECT new com.dsys.appfood.dto.ResumoCaixaRequest(" +
+	@Query("SELECT new com.dsys.appfood.dto.ResumoCaixaResponse(" +
 		       "m.caixa.id, " +
 		       "COALESCE(SUM(CASE WHEN m.tipo = 'ENTRADA' THEN m.valor ELSE 0 END), 0), " +
 		       "COALESCE(SUM(CASE WHEN m.tipo = 'SAIDA' THEN m.valor ELSE 0 END), 0), " +
@@ -58,7 +58,7 @@ public interface MovimentacaoCaixaRepository extends JpaRepository<MovimentacaoC
 		       "FROM MovimentacaoCaixa m " +
 		       "WHERE m.caixa.id = :caixaId " +
 		       "GROUP BY m.caixa.id")
-	ResumoCaixaRequest resumoRapido(@Param("caixaId") Integer caixaId);
+	ResumoCaixaResponse resumoRapido(@Param("caixaId") Integer caixaId);
 	
 	/**
 	 * Calcula a soma de todas as ENTRADAS em um intervalo de tempo específico.
@@ -89,5 +89,6 @@ public interface MovimentacaoCaixaRepository extends JpaRepository<MovimentacaoC
 	    BigDecimal totalSaidasPeriodo(@Param("caixaId") Integer caixaId, 
 	                                  @Param("inicio") LocalDateTime inicio, 
 	                                  @Param("fim") LocalDateTime fim);
-
 }
+
+

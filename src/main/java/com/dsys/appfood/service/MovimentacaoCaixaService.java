@@ -1,7 +1,7 @@
 package com.dsys.appfood.service;
 
 import com.dsys.appfood.domain.model.MovimentacaoCaixa;
-import com.dsys.appfood.dto.ResumoCaixaRequest;
+import com.dsys.appfood.dto.ResumoCaixaResponse;
 import com.dsys.appfood.exception.CaixaNaoEncontradoException;
 import com.dsys.appfood.repository.CaixaRepository;
 import com.dsys.appfood.repository.MovimentacaoCaixaRepository;
@@ -106,19 +106,12 @@ public class MovimentacaoCaixaService {
 		return totalEntradas(caixaId).subtract(totalSaidas(caixaId));
 	}
 
-	/**
-	 * Gera um resumo financeiro do caixa, útil para o fechamento.
-	 */
-	@Transactional(readOnly = true)
-	public ResumoCaixaRequest gerarResumoCaixa(Integer caixaId) {
-		return movimentacaoRepository.resumoRapido(caixaId);
-	}
 	
 	/**
 	 * Gera um resumo financeiro do caixa por período.
 	 */
 	@Transactional(readOnly = true)
-	public ResumoCaixaRequest gerarResumoCaixaPeriodo(Integer caixaId, LocalDateTime inicio, LocalDateTime fim) {
+	public ResumoCaixaResponse gerarResumoCaixaPeriodo(Integer caixaId, LocalDateTime inicio, LocalDateTime fim) {
 	    if (!caixaRepository.existsById(caixaId)) {
 	        throw new CaixaNaoEncontradoException(caixaId);
 	    }
@@ -127,7 +120,7 @@ public class MovimentacaoCaixaService {
 	    BigDecimal saidas = movimentacaoRepository.totalSaidasPeriodo(caixaId, inicio, fim);
 	    BigDecimal saldo = entradas.subtract(saidas);
 
-	    return new ResumoCaixaRequest(caixaId, entradas, saidas, saldo);
+	    return new ResumoCaixaResponse(caixaId, entradas, saidas, saldo);
 	}
 
 	/**
@@ -136,7 +129,7 @@ public class MovimentacaoCaixaService {
 	 * Método utilitário para pegar o resumo apenas de hoje (00:00 até agora)
 	 */
 	@Transactional(readOnly = true)
-	public ResumoCaixaRequest gerarResumoHoje(Integer caixaId) {
+	public ResumoCaixaResponse gerarResumoHoje(Integer caixaId) {
 	    LocalDateTime inicio = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);
 	    LocalDateTime fim = LocalDateTime.now();
 	    return gerarResumoCaixaPeriodo(caixaId, inicio, fim);
