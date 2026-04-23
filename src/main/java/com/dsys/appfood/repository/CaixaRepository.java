@@ -34,7 +34,7 @@ public interface CaixaRepository extends JpaRepository<Caixa, Integer>{
 	//--- PESQUISAR POR DATA ---
 	List<Caixa> findByDataAberturaBetween(LocalDateTime inicio, LocalDateTime fim);
 	
-	//--- PESQUISAR STATUS DO CAIXA --- 
+	//--- BUSCA O CAIXA ABERTO MAIS RECENTE --- 
 	Optional<Caixa> findFirstByStatusOrderByDataAberturaDesc(StatusCaixa status);
 	
 	//--- PESQUISA POR OPERADOR ---

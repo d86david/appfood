@@ -1,6 +1,7 @@
 package com.dsys.appfood.repository;
 
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,4 +27,13 @@ public interface PedidoRepository extends JpaRepository<Pedido, Integer>{
 	
 	// --- PESQUISAR PEDIDOS POR TIPO NUMERO DA MESA E STATUS
 	List<Pedido> findByTipoAndNumeroMesaAndStatusNotIn(TipoPedido tipo, Integer numeroMesa, List<StatusPedido> status);
+	
+	// --- LISTA PEDIDO POR PERÍODO ---
+	List<Pedido> findByDtHoraAberturaBetween(LocalDateTime inicio, LocalDateTime fim);
+	
+	// --- LISTA PEDIDO POR TIPO, INICIO E FECHAMENTO 
+	List<Pedido> findByTipoAndDtHoraAberturaBetween( TipoPedido tipo, LocalDateTime inicio, LocalDateTime fim);
+	
+	//--- PESQUISAR POR STATUS DE PEDIDO ORDENADO POR HORA DA ABERTURA ---
+	List<Pedido> findByStatusInOrderByDtHoraAberturaAsc(List<StatusPedido> statusPendentes);
 }

@@ -12,6 +12,7 @@ import com.dsys.appfood.domain.model.Usuario;
 import com.dsys.appfood.exception.CaixaFechadoException;
 import com.dsys.appfood.exception.CaixaNaoEncontradoException;
 import com.dsys.appfood.exception.NegocioException;
+import com.dsys.appfood.exception.NenhumCaixaAbertoException;
 import com.dsys.appfood.repository.CaixaRepository;
 import com.dsys.appfood.repository.MovimentacaoCaixaRepository;
 
@@ -263,4 +264,22 @@ public class CaixaService {
 		
 		return caixa;
 	}
+	
+	
+	/**
+	 * Busca o caixa atualmente aberto.
+	 * 
+	 * CONCEITOS IMPORTANTES:
+	 * - Utiliza Optional para representar a possibilidade de não existir caixa aberto.
+	 * - Lança exceção específica de negócio (NenhumCaixaAbertoException) para tratamento adequado no controller.
+	 * 
+	 * @return Caixa aberto atual
+	 * @throws NenhumCaixaAbertoException se não houver caixa aberto
+	 */
+	@Transactional(readOnly = true)
+	public Caixa buscarCaixaAbertoAtual() {
+	    return caixaRepository.findFirstByStatusOrderByDataAberturaDesc(StatusCaixa.ABERTO)
+	            .orElseThrow(() -> new NenhumCaixaAbertoException("Não há caixa aberto no momento."));
+	}
+	
 }

@@ -69,6 +69,10 @@ public class PrecoVariavel {
 	public BigDecimal getValor() {
 		return valor;
 	}
+	
+	public void setValor(BigDecimal valor) {
+		this.valor = valor;
+	}
 
 	public Produto getProduto() {
 		return produto;

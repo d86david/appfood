@@ -13,5 +13,4 @@ public interface IngredienteRepository extends JpaRepository<Ingrediente, Intege
 	//BUSCA INGREDIENTE PELO NOME
 	Optional<Ingrediente> findByNomeIgnoreCase(String nome);
 	
-
 }
