@@ -280,7 +280,7 @@ public class PagamentoService {
             caixaService.registrarEstorno(
                 pagamento.getCaixa().getId(),
                 pagamento.getValor(),
-                gerente,
+                gerente.getId(),
                 "Estorno de pagamento #" + pagamentoId + ": " + motivo
             );
         }

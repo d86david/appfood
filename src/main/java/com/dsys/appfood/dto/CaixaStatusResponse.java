@@ -2,36 +2,28 @@ package com.dsys.appfood.dto;
 
 import java.math.BigDecimal;
 
-public class CaixaStatusResponse {
+import com.dsys.appfood.domain.model.Caixa;
 
-	private boolean aberto;
-	private String operador;
-	private BigDecimal saldoAtual;
-
-	// CONSTRUTORES 
-	public CaixaStatusResponse() {
+public record CaixaStatusResponse(
 		
+		boolean aberto,
+		String operador,
+		BigDecimal saldoAtual	
+		) {
+	
+	// Fábrica para quando o caixa está aberto
+	public static CaixaStatusResponse deCaixaAberto(Caixa caixa) {
+		return new CaixaStatusResponse(			
+				true,
+				caixa.getOperador() != null ? caixa.getOperador().getNome() : null,
+				caixa.getSaldo()
+				);
 	}
 	
-	public CaixaStatusResponse(boolean aberto, String operador, BigDecimal saldoAtual) {
-		this.aberto = aberto;
-		this.operador = operador;
-		this.saldoAtual = saldoAtual;
+	// Fábrica para quando não há caixa aberto
+	
+	public static CaixaStatusResponse vazio() {
+		return new CaixaStatusResponse(false, null, BigDecimal.ZERO);
 	}
 	
-	
-	// GETTERS
-
-	public boolean isAberto() {
-		return aberto;
-	}
-
-	public String getOperador() {
-		return operador;
-	}
-
-	public BigDecimal getSaldoAtual() {
-		return saldoAtual;
-	}
-
 }

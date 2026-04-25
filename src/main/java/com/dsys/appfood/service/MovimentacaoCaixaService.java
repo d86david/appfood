@@ -134,5 +134,24 @@ public class MovimentacaoCaixaService {
 	    LocalDateTime fim = LocalDateTime.now();
 	    return gerarResumoCaixaPeriodo(caixaId, inicio, fim);
 	}
+	
+	/**
+	 * Gera um resumo financeiro sem especificar um período .
+	 * 
+	 * Método utilitário para pegar o resumo 
+	 */
+	@Transactional(readOnly = true)
+	public ResumoCaixaResponse gerarResumoCaixa (Integer caixaId) {
+		
+		if(!caixaRepository.existsById(caixaId)) {
+			throw new CaixaNaoEncontradoException(caixaId);
+		}
+		
+		BigDecimal entrdas = movimentacaoRepository.totalEntradas(caixaId);
+		BigDecimal saidas = movimentacaoRepository.totalSaidas(caixaId);
+		BigDecimal saldo = entrdas.subtract(saidas);
+		
+		return new ResumoCaixaResponse(caixaId, entrdas, saidas, saldo); 
+	}
 
 }

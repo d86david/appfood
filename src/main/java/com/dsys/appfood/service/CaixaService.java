@@ -66,7 +66,7 @@ public class CaixaService {
 		//Busca o Operador - Lança exeção clara se não existir
 		Usuario operador = usuarioService.buscaPorId(operadorId);
 		
-		//REGRA: quem autoriza é precisa ser Gerente ou ADM
+		//REGRA: quem autoriza precisa ser Gerente ou ADM
 		//Sem isso, qualquer operador poderia "autorizar" a si mesmo
 		// Autentica e valida o gerente — tudo dentro do UsuarioService
 		Usuario gerente = usuarioService.autenticarGerente(loginGerente, senhaGerente);
@@ -218,7 +218,7 @@ public class CaixaService {
 		@Transactional
 		public MovimentacaoCaixa registrarEstorno(Integer caixaId, 
 												BigDecimal valor, 
-												Usuario gerenteAturizador,
+												Integer gerenteId,
 												String motivo) {
 			//Validações sem acessar o banco
 			if(valor == null || valor.compareTo(BigDecimal.ZERO) <= 0 ) {
@@ -230,7 +230,12 @@ public class CaixaService {
 			}
 			
 			//Autentica o Gerente
-			Usuario gerente = usuarioService.autenticarGerente(gerenteAturizador.getLogin(), gerenteAturizador.getSenha());
+			Usuario gerente = usuarioService.buscaPorId(gerenteId);
+			
+			// Autentica: valida se é realmente um gerente
+			if (!gerente.isGerente()) {
+				throw new NegocioException("Apenas gerentes podem autorizar estorno");
+			}
 			
 			//Busca o caixa aberto
 			Caixa caixa = buscaCaixaAberto(caixaId);
@@ -242,7 +247,7 @@ public class CaixaService {
 			}
 			
 			// Usa o Static Factory Method já valida gerente e valor
-			MovimentacaoCaixa estorno = MovimentacaoCaixa.criarSaidaSangria(caixa, valor, gerente, motivo);
+			MovimentacaoCaixa estorno = MovimentacaoCaixa.criarSaidaSangria(caixa, valor, gerente, "Estorno: " + motivo);
 			
 			//Atualiza o saldo do caixa
 			caixa.atualizarSaldo(valor, estorno.getTipo());

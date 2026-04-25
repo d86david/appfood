@@ -136,5 +136,24 @@ public class MovimentacaoContaCorrenteService {
 		
 	}
 	
+	/**
+	 * Gera um resumo financeiro da conta sem especificar um período .
+	 * 
+	 * Método utilitário para pegar o resumo
+	 */
+	@Transactional(readOnly = true)
+	public ResumoContaCorrenteResponse gerarResumoConta(Integer contaId) {
+		
+		if(!contaCorrenteRepository.existsById(contaId)) {
+			throw new ContaNaoEncontradaException(contaId);
+		}
+		
+		
+		BigDecimal entradas = movimentacaoContaCorrenteRepository.totalEntradasConta(contaId);
+		BigDecimal saidas = movimentacaoContaCorrenteRepository.totalSaidasConta(contaId);
+		BigDecimal saldo = entradas.subtract(saidas);
+		
+		return new ResumoContaCorrenteResponse(contaId, entradas, saidas, saldo);
+	}
 
 }
