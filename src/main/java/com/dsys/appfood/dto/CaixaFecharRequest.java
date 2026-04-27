@@ -2,7 +2,7 @@ package com.dsys.appfood.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record FecharCaixaRequest(
+public record CaixaFecharRequest(
 		
 		@NotBlank(message = "O login do gerente é obrigatório")
 		String loginGerente,

@@ -15,7 +15,7 @@ import com.dsys.appfood.domain.enums.TipoPedido;
 import com.dsys.appfood.domain.model.*;
 import com.dsys.appfood.dto.DesempenhoEntregadorResponse;
 import com.dsys.appfood.dto.ProdutoVendidoResponse;
-import com.dsys.appfood.dto.vendasPeriodoResponse;
+import com.dsys.appfood.dto.VendasPerioDoResponse;
 import com.dsys.appfood.repository.*;
 
 /**
@@ -54,7 +54,7 @@ public class RelatorioService {
      * Relatório de vendas por período: total de pedidos, faturamento, ticket médio.
      */
     @Transactional(readOnly = true)
-    public vendasPeriodoResponse vendasNoPeriodo(LocalDate dataInicio, LocalDate dataFim) {
+    public VendasPerioDoResponse vendasNoPeriodo(LocalDate dataInicio, LocalDate dataFim) {
         LocalDateTime inicio = dataInicio.atStartOfDay();
         LocalDateTime fim = dataFim.atTime(LocalTime.MAX);
 
@@ -82,7 +82,7 @@ public class RelatorioService {
         Map<TipoPedido, Long> pedidosPorTipo = pedidos.stream()
                 .collect(Collectors.groupingBy(Pedido::getTipo, Collectors.counting()));
 
-        return new vendasPeriodoResponse(dataInicio, dataFim, totalPedidos,
+        return new VendasPerioDoResponse(dataInicio, dataFim, totalPedidos,
                 faturamentoBruto, totalDescontos, faturamentoLiquido, ticketMedio, pedidosPorTipo);
     }
 
@@ -144,7 +144,7 @@ public class RelatorioService {
                             .reduce(BigDecimal.ZERO, BigDecimal::add);
                     return new DesempenhoEntregadorResponse(e.getId(), e.getNome(), totalEntregas, totalTaxas);
                 })
-                .sorted(Comparator.comparingLong(DesempenhoEntregadorResponse::getTotalEntregas).reversed())
+                .sorted(Comparator.comparingLong(DesempenhoEntregadorResponse::totalEntregas).reversed())
                 .collect(Collectors.toList());
     }
 

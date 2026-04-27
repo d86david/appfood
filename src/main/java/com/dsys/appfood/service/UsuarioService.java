@@ -4,6 +4,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.dsys.appfood.domain.enums.TipoUsuario;
 import com.dsys.appfood.domain.model.Usuario;
 import com.dsys.appfood.exception.NegocioException;
 import com.dsys.appfood.exception.UsuarioNaoEncontradoException;
@@ -33,28 +34,93 @@ public class UsuarioService {
 	// CADASTRO - encode() uma única vez
 	// =============================================================
 	@Transactional
-	public Usuario cadastrar(Usuario usuario, String SenhaDigitada) {
+	public Usuario cadastrar(String nome, String login, String senhaDigitada, String telefone, TipoUsuario tipo) {
+
+		// VALIDAÇÕES SEM BANCO
+		if (nome == null || nome.isBlank()) {
+			throw new IllegalArgumentException("O nome é obrigatório");
+		}
+
+		if (login == null || login.isBlank()) {
+			throw new IllegalArgumentException("O login é obrigatório");
+		}
+
+		if (senhaDigitada == null || senhaDigitada.isBlank()) {
+			throw new IllegalArgumentException("A Senha é obrigatória");
+		}
+
+		if (senhaDigitada.length() <= 5) {
+			throw new IllegalArgumentException("A senha deve ter no mínimo 6 caracteres");
+		}
+
+		if (tipo == null) {
+			throw new IllegalArgumentException("O tipo é obrigatório");
+		}
+
+		// Padroniza Campos de texto
+		String nomePadronizado = nome.trim();
+		String loginPadronizado = login.trim();
+		String senhaPadronizada = senhaDigitada.trim();
+		String telefonePadronizado = (telefone != null) ? telefone.trim() : null;
 
 		// Verifica se o login já existe e se está Ativo
-		if (usuarioRepository.findByLoginAndAtivoTrue(usuario.getLogin()).isPresent()) {
-			throw new IllegalArgumentException("Login já cadastrado.");
+		if (usuarioRepository.findByLoginAndAtivoTrue(login).isPresent()) {
+			throw new IllegalArgumentException("Login já utilizado.");
 		}
+
+		Usuario novoUsuario = new Usuario();
+		novoUsuario.setNome(nomePadronizado);
+		novoUsuario.setLogin(loginPadronizado);
+		novoUsuario.setTelefone(telefonePadronizado);
+		novoUsuario.setTipo(tipo);
 
 		// =============================================================
 		// ENCODE: transforma a senha em hash antes de salvar.
 		// O banco NUNCA verá a senha original
 		// =============================================================
-		String senhaHash = passwordEncoder.encode(SenhaDigitada);
-		usuario.setSenha(senhaHash);
+		String senhaHash = passwordEncoder.encode(senhaPadronizada);
+		novoUsuario.setSenha(senhaHash);
 
-		return usuarioRepository.save(usuario);
+		return usuarioRepository.save(novoUsuario);
+	}
+
+	// =============================================================
+	// EDITAR
+	// =============================================================
+	@Transactional
+	public Usuario editar(Integer usuarioId, String novoNome, String novoTelefone, TipoUsuario novoTipo) {
+
+		// VALIDAÇÕES SEM BANCO
+		if (novoNome == null || novoNome.isBlank()) {
+			throw new IllegalArgumentException("O nome deve ser informado");
+		}
+
+		if (novoTelefone == null || novoTelefone.isBlank()) {
+			throw new IllegalArgumentException("O Telefone deve ser informado");
+		}
+
+		if (novoTipo == null) {
+			throw new IllegalArgumentException("O tipo de usuario deve ser informado");
+		}
+
+		// Padroniza os campos
+		String nomePadronizado = novoNome.trim();
+		String telefonePadronizado = novoTelefone.trim();
+
+		Usuario usuarioAtualizado = buscaPorId(usuarioId);
+
+		usuarioAtualizado.setNome(nomePadronizado);
+		usuarioAtualizado.setTelefone(telefonePadronizado);
+		usuarioAtualizado.setTipo(novoTipo);
+
+		return usuarioRepository.save(usuarioAtualizado);
 	}
 
 	// =============================================================
 	// ATIVAR
 	// =============================================================
 	@Transactional
-	public void ativarUsuario(Integer id) {
+	public Usuario ativarUsuario(Integer id) {
 
 		// Busca Usuario e lança exceção se não existi
 		Usuario usuario = usuarioRepository.findById(id).orElseThrow(() -> new UsuarioNaoEncontradoException(id));
@@ -66,7 +132,7 @@ public class UsuarioService {
 
 		usuario.ativar();
 
-		usuarioRepository.save(usuario);
+		return usuarioRepository.save(usuario);
 
 	}
 
@@ -74,7 +140,7 @@ public class UsuarioService {
 	// INATIVAR
 	// =============================================================
 	@Transactional
-	public void inativarUsuario(Integer id) {
+	public Usuario inativarUsuario(Integer id) {
 
 		// Busca Usuario e lança exceção se não existir
 		Usuario usuario = usuarioRepository.findById(id).orElseThrow(() -> new UsuarioNaoEncontradoException(id));
@@ -86,7 +152,7 @@ public class UsuarioService {
 
 		usuario.inativar();
 
-		usuarioRepository.save(usuario);
+		return usuarioRepository.save(usuario);
 
 	}
 
@@ -126,7 +192,7 @@ public class UsuarioService {
 	// TROCAR SENHA - encode novamente
 	// =============================================================
 	@Transactional
-	public void trocarSenha(Integer usuarioId, String senhaAtual, String novaSenha) {
+	public Usuario trocarSenha(Integer usuarioId, String senhaAtual, String novaSenha) {
 
 		Usuario usuario = buscaPorId(usuarioId);
 
@@ -136,13 +202,13 @@ public class UsuarioService {
 		}
 
 		// Valida a nova senha (regras do negócio)
-		if (novaSenha.length() < 8) {
-			throw new IllegalArgumentException("Senha deve ter no mínimo 8 caracteres.");
+		if (novaSenha.length() <= 5) {
+			throw new IllegalArgumentException("Senha deve ter no mínimo 6 caracteres.");
 		}
 
 		// Codifica e salva - mesmo processo de cadastro
 		usuario.setSenha(passwordEncoder.encode(novaSenha));
-		usuarioRepository.save(usuario);
+		return usuarioRepository.save(usuario);
 	}
 
 	// =============================================================

@@ -218,8 +218,10 @@ public class CaixaService {
 		@Transactional
 		public MovimentacaoCaixa registrarEstorno(Integer caixaId, 
 												BigDecimal valor, 
-												Integer gerenteId,
+												String loginGerente, 
+												String senhaGerente,
 												String motivo) {
+			
 			//Validações sem acessar o banco
 			if(valor == null || valor.compareTo(BigDecimal.ZERO) <= 0 ) {
 				throw new IllegalArgumentException("O valor não pode ser negativo");
@@ -230,12 +232,7 @@ public class CaixaService {
 			}
 			
 			//Autentica o Gerente
-			Usuario gerente = usuarioService.buscaPorId(gerenteId);
-			
-			// Autentica: valida se é realmente um gerente
-			if (!gerente.isGerente()) {
-				throw new NegocioException("Apenas gerentes podem autorizar estorno");
-			}
+			Usuario gerente = usuarioService.autenticarGerente(loginGerente, senhaGerente);
 			
 			//Busca o caixa aberto
 			Caixa caixa = buscaCaixaAberto(caixaId);

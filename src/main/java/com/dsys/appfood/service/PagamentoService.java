@@ -8,6 +8,7 @@ import com.dsys.appfood.domain.model.Pagamento;
 import com.dsys.appfood.domain.model.Pedido;
 import com.dsys.appfood.domain.model.Usuario;
 import com.dsys.appfood.dto.PagamentoComTrocoResponse;
+import com.dsys.appfood.dto.PagamentoResponse;
 import com.dsys.appfood.exception.NegocioException;
 import com.dsys.appfood.exception.PagamentoNaoEncontradoException;
 import com.dsys.appfood.repository.PagamentoRepository;
@@ -110,8 +111,8 @@ public class PagamentoService {
 		// Salva o pagamento
 		Pagamento pagamentoSalvo = pagamentoRepository.save(pagamento);
 
-		// 5. TRATAMENTO DIFERENCIADO POR FORMA 
-		
+		// 5. TRATAMENTO DIFERENCIADO POR FORMA
+
 		// 5.1 Se for dinheiro, registra entrada no caixa
 
 		// PagamentoService delega para CaixaService a responsabilidade de registrar a
@@ -119,15 +120,13 @@ public class PagamentoService {
 		if (forma == FormaPagamento.DINHEIRO) {
 			// Registra a entrada física no caixa
 			caixaService.registrarVenda(caixaId, pedidoId, valor);
-		}else {
-			 // Para todas as outras formas (PIX, CREDITO, DEBITO, VOUCHER)
+		} else {
+			// Para todas as outras formas (PIX, CREDITO, DEBITO, VOUCHER)
 			ContaCorrente conta = contaCorrenteService.getContaPadraoParaformaPagamento(forma);
-			contaCorrenteService.registrarEntrada(
-					conta.getId(), 
-					valor, 
-					String.format("Venda Pedido #%d - %s", pedidoId, forma), 
-					operador, 
-					pagamentoSalvo); // referência ao pagamento recém-criado
+			contaCorrenteService.registrarEntrada(conta.getId(), valor,
+					String.format("Venda Pedido #%d - %s", pedidoId, forma), operador, pagamentoSalvo); // referência ao
+																										// pagamento
+																										// recém-criado
 		}
 		// 6. VERIFICAR SE PEDIDO FOI QUITADO
 
@@ -213,129 +212,116 @@ public class PagamentoService {
 	// ============================================================
 	// PROCESSAR PAGAMENTO COM TROCO
 	// ============================================================
-	
+
 	/**
-	 * Processar pagamento em dinheiro com cálculo extato de troco   
+	 * Processar pagamento em dinheiro com cálculo extato de troco
 	 * 
 	 * @return PagamentoResponse - DTO com pagamento e valor do troco
 	 */
 	@Transactional
-	public PagamentoComTrocoResponse processarPagamentoDinheiro(
-			Integer pedidoId, Integer caixaId, BigDecimal valorRecebido, Integer operadorId) {
-		
+	public PagamentoComTrocoResponse processarPagamentoDinheiro(Integer pedidoId, Integer caixaId,
+			BigDecimal valorRecebido, Integer operadorId) {
+
 		Pedido pedido = pedidoService.buscarPorId(pedidoId);
 		BigDecimal valorRestante = pedido.getValorRestante();
-		
-		//Calcula o troco primeiro
+
+		// Calcula o troco primeiro
 		BigDecimal troco = calcularTroco(pedidoId, valorRecebido);
-		
+
 		// Se o valor recebido é MAIOR que o necessário, registra apenas o valor
-        // necessário para quitar o pedido (o resto é troco e NÃO entra no caixa)
+		// necessário para quitar o pedido (o resto é troco e NÃO entra no caixa)
 		BigDecimal valorARegistrar;
-		if(valorRecebido.compareTo(valorRestante) > 0) {
+		if (valorRecebido.compareTo(valorRestante) > 0) {
 			valorARegistrar = valorRestante; // Só registra o que realmente é devido
-		}else {
+		} else {
 			valorARegistrar = valorRecebido; // Pagamento parcial
 		}
-		
-		//Registra o pagamento
-		Pagamento pagamento = registrarPagamento(pedidoId, caixaId, FormaPagamento.DINHEIRO, valorARegistrar, operadorId);
-		
-		// Monta reposta
-		PagamentoComTrocoResponse response = new PagamentoComTrocoResponse();
-		response.setPagamento(pagamento);
-		response.setTroco(troco);
-		response.setValorRecebido(valorRecebido);
-		
-		return response;
+
+		// Registra o pagamento
+		Pagamento pagamento = registrarPagamento(pedidoId, caixaId, FormaPagamento.DINHEIRO, valorARegistrar,
+				operadorId);
+
+		// Monta reposta e retorna
+		return new PagamentoComTrocoResponse(PagamentoResponse.from(pagamento), troco, valorRecebido);
 	}
-	
+
 	// ============================================================
-    // ESTORNAR PAGAMENTO (caso de erro)
-    // ============================================================
+	// ESTORNAR PAGAMENTO (caso de erro)
+	// ============================================================
 
 	@Transactional
-    public void estornarPagamento(Integer pagamentoId, String motivo, Integer gerenteId) {
-        
-        Pagamento pagamento = buscarPorId(pagamentoId);
-        Pedido pedido = pagamento.getPedido();
-        
-        // REGRA: Não pode estornar pagamento de pedido finalizado
-        if (pedido.getStatus() == StatusPedido.FINALIZADO) {
-            throw new NegocioException(
-                "Não é possível estornar pagamento de um pedido já finalizado."
-            );
-        }
-        
-        // Verifica se o gerente tem autorização
-        Usuario gerente = usuarioService.buscaPorId(gerenteId);
-        if (!gerente.isGerente()) {
-            throw new NegocioException(
-                "Apenas gerentes podem estornar pagamentos."
-            );
-        }
-        
-        // Se for DINHEIRO, precisa registrar a SAÍDA no caixa
-        if (pagamento.getFormaPagamento() == FormaPagamento.DINHEIRO) {
-            caixaService.registrarEstorno(
-                pagamento.getCaixa().getId(),
-                pagamento.getValor(),
-                gerente.getId(),
-                "Estorno de pagamento #" + pagamentoId + ": " + motivo
-            );
-        }
-        
-        // Remove o pagamento da lista do pedido
-        pedido.getPagamentos().remove(pagamento);
-        
-        // Exclui o pagamento
-        pagamentoRepository.delete(pagamento);
-        
-        // Recalcula status de pagamento do pedido
-        pedido.setPedidoPago(pedido.isPago());
-    }
-	
+	public void estornarPagamento(Integer pagamentoId, String motivo, Integer gerenteId) {
+
+		Pagamento pagamento = buscarPorId(pagamentoId);
+		Pedido pedido = pagamento.getPedido();
+
+		// REGRA: Não pode estornar pagamento de pedido finalizado
+		if (pedido.getStatus() == StatusPedido.FINALIZADO) {
+			throw new NegocioException("Não é possível estornar pagamento de um pedido já finalizado.");
+		}
+
+		// Verifica se o gerente tem autorização
+		Usuario gerente = usuarioService.buscaPorId(gerenteId);
+		if (!gerente.isGerente()) {
+			throw new NegocioException("Apenas gerentes podem estornar pagamentos.");
+		}
+
+		// Se for DINHEIRO, precisa registrar a SAÍDA no caixa
+		if (pagamento.getFormaPagamento() == FormaPagamento.DINHEIRO) {
+			caixaService.registrarEstorno(pagamento.getCaixa().getId(), pagamento.getValor(), gerente.getLogin(),
+					gerente.getSenha(), "Estorno de pagamento #" + pagamentoId + ": " + motivo);
+		}
+
+		// Remove o pagamento da lista do pedido
+		pedido.getPagamentos().remove(pagamento);
+
+		// Exclui o pagamento
+		pagamentoRepository.delete(pagamento);
+
+		// Recalcula status de pagamento do pedido
+		pedido.setPedidoPago(pedido.isPago());
+	}
+
 	// ============================================================
-    // CONSULTAS
-    // ============================================================
-	
+	// CONSULTAS
+	// ============================================================
+
 	/**
-     * LISTAR PAGAMENTOS DE UM PEDIDO
-     * 
-     * @Transactional(readOnly = true) - Otimização
-     */
-    @Transactional(readOnly = true)
-    public List<Pagamento> listarPagamentosDoPedido(Integer pedidoId) {
-        // Verifica se o pedido existe (lança exceção se não)
-        pedidoService.buscarPorId(pedidoId);
-        
-        return pagamentoRepository.findByPedidoIdOrderByDataHoraDesc(pedidoId);
-    }
-    
-    /**
-     * CALCULAR TOTAL PAGO DE UM PEDIDO
-     * 
-     * Método de conveniência - encapsula a lógica de soma
-     */
-    @Transactional(readOnly = true)
-    public BigDecimal calcularTotalPago(Integer pedidoId) {
-        return listarPagamentosDoPedido(pedidoId).stream()
-            .map(Pagamento::getValor)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-    
-    /**
-     * VERIFICAR SE PEDIDO ESTÁ TOTALMENTE PAGO
-     */
-    @Transactional(readOnly = true)
-    public boolean isPedidoQuitado(Integer pedidoId) {
-        Pedido pedido = pedidoService.buscarPorId(pedidoId);
-        return pedido.isPago();
-    }
-	
+	 * LISTAR PAGAMENTOS DE UM PEDIDO
+	 * 
+	 * @Transactional(readOnly = true) - Otimização
+	 */
+	@Transactional(readOnly = true)
+	public List<Pagamento> listarPagamentosDoPedido(Integer pedidoId) {
+		// Verifica se o pedido existe (lança exceção se não)
+		pedidoService.buscarPorId(pedidoId);
+
+		return pagamentoRepository.findByPedidoIdOrderByDataHoraDesc(pedidoId);
+	}
+
 	/**
-     * BUSCAR PAGAMENTO POR ID
-     */
+	 * CALCULAR TOTAL PAGO DE UM PEDIDO
+	 * 
+	 * Método de conveniência - encapsula a lógica de soma
+	 */
+	@Transactional(readOnly = true)
+	public BigDecimal calcularTotalPago(Integer pedidoId) {
+		return listarPagamentosDoPedido(pedidoId).stream().map(Pagamento::getValor).reduce(BigDecimal.ZERO,
+				BigDecimal::add);
+	}
+
+	/**
+	 * VERIFICAR SE PEDIDO ESTÁ TOTALMENTE PAGO
+	 */
+	@Transactional(readOnly = true)
+	public boolean isPedidoQuitado(Integer pedidoId) {
+		Pedido pedido = pedidoService.buscarPorId(pedidoId);
+		return pedido.isPago();
+	}
+
+	/**
+	 * BUSCAR PAGAMENTO POR ID
+	 */
 	public Pagamento buscarPorId(Integer id) {
 		return pagamentoRepository.findById(id).orElseThrow(() -> new PagamentoNaoEncontradoException(id));
 	}

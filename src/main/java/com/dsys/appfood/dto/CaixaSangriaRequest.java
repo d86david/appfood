@@ -5,11 +5,7 @@ import java.math.BigDecimal;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PositiveOrZero;
 
-public record SangriaRequest(
-		
-		// Redundante se recebermos via @PathVariable, 
-		// mas podemos manter ou não. será mantido por clareza, mas no controller pegaremos o ID do path.
-		Integer caxiaId, 
+public record CaixaSangriaRequest(
 		
 		@NotBlank(message = "O login do gerente é obrigatório")
 		String loginGerente,

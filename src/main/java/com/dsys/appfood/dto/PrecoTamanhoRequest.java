@@ -6,35 +6,9 @@ import java.math.BigDecimal;
 // DTO INTERNO - Agrupa Tamanho + Valor para o Service
 // Não vai para o banco, só transporta dados entre métodos
 //=========================================================
-public class PrecoTamanhoRequest {
+public record PrecoTamanhoRequest (
 	
-	private Integer tamanhoId;
-	private BigDecimal valor;
+	Integer tamanhoId,
+	BigDecimal valor
 	
-	//=========================================================
-	// CONTRUTORES
-	//=========================================================
-	
-	public PrecoTamanhoRequest() {
-		
-	}
-	
-	public PrecoTamanhoRequest(Integer tamanhoId, BigDecimal valor) {
-		super();
-		this.tamanhoId = tamanhoId;
-		this.valor = valor;
-	}
-	
-	//=========================================================
-	// GETTERS
-	//=========================================================
-	
-	public Integer getTamanhoId() {
-		return tamanhoId;
-	}
-	
-	public BigDecimal getValor() {
-		return valor;
-	}
-
-}
+	){}

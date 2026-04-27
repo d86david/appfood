@@ -5,11 +5,11 @@ import java.math.BigDecimal;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 
-public record AbrirCaixaRequest (
+public record CaixaAbrirRequest (
 		@NotNull(message = "O operador é obrigatório para abrir o caixa")
 		Integer operadorId,
 		
-		@NotNull(message = "O login do gerent é obrigatório")
+		@NotNull(message = "O login do gerente é obrigatório")
 		String loginGerente,
 		
 		@NotNull(message = "A senha do gerente é obrigatória")

@@ -60,7 +60,7 @@ public class ProdutoService {
 			}
 			
 			//3. algum valor negativo na lista			
-			if(precos.stream().anyMatch(p ->p.getValor().compareTo(BigDecimal.ZERO) < 0 )) {
+			if(precos.stream().anyMatch(p ->p.valor().compareTo(BigDecimal.ZERO) < 0 )) {
 				throw new IllegalArgumentException("O preço do produto não pode ser negativo.");
 			}
 			
@@ -86,8 +86,8 @@ public class ProdutoService {
 			
 			// 7. Para cada preço recebido, criar PrecoVariavel e adicionar no Produto
 			for(PrecoTamanhoRequest preco : precos) {
-				Tamanho tamanho = tamanhoService.buscarPorId(preco.getTamanhoId());
-				PrecoVariavel pv = new PrecoVariavel(produto, tamanho, preco.getValor());
+				Tamanho tamanho = tamanhoService.buscarPorId(preco.tamanhoId());
+				PrecoVariavel pv = new PrecoVariavel(produto, tamanho, preco.valor());
 				produto.adicionarPreco(pv);
 			}
 			
@@ -117,7 +117,7 @@ public class ProdutoService {
 			}
 			
 			//3. algum valor negativo na lista			
-			if(precos.stream().anyMatch(p ->p.getValor().compareTo(BigDecimal.ZERO) < 0 )) {
+			if(precos.stream().anyMatch(p ->p.valor().compareTo(BigDecimal.ZERO) < 0 )) {
 				throw new IllegalArgumentException("O preço do produto não pode ser negativo.");
 			}
 			
@@ -151,8 +151,8 @@ public class ProdutoService {
 			
 			//adiciona os novos
 			for(PrecoTamanhoRequest preco : precos) {
-				Tamanho tamanho = tamanhoService.buscarPorId(preco.getTamanhoId());
-				PrecoVariavel pv = new PrecoVariavel(produto, tamanho, preco.getValor());
+				Tamanho tamanho = tamanhoService.buscarPorId(preco.tamanhoId());
+				PrecoVariavel pv = new PrecoVariavel(produto, tamanho, preco.valor());
 				produto.adicionarPreco(pv);
 			}
 			
