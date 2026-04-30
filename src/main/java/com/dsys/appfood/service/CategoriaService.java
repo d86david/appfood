@@ -37,7 +37,7 @@ public class CategoriaService {
 	//=============================================================
 	
 	@Transactional
-	public Categoria cadastrarCategoria(String nome ) {
+	public Categoria cadastrarCategoria(String nome, boolean personalizavel ) {
 		
 		// Verifica se o nome da Catgoria está em Branco
 		if(nome == null || nome.isBlank()) {
@@ -55,7 +55,7 @@ public class CategoriaService {
 		}
 		
 		// Tudo validado — agora sim cria e salva
-		Categoria categoria = new Categoria(nomePadronizado);
+		Categoria categoria = new Categoria(nomePadronizado, personalizavel);
 		return categoriaRepository.save(categoria);
 	}
 	
@@ -63,7 +63,7 @@ public class CategoriaService {
 	// EDIÇÃO
 	//=============================================================
 	@Transactional
-	public Categoria editarCategoria(Integer id, String novoNome) {
+	public Categoria editarCategoria(Integer id, String novoNome, boolean novoPersonalizavel) {
 		
 		//Validação sem banco
 		if(novoNome == null || novoNome.isBlank()) {
@@ -87,6 +87,7 @@ public class CategoriaService {
 			});
 		
 		categoria.setNome(nomePadronizado);
+		categoria.setPersonalizavel(novoPersonalizavel);
 		return categoriaRepository.save(categoria);
 	}
 	

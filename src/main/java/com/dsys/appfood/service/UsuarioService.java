@@ -1,5 +1,7 @@
 package com.dsys.appfood.service;
 
+import java.util.List;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -115,46 +117,22 @@ public class UsuarioService {
 
 		return usuarioRepository.save(usuarioAtualizado);
 	}
-
+	
 	// =============================================================
-	// ATIVAR
-	// =============================================================
-	@Transactional
-	public Usuario ativarUsuario(Integer id) {
-
-		// Busca Usuario e lança exceção se não existi
-		Usuario usuario = usuarioRepository.findById(id).orElseThrow(() -> new UsuarioNaoEncontradoException(id));
-
-		// Confirma se usuario está inativo
-		if (usuario.isAtivo()) {
-			throw new NegocioException("Usuario ja ativo id: " + id);
-		}
-
-		usuario.ativar();
-
-		return usuarioRepository.save(usuario);
-
-	}
-
-	// =============================================================
-	// INATIVAR
+	// ALTERAR STATUS
 	// =============================================================
 	@Transactional
-	public Usuario inativarUsuario(Integer id) {
-
-		// Busca Usuario e lança exceção se não existir
-		Usuario usuario = usuarioRepository.findById(id).orElseThrow(() -> new UsuarioNaoEncontradoException(id));
-
-		// Confirma se usuario está ativo
-		if (!usuario.isAtivo()) {
-			throw new NegocioException("Usuario ja inativo id: " + id);
+	public void alterarStatus(Integer id, Boolean novoStatus) {
+		Usuario usuarioStatus = usuarioRepository.findById(id)
+				.orElseThrow(() -> new UsuarioNaoEncontradoException(id));
+		
+		// Só Altera se for Realmente diferente do estado atual 
+		if(usuarioStatus.isAtivo().equals(novoStatus)) {
+			usuarioStatus.setAtivo(novoStatus);
 		}
-
-		usuario.inativar();
-
-		return usuarioRepository.save(usuario);
-
+		
 	}
+
 
 	// =============================================================
 	// AUTENTICAÇÃO SIMPLES — login + senha
@@ -227,13 +205,37 @@ public class UsuarioService {
 	}
 
 	// =============================================================
-	// BUSCA SIMPLES POR ID - reutilizado por outros Services
-	// Centraliza a mensagem de erro em um só lugar.
-	// Se sepois mudar a mensagem, muda só aqui
+	// BUSCAS
 	// =============================================================
 	@Transactional(readOnly = true)
 	public Usuario buscaPorId(Integer id) {
 		return usuarioRepository.findById(id).orElseThrow(() -> new UsuarioNaoEncontradoException(id));
 	}
+	
+	@Transactional(readOnly = true)
+	public List<Usuario> buscaAtivosPorNome(String nome){
+		if (nome == null || nome.isBlank()) {
+			throw new IllegalArgumentException("O Nome deve ser informado");
+		}
+		
+		return usuarioRepository.findByNomeContainingIgnoreCaseAndAtivoTrue(nome);
+	}
+	
+	@Transactional(readOnly = true)
+	public List<Usuario> listarUsuariosAtivos(){
+		return usuarioRepository.findByAtivoTrue();
+	}
+	
+	@Transactional(readOnly = true)
+	public List<Usuario> listarUsuariosInativos(){
+		return usuarioRepository.findByAtivoFalse();
+	}
+	
+	@Transactional(readOnly = true)
+	public List<Usuario> listarTodosUsuarios(){
+		return usuarioRepository.findAll();
+	}
+
+
 
 }

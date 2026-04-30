@@ -6,19 +6,24 @@ import com.dsys.appfood.dto.UsuarioAlterarSenhaRequest;
 import com.dsys.appfood.dto.UsuarioCadastroRequest;
 import com.dsys.appfood.dto.UsuarioEdicaoRequest;
 import com.dsys.appfood.dto.UsuarioResponse;
+import com.dsys.appfood.dto.UsuarioStatusRequest;
+import com.dsys.appfood.service.ProdutoService;
 import com.dsys.appfood.service.UsuarioService;
 
 import jakarta.validation.Valid;
 
 import java.net.URI;
+import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -28,7 +33,7 @@ public class UsuarioController {
 	
 	private final UsuarioService usuarioService;
 
-	public UsuarioController(UsuarioService usuarioService) {
+	public UsuarioController(UsuarioService usuarioService, ProdutoService produtoService) {
 		this.usuarioService = usuarioService;
 	}
 	
@@ -51,16 +56,34 @@ public class UsuarioController {
 	}
 	
 	// =============================================================
-    // 2. BUSCAR USUÁRIO POR ID (GET)
+    // 2. EDITAR USUÁRIO
     // =============================================================
-	@GetMapping("/{usuarioId}")
-	public ResponseEntity<UsuarioResponse> buscarPoId(@PathVariable Integer usuarioId){
-		Usuario usuario = usuarioService.buscaPorId(usuarioId);
-		return ResponseEntity.ok(UsuarioResponse.from(usuario));
+	@PutMapping("/{id}")
+	public ResponseEntity<UsuarioResponse> atualizar(
+			@PathVariable Integer id,
+			@RequestBody @Valid UsuarioEdicaoRequest request){
+		
+		// 1. Chamar o Service para executar as regras de negócio e atualizar 
+		Usuario usuarioAtualizado = usuarioService.editar(id, request.nome(), request.telefone(), request.tipo());
+		
+		// 2. Devolver o DTO de Saída (Response)
+		return ResponseEntity.ok(UsuarioResponse.from(usuarioAtualizado));
 	}
 	
 	// =============================================================
-    // 3. LOGIN (POST)
+    // 3. ATIVAR/INATIVAR USUÁRIO 
+    // =============================================================
+	@PatchMapping("/{id}/status")
+	public ResponseEntity<Void> atualizarStatus(@PathVariable Integer id,
+			@RequestBody @Valid UsuarioStatusRequest request){
+		
+		usuarioService.alterarStatus(id, request.ativo());
+		
+		return ResponseEntity.noContent().build();
+	}
+	
+	// =============================================================
+    // 4. LOGIN
     // =============================================================
 	@PostMapping("/login")
 	public ResponseEntity<UsuarioResponse> login(@RequestBody @Valid UuarioLoginRequest request){
@@ -72,54 +95,63 @@ public class UsuarioController {
 	}
 	
 	// =============================================================
-    // 4. EDITAR USUÁRIO (PUT)
-    // =============================================================
-	@PutMapping("/{usuarioId}/atualizar")
-	public ResponseEntity<UsuarioResponse> atualizar(
-			@PathVariable Integer usuarioId,
-			@RequestBody @Valid UsuarioEdicaoRequest request){
-		
-		// 1. Chamar o Service para executar as regras de negócio e atualizar 
-		Usuario usuarioAtualizado = usuarioService.editar(usuarioId, request.nome(), request.telefone(), request.tipo());
-		
-		// 2. Devolver o DTO de Saída (Response)
-		return ResponseEntity.ok(UsuarioResponse.from(usuarioAtualizado));
-	}
-	
-	// =============================================================
     // 5. ALTERAR SENHA USUÁRIO (PUT)
     // =============================================================
-	@PutMapping("/{usuarioId}/senha")
+	@PatchMapping("/{id}/senha")
 	public ResponseEntity<UsuarioResponse> trocarSenha(
-			@PathVariable Integer usuarioId,
+			@PathVariable Integer id,
 			@RequestBody @Valid UsuarioAlterarSenhaRequest request){
 		// 1. Chamar o Service para executar as regras de negócio e atualizar 
-		Usuario usuarioSenhaNova = usuarioService.trocarSenha(usuarioId, request.senhaAtual(), request.senhaNova());
+		usuarioService.trocarSenha(id, request.senhaAtual(), request.senhaNova());
 		
 		// 2. Devolver o DTO de Saída (Response)
-		return ResponseEntity.ok(UsuarioResponse.from(usuarioSenhaNova));
+		return ResponseEntity.noContent().build(); // Retorna 204
 	}
 	
 	// =============================================================
-    // 6. ATIVAR USUÁRIO 
+    // 6. BUSCAR USUÁRIO POR ID
     // =============================================================
-	@PutMapping("/{usuarioId}/ativar")
-	public ResponseEntity<UsuarioResponse> ativar(@PathVariable Integer usuarioId){
-		
-		Usuario usurioAtivo = usuarioService.ativarUsuario(usuarioId);
-		
-		return ResponseEntity.ok(UsuarioResponse.from(usurioAtivo));
+	@GetMapping("/{id}")
+	public ResponseEntity<UsuarioResponse> buscarPoId(@PathVariable Integer id){
+		Usuario usuario = usuarioService.buscaPorId(id);
+		return ResponseEntity.ok(UsuarioResponse.from(usuario));
 	}
 	
 	// =============================================================
-    // 6. INATIVAR USUÁRIO 
+    // 7. OUTRAS BUSCAS
     // =============================================================
-	@PutMapping("/{usuarioId}/inativar")
-	public ResponseEntity<UsuarioResponse> inativar(@PathVariable Integer usuarioId){
+	@GetMapping
+	public ResponseEntity<List<UsuarioResponse>> listar(
+			@RequestParam(required = false) String nome,
+			@RequestParam(required = false, defaultValue = "ATIVO") String status){
 		
-		Usuario usurioAtivo = usuarioService.inativarUsuario(usuarioId);
 		
-		return ResponseEntity.ok(UsuarioResponse.from(usurioAtivo));
+		List<UsuarioResponse> lista;
+		
+		if(nome != null && !nome.isBlank()) {
+			lista = usuarioService.buscaAtivosPorNome(nome)
+					.stream()
+					.map(UsuarioResponse::from)
+					.toList();
+		}else if("INATIVOS".equalsIgnoreCase(status)) {
+			lista = usuarioService.listarUsuariosInativos()
+					.stream()
+					.map(UsuarioResponse::from)
+					.toList();
+		}else if("TODOS".equalsIgnoreCase(status)) {
+			lista = usuarioService.listarTodosUsuarios()
+					.stream()
+					.map(UsuarioResponse::from)
+					.toList();
+		}else {
+			lista = usuarioService.listarUsuariosAtivos()
+					.stream()
+					.map(UsuarioResponse::from)
+					.toList();
+		}
+		
+		return ResponseEntity.ok(lista);
+		
 	}
 	
 }

@@ -15,8 +15,8 @@ public class Categoria {
 	@Column(nullable = false)
 	private String nome;
 	
-	@Column(name = "tem_tamanho")
-	private boolean temTamanho;
+	@Column(name = "personalizavel")
+	private boolean personalizavel;
 
 	//===========================================
 	// CONTRUTORES
@@ -26,8 +26,9 @@ public class Categoria {
 
 	}
 
-	public Categoria(String nome) {
+	public Categoria(String nome, boolean personalizavel) {
 		this.nome = nome;
+		this.personalizavel = personalizavel;
 	}
 
 	//===========================================
@@ -46,12 +47,12 @@ public class Categoria {
 		this.nome = nome;
 	}
 	
-	public boolean isTemTamanho() {
-		return temTamanho;
+	public boolean isPersonalizavel() {
+		return personalizavel;
 	}
 
-	public void setTemTamanho(boolean temTamanho) {
-		this.temTamanho = temTamanho;
+	public void setPersonalizavel(boolean personalizavel) {
+		this.personalizavel = personalizavel;
 	}
 
 	//===========================================

@@ -20,6 +20,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
 	// PESQUISA USUARIOS ATIVOS
 	List<Usuario> findByAtivoTrue();
+	
+	//PESQUISA USUARIOS ATIVOS POR NOME
+	List<Usuario> findByNomeContainingIgnoreCaseAndAtivoTrue(String nome);
 
 	// PESQUISA USUARIO INATIVOS
 	List<Usuario> findByAtivoFalse();

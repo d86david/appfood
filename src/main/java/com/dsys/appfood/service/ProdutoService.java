@@ -2,6 +2,7 @@ package com.dsys.appfood.service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +12,8 @@ import com.dsys.appfood.domain.model.PrecoVariavel;
 import com.dsys.appfood.domain.model.Produto;
 import com.dsys.appfood.domain.model.Tamanho;
 import com.dsys.appfood.dto.PrecoTamanhoRequest;
+import com.dsys.appfood.dto.ProdutoRequest;
+import com.dsys.appfood.dto.ProdutoResponse;
 import com.dsys.appfood.exception.ProdutoNaoEncontradoException;
 import com.dsys.appfood.repository.ProdutoRepository;
 
@@ -219,5 +222,58 @@ public class ProdutoService {
 		public boolean isProdutoNaCategoria(Integer categoriaId) {
 			return produtoRepository.existsByCategoriaId(categoriaId);
 		}
+	
+		// =============================================================
+		// MÉTODOS DTO (conversão dentro da transação)
+		// =============================================================
+		@Transactional(readOnly = true)
+		public ProdutoResponse buscaProdutoResponsePorId(Integer id) {
+			return ProdutoResponse.from(buscarProdutoPorId(id));
+		}
+		
+		@Transactional(readOnly = true)
+		public List<ProdutoResponse> listarTodosProdutosResponse() {
+		    return listarTodosProdutos().stream()
+		            .map(ProdutoResponse::from)
+		            .collect(Collectors.toList());
+		}
+		
+		@Transactional(readOnly = true)
+		public List<ProdutoResponse> buscarProdutoPorNomeResponse(String nome) {
+		    return buscarProdutoPorNome(nome).stream()
+		            .map(ProdutoResponse::from)
+		            .collect(Collectors.toList());
+		}
+
+		@Transactional(readOnly = true)
+		public List<ProdutoResponse> listarProdutoPorCategoriaResponse(Integer categoriaId) {
+		    return listarProdutoPorCategoria(categoriaId).stream()
+		            .map(ProdutoResponse::from)
+		            .collect(Collectors.toList());
+		}
+
+		@Transactional
+		public ProdutoResponse cadastrarProdutoResponse(ProdutoRequest request) {
+		    Produto produto = cadastrarProduto(
+		        request.nome(),
+		        request.imprimeCozinha(),
+		        request.categoriaId(),
+		        request.precos()
+		    );
+		    return ProdutoResponse.from(produto);
+		}
+
+		@Transactional
+		public ProdutoResponse editarProdutoResponse(Integer id, ProdutoRequest request) {
+		    Produto produto = editarProduto(
+		        id,
+		        request.nome(),
+		        request.categoriaId(),
+		        request.imprimeCozinha(),
+		        request.precos()
+		    );
+		    return ProdutoResponse.from(produto);
+		}
+		
 
 }
