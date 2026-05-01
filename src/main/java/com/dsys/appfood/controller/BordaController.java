@@ -40,14 +40,15 @@ public class BordaController {
 	@PostMapping
 	public ResponseEntity<BordaResponse> cadastrar(@RequestBody @Valid BordaRequest request,
 			UriComponentsBuilder uriBuilder) {
+		
 		// 1. Chamar o Service para executar as regras de negócio e salvar
-		Borda bordaSalva = bordaService.cadastrarBorda(request.nome(), request.valorAdicional());
+		BordaResponse response = bordaService.cadastrarBordaResponse(request);
 		
 		// 2. Retornar o código 201 (Created) e a URL do novo recurso
-		URI uri = uriBuilder.path("bordas/{id}").buildAndExpand(bordaSalva.getId()).toUri();
+		URI uri = uriBuilder.path("bordas/{id}").buildAndExpand(response.id()).toUri();
 
 		// 3. Devolver o DTO de Saída (Response)
-		return ResponseEntity.created(uri).body(BordaResponse.from(bordaSalva));
+		return ResponseEntity.created(uri).body(response);
 	}
 
 	// ====================================================================================================
@@ -57,9 +58,9 @@ public class BordaController {
 	public ResponseEntity<BordaResponse> atualizar(@PathVariable Integer id, 
 			@RequestBody @Valid BordaRequest request){
 		
-		Borda bordaAtualizada = bordaService.editarBorda(id, request.nome(), request.valorAdicional());
+		BordaResponse response = bordaService.editarBordaResponse(id, request);
 		
-		return ResponseEntity.ok(BordaResponse.from(bordaAtualizada));
+		return ResponseEntity.ok(response);
 		
 	}
 
@@ -86,28 +87,18 @@ public class BordaController {
 	}
 
 	// ====================================================================================================
-	// 5. BUSCAR BORDA POR NOME
+	// 5. BUSCAR BORDA POR NOME E LISTA 
 	// ====================================================================================================
 	@GetMapping("/{nome}")
-	public ResponseEntity<List<BordaResponse>> buscarPorNome(@RequestParam String nome){
+	public ResponseEntity<List<BordaResponse>> buscarPorNome( @RequestParam(required = false) String nome){
 		
-		List<BordaResponse> bordas = bordaService.listarBordasPorNome(nome)
-				.stream()
-				.map(BordaResponse::from)
-				.toList();
+		List<BordaResponse> lista;
 		
-		return ResponseEntity.ok(bordas);
-	}
-
-	// ====================================================================================================
-	// 6. LISTAR TODAS AS BORDAS
-	// ====================================================================================================
-	@GetMapping
-	public ResponseEntity<List<BordaResponse>> listar(){
-		List<BordaResponse> lista = bordaService.listarTodasBordas()
-				.stream()
-				.map(BordaResponse::from)
-				.toList();
+		if(nome != null) {
+			lista = bordaService.buscarPorNomeResponse(nome);
+		}else {
+			lista = bordaService.listarTodasAsBordasResponse();
+		}
 		
 		return ResponseEntity.ok(lista);
 	}

@@ -13,8 +13,7 @@ public interface BordaRepository extends JpaRepository<Borda, Integer> {
 
 	// BUSCA BORDA PELO NOME
 	Optional<Borda> findByNomeIgnoreCase(String nome);
-
+	
 	// LISTA BORDA PELO NOME
 	List<Borda> findByNomeContainingIgnoreCase(String nome);
-
 }

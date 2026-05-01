@@ -12,5 +12,9 @@ public class BordaNaoEncontradaException extends EntidadeNaoEncontradaException{
 	public BordaNaoEncontradaException(Integer id) {
 		super("Borda não encontrada: id " + id, id);
 	}
+	
+	public BordaNaoEncontradaException(String nome) {
+		super("Borda '" + nome + "' não encontrada" );
+	}
 
 }

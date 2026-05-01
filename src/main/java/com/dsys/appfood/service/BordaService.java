@@ -1,6 +1,8 @@
 package com.dsys.appfood.service;
 
 import com.dsys.appfood.domain.model.Borda;
+import com.dsys.appfood.dto.BordaRequest;
+import com.dsys.appfood.dto.BordaResponse;
 import com.dsys.appfood.exception.BordaJaCadastradaException;
 import com.dsys.appfood.exception.BordaNaoEncontradaException;
 import com.dsys.appfood.exception.IngredienteJaCadastradoException;
@@ -8,6 +10,7 @@ import com.dsys.appfood.repository.BordaRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +50,11 @@ public class BordaService {
 		}
 
 		String nomePadronizado = nome.trim();
+		
+		// Verifica se a Borda ja existe no banco
+		if(bordaRepository.findByNomeIgnoreCase(nomePadronizado).isPresent()) {
+			throw new BordaJaCadastradaException(nomePadronizado);
+		}
 
 		// VERIFICA SE JA TEM O INGREDIENTE
 		if (bordaRepository.findByNomeIgnoreCase(nomePadronizado).isPresent()) {
@@ -79,9 +87,10 @@ public class BordaService {
 
 		Borda borda = bordaRepository.findById(id).orElseThrow(() -> new BordaNaoEncontradaException(id));
 
+		// Verifica se outro registro ja usa esse nome
 		bordaRepository.findByNomeIgnoreCase(nomePadronizado).ifPresent(existente -> {
 			if (!existente.getId().equals(id)) {
-				throw new BordaJaCadastradaException(nomePadronizado);
+				throw new BordaJaCadastradaException(nomePadronizado, id);
 			}
 		});
 
@@ -123,12 +132,54 @@ public class BordaService {
 	}
 	
 	@Transactional(readOnly = true)
-	public List<Borda> listarBordasPorNome (String nome) {
+	public List<Borda> buscarBordaPorNome (String nome) {
 		if (nome == null || nome.isBlank()) {
 			throw new IllegalArgumentException("O Nome deve ser informado");
 		}
 
 		return bordaRepository.findByNomeContainingIgnoreCase(nome);
 	}
-
+	
+	// =============================================================
+	//  MÉTODOS DTO (conversão dentro da transação)
+	// =============================================================
+	@Transactional
+	public BordaResponse cadastrarBordaResponse(BordaRequest request) {
+		Borda borda = cadastrarBorda(request.nome(), request.valorAdicional());
+		
+		return BordaResponse.from(borda);
+	}
+	
+	@Transactional
+	public BordaResponse editarBordaResponse( Integer id, BordaRequest request) {
+		
+		Borda novaBorda = editarBorda(id, request.nome(), request.valorAdicional());
+		
+		return BordaResponse.from(novaBorda);
+		
+	}
+	
+	@Transactional(readOnly = true)
+	public BordaResponse buscarPorIdResponse(Integer id) {
+		return BordaResponse.from(buscarBordaPorId(id));
+		
+	}
+	
+	@Transactional(readOnly = true)
+	public List<BordaResponse> buscarPorNomeResponse(String nome) {
+		return buscarBordaPorNome(nome)
+				.stream()
+				.map(BordaResponse::from)
+				.collect(Collectors.toList());
+		
+	}
+	
+	@Transactional(readOnly = true)
+	public List<BordaResponse> listarTodasAsBordasResponse(){
+		return listarTodasBordas()
+				.stream()
+				.map(BordaResponse::from)
+				.collect(Collectors.toList());
+	}
+	
 }
