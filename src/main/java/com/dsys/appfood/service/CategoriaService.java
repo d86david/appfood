@@ -2,11 +2,14 @@ package com.dsys.appfood.service;
 
 import com.dsys.appfood.repository.ProdutoRepository;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.dsys.appfood.domain.model.Categoria;
+import com.dsys.appfood.dto.CategoriaRequest;
+import com.dsys.appfood.dto.CategoriaResponse;
 import com.dsys.appfood.exception.CategoriaJaCadastradaException;
 import com.dsys.appfood.exception.CategoriaNaoEncontradaException;
 import com.dsys.appfood.exception.NegocioException;
@@ -121,9 +124,10 @@ public class CategoriaService {
 	}
 	
 	@Transactional(readOnly = true)
-	public Categoria buscarCategoriaPorNome(String nome){
-		return categoriaRepository.findByNomeIgnoreCase(nome)
-				.orElseThrow(() -> new IllegalArgumentException("Nenhuma categoria encontrada com o nome: " + nome ));
+	public List<Categoria> buscarCategoriaPorNome(String nome){
+		
+		return categoriaRepository.findByNomeContainingIgnoreCase(nome);
+				
 	}
 	
 	@Transactional(readOnly = true)
@@ -131,4 +135,51 @@ public class CategoriaService {
         return categoriaRepository.findById(id)
             .orElseThrow(() -> new CategoriaNaoEncontradaException(id));
     }
+	
+	// =============================================================
+	//  MÉTODOS DTO (conversão dentro da transação)
+	// =============================================================
+	@Transactional
+	public CategoriaResponse cadastrarCategoriaResponse(CategoriaRequest request) {
+		
+		Categoria categoria = cadastrarCategoria(request.nome(), request.personalizavel());
+		
+		return CategoriaResponse.from(categoria);
+		
+	}
+	
+	@Transactional
+	public CategoriaResponse editarCategoriaResponse (Integer id, CategoriaRequest request) {
+		
+		Categoria categoriaAtualizada = editarCategoria(id, request.nome(), request.personalizavel());
+		
+		return CategoriaResponse.from(categoriaAtualizada);
+		
+	}
+	
+	@Transactional(readOnly = true)
+	public CategoriaResponse buscarPorIdResponse(Integer id) {
+		
+		return CategoriaResponse.from(buscarCategoriaPorId(id));
+	}
+	
+	@Transactional(readOnly = true)
+	public List<CategoriaResponse> buscarPorNomeResponse(String nome){
+		
+		return buscarCategoriaPorNome(nome)
+				.stream()
+				.map(CategoriaResponse::from)
+				.collect(Collectors.toList());
+	}
+	
+	@Transactional(readOnly = true)
+	public List<CategoriaResponse> listarTodasCategoriasResponse(){
+		
+		return listarTodasCategorias()
+				.stream()
+				.map(CategoriaResponse::from)
+				.collect(Collectors.toList());
+	}
+
+	
 }

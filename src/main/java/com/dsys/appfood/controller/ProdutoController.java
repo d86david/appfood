@@ -71,7 +71,7 @@ public class ProdutoController {
 	// =============================================================
     // 6. BUSCAR PRODUTO POR ID
     // =============================================================
-	@GetMapping
+	@GetMapping("/{id}")
 	public ResponseEntity<ProdutoResponse> buscarPorId(@PathVariable Integer id){
 		ProdutoResponse response = produtoService.buscaProdutoResponsePorId(id);
 		

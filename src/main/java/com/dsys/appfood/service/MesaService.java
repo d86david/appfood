@@ -1,5 +1,7 @@
 package com.dsys.appfood.service;
 
+import com.dsys.appfood.domain.enums.StatusPedido;
+import com.dsys.appfood.domain.enums.TipoPedido;
 import com.dsys.appfood.domain.model.Mesa;
 import com.dsys.appfood.domain.model.Pedido;
 import com.dsys.appfood.exception.MesaJaCadastradaException;
@@ -7,6 +9,7 @@ import com.dsys.appfood.exception.MesaNaoEncontradaException;
 import com.dsys.appfood.exception.NegocioException;
 import com.dsys.appfood.repository.MesaRepository;
 
+import com.dsys.appfood.repository.PedidoRepository;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,13 +28,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class MesaService {
 	
 	
-	private final PedidoService pedidoService;
+	private final PedidoRepository pedidoRepository;
 	private final MesaRepository mesaRepository;
 
-	public MesaService(MesaRepository mesaRepository, PedidoService pedidoService) {
+	public MesaService(MesaRepository mesaRepository, PedidoRepository pedidoRepository) {
 		
 		this.mesaRepository = mesaRepository;
-		this.pedidoService = pedidoService;
+		this.pedidoRepository = pedidoRepository;
 	}
 	
 	// ============================================================
@@ -97,7 +100,15 @@ public class MesaService {
 		Mesa mesa = buscarMesaPorId(numeroMesa);
 		
 		//Verificar Pedido Pendentes nessa mesa
-		List<Pedido> pedidosAtivos = pedidoService.buscarPedidosAtivosDaMesa(numeroMesa);
+		
+		// Definindo aqui o que NÃO queremos pedidos encerrados
+		List<StatusPedido> statusFechados = List.of(StatusPedido.FINALIZADO, StatusPedido.CANCELADO,
+				StatusPedido.SAIU_PARA_ENTREGA);
+		
+		// Chamando o repository passando os filtros "fixos" da regra de negócio
+		List<Pedido> pedidosAtivos = pedidoRepository.findByTipoAndNumeroMesaAndStatusNotIn(
+				TipoPedido.MESA, numeroMesa, statusFechados);
+		
 		
 		if(!pedidosAtivos.isEmpty()) {
 			throw new NegocioException("Não é possivel liberar a mesa "+ numeroMesa +

@@ -18,6 +18,6 @@ public interface ClienteRepository extends JpaRepository<Cliente, Integer>{
 	Optional<Cliente> findByTelefonePrincipal(String telefone);
 	
 	// --- VERIFICA SE CLIENTE EXISTE E ESTA ATIVO PELO TELEFONE --- 
-	boolean existsByTelefoneAndAtivoTrue(String telefone);
+	boolean existsByTelefonePrincipalAndAtivoTrue(String telefone);
 
 }

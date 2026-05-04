@@ -1,6 +1,7 @@
 package com.dsys.appfood.domain.model;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 import com.dsys.appfood.domain.enums.FormaPagamento;
@@ -35,6 +36,9 @@ public class Pagamento {
 	private BigDecimal valor;
 
 	private BigDecimal troco;
+	
+	@JoinColumn(name = "pedido_id")
+	LocalDateTime dataHora;
 
 	@ManyToOne
 	@JoinColumn(name = "operador_id")
@@ -55,6 +59,7 @@ public class Pagamento {
 		this.caixa = caixa;
 		this.formaPagamento = formaPagamento;
 		this.valor = valor;
+		dataHora = LocalDateTime.now();
 
 	}
 
@@ -110,6 +115,11 @@ public class Pagamento {
 		this.operador = operador;
 	}
 
+
+	public LocalDateTime getDataHora() {
+		return dataHora;
+	}
+	
 	// ===========================================
 	// HASHCODE E EQUALS
 	// ===========================================

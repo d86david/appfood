@@ -89,7 +89,7 @@ public class BordaController {
 	// ====================================================================================================
 	// 5. BUSCAR BORDA POR NOME E LISTA 
 	// ====================================================================================================
-	@GetMapping("/{nome}")
+	@GetMapping
 	public ResponseEntity<List<BordaResponse>> buscarPorNome( @RequestParam(required = false) String nome){
 		
 		List<BordaResponse> lista;
