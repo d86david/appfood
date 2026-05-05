@@ -9,41 +9,44 @@ import com.dsys.appfood.domain.enums.TipoMovimentacao;
 import jakarta.persistence.*;
 
 /**
- * Representa cada entrada ou saída individual de valores do Caixa.
- * Esta classe serve como o extrato detalhado para conferência no fechamento.
+ * Representa cada entrada ou saída individual de valores do Caixa. Esta classe
+ * serve como o extrato detalhado para conferência no fechamento.
  */
 @Entity
 @Table(name = "movimentacao_caixa")
 public class MovimentacaoCaixa {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
-	
+
 	@ManyToOne
 	@JoinColumn(name = "caixa_id")
 	private Caixa caixa;
-	
+
+	@Column(name = "pedido_id")
+	private Integer pedidoId;
+
 	@Enumerated(EnumType.STRING)
 	private TipoMovimentacao tipo;
-	
+
 	private BigDecimal valor;
-	
+
 	private String descricao;
-	
+
 	@Column(name = "data_hora")
 	private LocalDateTime dataHoraMovimento = LocalDateTime.now();
-	
+
 	private String origem;
-	
+
 	@ManyToOne
 	@JoinColumn(name = "usuario_id")
 	private Usuario gerente;
-	
-	//===========================================
+
+	// ===========================================
 	// GETTERS E SETTERS
-	//===========================================
-	
+	// ===========================================
+
 	public Integer getId() {
 		return id;
 	}
@@ -54,6 +57,14 @@ public class MovimentacaoCaixa {
 
 	private void setCaixa(Caixa caixa) {
 		this.caixa = caixa;
+	}
+
+	public Integer getPedidoId() {
+		return pedidoId;
+	}
+
+	public void setPedidoId(Integer pedidoId) {
+		this.pedidoId = pedidoId;
 	}
 
 	public TipoMovimentacao getTipo() {
@@ -99,10 +110,10 @@ public class MovimentacaoCaixa {
 	private void setGerente(Usuario gerente) {
 		this.gerente = gerente;
 	}
-	
-	//===========================================
+
+	// ===========================================
 	// HASHCODE E EQUALS
-	//===========================================
+	// ===========================================
 
 	@Override
 	public int hashCode() {
@@ -121,59 +132,60 @@ public class MovimentacaoCaixa {
 		return Objects.equals(id, other.id);
 	}
 
-	//=====================================================
+	// =====================================================
 	// --- METODOS DE FÁBRICA (STATIC FACTORY METHODS) ---
-	//=====================================================
+	// =====================================================
 	/**
 	 * Cria uma movimentação de entrada referente a uma venda concluída.
 	 */
-	public static MovimentacaoCaixa criarEntradaCaixa(Caixa caixa, BigDecimal valor, Integer pedidoId ) {
+	public static MovimentacaoCaixa criarEntradaCaixa(Caixa caixa, BigDecimal valor, Integer pedidoId) {
 		MovimentacaoCaixa mov = new MovimentacaoCaixa();
 		mov.setCaixa(caixa);
 		mov.setTipo(TipoMovimentacao.ENTRADA);
 		mov.setOrigem("CAIXA");
 		mov.setValor(valor);
 		mov.setDescricao("Venda realizada - Pedido #" + pedidoId);
-		//Entradas de venda geralmente não precisam de gerente, pois o operador está logado.
-		
+		// Entradas de venda geralmente não precisam de gerente, pois o operador está
+		// logado.
+
 		return mov;
 	}
-	
+
 	/**
-	 * Cria uma movimentação  de saída para retirada do dinheiro.
-	 * Exige um gerente autorizador e uma justificativa.
+	 * Cria uma movimentação de saída para retirada do dinheiro. Exige um gerente
+	 * autorizador e uma justificativa.
 	 */
 	public static MovimentacaoCaixa criarSaidaSangria(Caixa caixa, BigDecimal valor, Usuario gerente, String motivo) {
-		if(gerente == null) {
+		if (gerente == null) {
 			throw new IllegalArgumentException("Sangrias exigem autorização de um gerente!");
 		}
-		if(valor.compareTo(BigDecimal.ZERO) <= 0) {
+		if (valor.compareTo(BigDecimal.ZERO) <= 0) {
 			throw new IllegalArgumentException("O valor da sangria deve ser maior que zero!");
 		}
-		
+
 		MovimentacaoCaixa mov = new MovimentacaoCaixa();
 		mov.setCaixa(caixa);
 		mov.setTipo(TipoMovimentacao.SAIDA);
 		mov.setValor(valor);
 		mov.setGerente(gerente);
-		mov.setDescricao("Sangria: " + motivo);
+		mov.setDescricao(motivo);
 		return mov;
 	}
-	
-	//===========================================
-	//Metodos Auxiliares
-	//===========================================
-	
+
+	// ===========================================
+	// Metodos Auxiliares
+	// ===========================================
+
 	/**
 	 * Métodos Auxiliar para formatar a descrição da movimentação para relatórios
 	 */
 	public String getResumoFormatado() {
-		return String.format("[%s] - %s - R$ %.2f", 
-				this.tipo, this.descricao, this.valor);
+		return String.format("[%s] - %s - R$ %.2f", this.tipo, this.descricao, this.valor);
 	}
-	
+
 	/**
-	 *  Método auxiliar para verificar se a movimentação exigiu autorizaçção de nivel superior. 
+	 * Método auxiliar para verificar se a movimentação exigiu autorizaçção de nivel
+	 * superior.
 	 */
 	public boolean isAutorizadaPorGerente() {
 		return this.gerente != null;

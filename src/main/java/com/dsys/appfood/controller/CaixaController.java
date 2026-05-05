@@ -1,16 +1,15 @@
 package com.dsys.appfood.controller;
 
-import com.dsys.appfood.domain.model.Caixa;
+
 import com.dsys.appfood.domain.model.MovimentacaoCaixa;
 import com.dsys.appfood.dto.CaixaAbrirRequest;
+import com.dsys.appfood.dto.CaixaEstornoRequest;
 import com.dsys.appfood.dto.CaixaResponse;
 import com.dsys.appfood.dto.CaixaStatusResponse;
-import com.dsys.appfood.dto.CaixaEstornoRequest;
 import com.dsys.appfood.dto.CaixaFecharRequest;
 import com.dsys.appfood.dto.MovimentacaoCaixaResponse;
 import com.dsys.appfood.dto.ResumoCaixaResponse;
 import com.dsys.appfood.dto.CaixaSangriaRequest;
-import com.dsys.appfood.exception.NenhumCaixaAbertoException;
 import com.dsys.appfood.service.CaixaService;
 import com.dsys.appfood.service.MovimentacaoCaixaService;
 
@@ -49,13 +48,11 @@ public class CaixaController {
     // =============================================================
 	@PostMapping("/abertura")
 	public ResponseEntity<CaixaResponse> abrirCaixa(@RequestBody CaixaAbrirRequest request){
-		Caixa caixa = caixaService.abrirCaixa(
-				request.operadorId(), 
-				request.loginGerente(), 
-				request.senhaGerente(), 
-				request.valorInicial()
-				);
-		return ResponseEntity.status(HttpStatus.CREATED).body(CaixaResponse.from(caixa));
+		
+		CaixaResponse response = caixaService.abrirCaixaResponse(request);
+		
+		return ResponseEntity.status(HttpStatus.CREATED).body(response);
+		
 	}
 	
 
@@ -64,14 +61,10 @@ public class CaixaController {
     // =============================================================
 	@GetMapping("/aberto")
 	public ResponseEntity<CaixaStatusResponse> buscarCaixaAbertoAtual(){
-		try {
-			Caixa caixa = caixaService.buscarCaixaAbertoAtual();
+	
+			CaixaStatusResponse response = caixaService.buscarCaixaAbertoAtualResponse();
 			
-			return ResponseEntity.ok(CaixaStatusResponse.deCaixaAberto(caixa));
-			
-		}catch(NenhumCaixaAbertoException e) {
-			return ResponseEntity.ok(CaixaStatusResponse.vazio());
-		}
+			return ResponseEntity.ok(response);
 	}
 	
 
@@ -82,9 +75,9 @@ public class CaixaController {
 	public ResponseEntity<CaixaResponse> fecharCaixa(@PathVariable Integer caixaId, 
 														@RequestBody CaixaFecharRequest request){
 		
-		Caixa caixa = caixaService.fecharCaixa(caixaId, request.loginGerente(), request.senhaGerente());
+		CaixaResponse response = caixaService.fecharCaixaResponse(caixaId, request);
 		
-		return ResponseEntity.ok(CaixaResponse.from(caixa));
+		return ResponseEntity.ok(response);
 	}
 	
 
@@ -95,30 +88,21 @@ public class CaixaController {
 	public ResponseEntity<MovimentacaoCaixaResponse> realizarSangria(@PathVariable Integer caixaId, 
 																	@RequestBody CaixaSangriaRequest request){
 		
-		MovimentacaoCaixa mov = caixaService.realizarSangria(
-				caixaId, 
-				request.loginGerente(), 
-				request.senhaGerente(), 
-				request.valor(), 
-				request.motivo()
-				);
-		return ResponseEntity.status(HttpStatus.CREATED).body(MovimentacaoCaixaResponse.from(mov));
+		MovimentacaoCaixaResponse response = caixaService.realizarSangriaResponse(caixaId, request);
+				
+		return ResponseEntity.ok(response);
 	}
 	
 	// =============================================================
     // 3. REGISTRAR ESTORNO
     // =============================================================
-    @PostMapping("/{caixaId}/estornos")
-    public ResponseEntity<MovimentacaoCaixaResponse> registrarEstorno(@PathVariable Integer caixaId,
+	@PostMapping("/movimentacoes/{movimentacaoId}/estorno")
+    public ResponseEntity<MovimentacaoCaixaResponse> registrarEstorno(@PathVariable Integer movimentoId,
                                                                       @RequestBody CaixaEstornoRequest request) {
-        MovimentacaoCaixa mov = caixaService.registrarEstorno(
-                caixaId,
-                request.valor(),
-                request.senhaGerente(),
-                request.loginGerente(),
-                request.motivo()
-        );
-        return ResponseEntity.status(HttpStatus.CREATED).body(MovimentacaoCaixaResponse.from(mov));
+        
+    	MovimentacaoCaixaResponse response = caixaService.realizarEstornoResponse(movimentoId, request);
+        
+        return ResponseEntity.ok(response);
     }
     
 	// =============================================================

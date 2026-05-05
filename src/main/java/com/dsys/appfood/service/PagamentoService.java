@@ -2,8 +2,10 @@ package com.dsys.appfood.service;
 
 import com.dsys.appfood.domain.enums.FormaPagamento;
 import com.dsys.appfood.domain.enums.StatusPedido;
+import com.dsys.appfood.domain.enums.TipoMovimentacao;
 import com.dsys.appfood.domain.model.Caixa;
 import com.dsys.appfood.domain.model.ContaCorrente;
+import com.dsys.appfood.domain.model.MovimentacaoCaixa;
 import com.dsys.appfood.domain.model.Pagamento;
 import com.dsys.appfood.domain.model.Pedido;
 import com.dsys.appfood.domain.model.Usuario;
@@ -11,6 +13,7 @@ import com.dsys.appfood.dto.PagamentoComTrocoResponse;
 import com.dsys.appfood.dto.PagamentoResponse;
 import com.dsys.appfood.exception.NegocioException;
 import com.dsys.appfood.exception.PagamentoNaoEncontradoException;
+import com.dsys.appfood.repository.MovimentacaoCaixaRepository;
 import com.dsys.appfood.repository.PagamentoRepository;
 
 import java.math.BigDecimal;
@@ -31,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class PagamentoService {
 
+	private final MovimentacaoCaixaRepository movimentacaoCaixaRepository;
 	private final ContaCorrenteService contaCorrenteService;
 	private final UsuarioService usuarioService;
 	private final CaixaService caixaService;
@@ -38,13 +42,14 @@ public class PagamentoService {
 	private final PagamentoRepository pagamentoRepository;
 
 	public PagamentoService(PagamentoRepository pagamentoRepository, PedidoService pedidoService,
-			CaixaService caixaService, UsuarioService usuarioService, ContaCorrenteService contaCorrenteService) {
+			CaixaService caixaService, UsuarioService usuarioService, ContaCorrenteService contaCorrenteService, MovimentacaoCaixaRepository movimentacaoCaixaRepository) {
 
 		this.pagamentoRepository = pagamentoRepository;
 		this.pedidoService = pedidoService;
 		this.caixaService = caixaService;
 		this.usuarioService = usuarioService;
 		this.contaCorrenteService = contaCorrenteService;
+		this.movimentacaoCaixaRepository = movimentacaoCaixaRepository;
 	}
 
 	// ============================================================
@@ -268,8 +273,15 @@ public class PagamentoService {
 
 		// Se for DINHEIRO, precisa registrar a SAÍDA no caixa
 		if (pagamento.getFormaPagamento() == FormaPagamento.DINHEIRO) {
-			caixaService.registrarEstorno(pagamento.getCaixa().getId(), pagamento.getValor(), gerente.getLogin(),
-					gerente.getSenha(), "Estorno de pagamento #" + pagamentoId + ": " + motivo);
+			// Localiza a movimentação de ENTRADA correspondente ao pedido
+			MovimentacaoCaixa entradaOriginal = movimentacaoCaixaRepository.findByCaixaIdAndPedidoIdAndTipo(
+					pagamento.getCaixa().getId(), 
+					pedido.getId(), 
+					TipoMovimentacao.ENTRADA)
+					.orElseThrow(() -> new NegocioException("Não foi encontrada a movimentação de entrada para o pedido " + pedido.getId()));
+			
+			//executa o estorno (internamente sem senha)
+			caixaService.realizarEstornoInterno(entradaOriginal.getId(), gerenteId, "Estorno de pagamento #" + pagamentoId + ": " + motivo);
 		}
 
 		// Remove o pagamento da lista do pedido

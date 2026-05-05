@@ -9,8 +9,16 @@ import com.dsys.appfood.domain.enums.StatusCaixa;
 import com.dsys.appfood.domain.model.Caixa;
 import com.dsys.appfood.domain.model.MovimentacaoCaixa;
 import com.dsys.appfood.domain.model.Usuario;
+import com.dsys.appfood.dto.CaixaAbrirRequest;
+import com.dsys.appfood.dto.CaixaEstornoRequest;
+import com.dsys.appfood.dto.CaixaFecharRequest;
+import com.dsys.appfood.dto.CaixaResponse;
+import com.dsys.appfood.dto.CaixaSangriaRequest;
+import com.dsys.appfood.dto.CaixaStatusResponse;
+import com.dsys.appfood.dto.MovimentacaoCaixaResponse;
 import com.dsys.appfood.exception.CaixaFechadoException;
 import com.dsys.appfood.exception.CaixaNaoEncontradoException;
+import com.dsys.appfood.exception.EntidadeNaoEncontradaException;
 import com.dsys.appfood.exception.NegocioException;
 import com.dsys.appfood.exception.NenhumCaixaAbertoException;
 import com.dsys.appfood.repository.CaixaRepository;
@@ -19,269 +27,342 @@ import com.dsys.appfood.repository.MovimentacaoCaixaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Classe responsavel por orquestar todas as regras de negócio relacionadas ao Caixa
+ * Classe responsavel por orquestar todas as regras de negócio relacionadas ao
+ * Caixa
  * 
- * Responsabilidade ÚNICA: gerenciar o ciclo de vida do Caixa (abertura -> movimentação -> fechamento)
+ * Responsabilidade ÚNICA: gerenciar o ciclo de vida do Caixa (abertura ->
+ * movimentação -> fechamento)
  * 
- * Este Service NÃO sabe nada sobre HTTP, Apenas processa e lança exceções de negócio.
+ * Este Service NÃO sabe nada sobre HTTP, Apenas processa e lança exceções de
+ * negócio.
  */
 @Service
 public class CaixaService {
-	
-	//INJEÇÃO DAS DEPENDENCIAS usadas no Service, apenas 3 
+
+	// INJEÇÃO DAS DEPENDENCIAS usadas no Service, apenas 3
 	private final CaixaRepository caixaRepository;
 	private final UsuarioService usuarioService;
 	private final MovimentacaoCaixaRepository movimentacaoRepository;
-	
-	//Injeção via construtor - campos final garatem a imutabilidade
-	public CaixaService(CaixaRepository caixaRepository, 
-						UsuarioService usuarioService, 
-						MovimentacaoCaixaRepository movimentacaoRepository ) {
+
+	// Injeção via construtor - campos final garatem a imutabilidade
+	public CaixaService(CaixaRepository caixaRepository, UsuarioService usuarioService,
+			MovimentacaoCaixaRepository movimentacaoRepository) {
 		this.caixaRepository = caixaRepository;
 		this.usuarioService = usuarioService;
 		this.movimentacaoRepository = movimentacaoRepository;
 	}
-	
-	//============================================================================
-	// 1º Ação do CAIXA - Abrir Caixa 
+
+	// ============================================================================
+	// 1º Ação do CAIXA - Abrir Caixa
 	// Regaras da Ação: gerente Autoriza | operador sem caixa aberto | valor >= 0
-	//============================================================================
-	
-	@Transactional
-	public Caixa abrirCaixa(Integer operadorId, 
-							String loginGerente, 
-							String senhaGerente, 
-							BigDecimal valorInicial) {
-		
-		//REGRA: valor inicial não pode ser negativo
-		// (pode ser zerado - caixa abre sem troco)
-		if(valorInicial == null) {
-			valorInicial = BigDecimal.ZERO; //se o valor não for informado, assume zero
-		}
-		
-		if(valorInicial.signum() == -1) {
-			throw new IllegalArgumentException("O valor inicial do caixa não pode ser negativo.");
-		}
-		
-		//Busca o Operador - Lança exeção clara se não existir
-		Usuario operador = usuarioService.buscaPorId(operadorId);
-		
-		//REGRA: quem autoriza precisa ser Gerente ou ADM
-		//Sem isso, qualquer operador poderia "autorizar" a si mesmo
-		// Autentica e valida o gerente — tudo dentro do UsuarioService
-		Usuario gerente = usuarioService.autenticarGerente(loginGerente, senhaGerente);
-		
-		//REGRA: operador não pode abrir um segundo caixa se ja tem um aberto
-		boolean temCaixaAberto = caixaRepository
-				.findByOperadorAndStatus(operador, StatusCaixa.ABERTO)
-				.isPresent();
-		
-		if(temCaixaAberto) {
-			throw new NegocioException(
-					"O operador "+ operador.getNome() +" já possui um caixa aberto.");
-		}
-		
-		//Cria um novo caixa, que começa fechado por padrão
-		Caixa caixa = new Caixa();
-		
-		//Chama o método de Abrir caixa da Model
-		caixa.abrirCaixa(valorInicial, gerente);
-		caixa.setOperador(operador);
-		
-		// Persiste e retorna
-		return caixaRepository.save(caixa);	
-	}
-	
-	//============================================================================
-	// 2º Ação do CAIXA - Registrar Venda (Entrada no Caixa)
-	// Regaras da Ação: O caixa deve estar aberto | valor > 0
-	//============================================================================
+	// ============================================================================
 
 	@Transactional
-	public MovimentacaoCaixa registrarVenda(Integer caixaId, Integer pedidoId,
-											BigDecimal valorPago) {
-		//Validação sem acessar o banco 
-		if(valorPago == null || valorPago.compareTo(BigDecimal.ZERO) <= 0) {
+	public Caixa abrirCaixa(Integer operadorId, String loginGerente, String senhaGerente, BigDecimal valorInicial) {
+
+		// REGRA: valor inicial não pode ser negativo
+		// (pode ser zerado - caixa abre sem troco)
+		if (valorInicial == null) {
+			valorInicial = BigDecimal.ZERO; // se o valor não for informado, assume zero
+		}
+
+		if (valorInicial.signum() == -1) {
+			throw new IllegalArgumentException("O valor inicial do caixa não pode ser negativo.");
+		}
+
+		// Busca o Operador - Lança exeção clara se não existir
+		Usuario operador = usuarioService.buscaPorId(operadorId);
+
+		// REGRA: quem autoriza precisa ser Gerente ou ADM
+		// Sem isso, qualquer operador poderia "autorizar" a si mesmo
+		// Autentica e valida o gerente — tudo dentro do UsuarioService
+		Usuario gerente = usuarioService.autenticarGerente(loginGerente, senhaGerente);
+
+		// REGRA: operador não pode abrir um segundo caixa se ja tem um aberto
+		boolean temCaixaAberto = caixaRepository.findByOperadorAndStatus(operador, StatusCaixa.ABERTO).isPresent();
+
+		if (temCaixaAberto) {
+			throw new NegocioException("O operador " + operador.getNome() + " já possui um caixa aberto.");
+		}
+
+		// Cria um novo caixa, que começa fechado por padrão
+		Caixa caixa = new Caixa();
+
+		// Chama o método de Abrir caixa da Model
+		caixa.abrirCaixa(valorInicial, gerente);
+		caixa.setOperador(operador);
+
+		// Persiste e retorna
+		return caixaRepository.save(caixa);
+	}
+
+	// ============================================================================
+	// 2º Ação do CAIXA - Registrar Venda (Entrada no Caixa)
+	// Regaras da Ação: O caixa deve estar aberto | valor > 0
+	// ============================================================================
+
+	@Transactional
+	public MovimentacaoCaixa registrarVenda(Integer caixaId, Integer pedidoId, BigDecimal valorPago) {
+		// Validação sem acessar o banco
+		if (valorPago == null || valorPago.compareTo(BigDecimal.ZERO) <= 0) {
 			throw new NegocioException("Valor do pagamento deve ser positivo.");
 		}
-		
-		//Busca o caixa
-		Caixa caixa = buscaCaixaAberto(caixaId); //Utilizando o método privado
-		
+
+		// Busca o caixa
+		Caixa caixa = buscaCaixaAberto(caixaId); // Utilizando o método privado
+
 		// Cria a movimentação usando o Static Factory Method da Model
 		MovimentacaoCaixa entrada = MovimentacaoCaixa.criarEntradaCaixa(caixa, valorPago, pedidoId);
-		
+
 		// Atualiza o saldo — chama o método da Model (que já valida se está aberto)
+		entrada.setPedidoId(pedidoId);
 		caixa.atualizarSaldo(valorPago, entrada.getTipo());
-		
+
 		// Salva a movimentação e o caixa atualizado
 		caixaRepository.save(caixa);
 		return movimentacaoRepository.save(entrada);
 	}
-	
-	//================================================================================
+
+	// ================================================================================
 	// 3º Ação do CAIXA - Realizar Sangria (saída autorizada pelo gerente)
-	// Regaras da Ação: gerente autoriza | caixa ABERTO | valor > 0 | saldo suficiente
-	//================================================================================
-	
+	// Regaras da Ação: gerente autoriza | caixa ABERTO | valor > 0 | saldo
+	// suficiente
+	// ================================================================================
+
 	@Transactional
-	public MovimentacaoCaixa realizarSangria(Integer caixaId, 
-											String loginGerente, String senhaGerente,
-											BigDecimal valor, String motivo) {
-		//Validações sem acessar o banco
-		if(valor == null || valor.compareTo(BigDecimal.ZERO) <= 0 ) {
+	public MovimentacaoCaixa realizarSangria(Integer caixaId, String loginGerente, String senhaGerente,
+			BigDecimal valor, String motivo) {
+		// Validações sem acessar o banco
+		if (valor == null || valor.compareTo(BigDecimal.ZERO) <= 0) {
 			throw new IllegalArgumentException("O valor não pode ser negativo");
 		}
-		
+
 		if (motivo == null || motivo.isBlank()) {
 			throw new IllegalArgumentException("Informe o motivo da sangria");
 		}
-		
-		//Autentica o Gerente
+
+		// Autentica o Gerente
 		Usuario gerente = usuarioService.autenticarGerente(loginGerente, senhaGerente);
-		
-		//Busca o caixa aberto
+
+		// Busca o caixa aberto
 		Caixa caixa = buscaCaixaAberto(caixaId);
-		
+
 		// REGRA: não pode fazer sangria maior que o saldo atual
 		if (valor.compareTo(caixa.getSaldo()) > 0) {
-			throw new NegocioException(
-					"Valor da sangria (R$" + valor + ") excede o saldo atual do caixa.");
+			throw new NegocioException("Valor da sangria (R$" + valor + ") excede o saldo atual do caixa.");
 		}
-		
+
 		// Usa o Static Factory Method já valida gerente e valor
-		MovimentacaoCaixa sangria = MovimentacaoCaixa.criarSaidaSangria(caixa, valor, gerente, motivo);
-		
-		//Atualiza o saldo do caixa
+		MovimentacaoCaixa sangria = MovimentacaoCaixa.criarSaidaSangria(caixa, valor, gerente, "SANGRIA: " + motivo);
+
+		// Atualiza o saldo do caixa
 		caixa.atualizarSaldo(valor, sangria.getTipo());
-		
+
 		caixaRepository.save(caixa);
 		return movimentacaoRepository.save(sangria);
 	}
-	
-	
-	//================================================================================
-	// 4º Ação do CAIXA - Fechar Caixa
-	// Regaras da Ação: caixa ABERTO | gerente autoriza | sangria automática do saldo
-	//================================================================================
-	
+
+	// ================================================================================
+	// 4º Ação do CAIXA - Realizar Estorno de lançamento no Caixa (saída autorizada
+	// pelo gerente)
+	// Regaras da Ação: gerente autoriza | caixa ABERTO | valor > 0 | saldo
+	// suficiente
+	// ================================================================================
+
+	@Transactional
+	public MovimentacaoCaixa realizarEstorno(Integer movimentacaoId, String loginGerente, String senhaGerente,
+			String motivo) {
+		// Validações sem acessar o banco
+		if (motivo == null || motivo.isBlank()) {
+			throw new IllegalArgumentException("Informe o motivo do estorno");
+		}
+
+		// Busca Movimentação
+		MovimentacaoCaixa mov = movimentacaoRepository.findById(movimentacaoId)
+				.orElseThrow(() -> new EntidadeNaoEncontradaException("Lançamento não encontrado", movimentacaoId));
+
+		// Autentica o Gerente
+		Usuario gerente = usuarioService.autenticarGerente(loginGerente, senhaGerente);
+
+		// Busca o caixa aberto
+		Caixa caixa = buscaCaixaAberto(mov.getCaixa().getId());
+
+		// Busca o valor do Lançamento
+		BigDecimal valor = mov.getValor();
+
+		// REGRA: não pode fazer sangria maior que o saldo atual
+		if (valor.compareTo(caixa.getSaldo()) > 0) {
+			throw new NegocioException("Valor estornado (R$" + valor + ") excede o saldo atual do caixa.");
+		}
+
+		// Usa o Static Factory Method já valida gerente e valor
+		MovimentacaoCaixa estorno = MovimentacaoCaixa.criarSaidaSangria(caixa, valor, gerente, "ESTORNO: " + motivo);
+
+		// Atualiza o saldo do caixa
+		caixa.atualizarSaldo(valor, estorno.getTipo());
+
+		caixaRepository.save(caixa);
+		return movimentacaoRepository.save(estorno);
+	}
+
+	// ================================================================================
+	// 5º Ação do CAIXA - Fechar Caixa
+	// Regaras da Ação: caixa ABERTO | gerente autoriza | sangria automática do
+	// saldo
+	// ================================================================================
+
 	@Transactional
 	public Caixa fecharCaixa(Integer caixaId, String loginGerente, String senhaGerente) {
-		//Busca gerente
+		// Busca gerente
 		Usuario gerente = usuarioService.autenticarGerente(loginGerente, senhaGerente);
-		
-		//Busca o caixa - deve estar aberto
+
+		// Busca o caixa - deve estar aberto
 		Caixa caixa = buscaCaixaAberto(caixaId);
-		
+
 		// REGRA: ao fechar, se houver saldo, registra sangria automática
-        // (o dinheiro sai do caixa fisicamente no fechamento)
-		if(caixa.getSaldo().compareTo(BigDecimal.ZERO) > 0) {
-			MovimentacaoCaixa sangriaFechamento = MovimentacaoCaixa.criarSaidaSangria(
-					caixa, 
-					caixa.getSaldo(), 
-					gerente, 
-					"Sangria automática no fechamento do caixa"
-					);
-			
-			//Deduzir o saldo do caixa atual usando o tipo da movimentação
+		// (o dinheiro sai do caixa fisicamente no fechamento)
+		if (caixa.getSaldo().compareTo(BigDecimal.ZERO) > 0) {
+			MovimentacaoCaixa sangriaFechamento = MovimentacaoCaixa.criarSaidaSangria(caixa, caixa.getSaldo(), gerente,
+					"Sangria automática no fechamento do caixa");
+
+			// Deduzir o saldo do caixa atual usando o tipo da movimentação
 			caixa.atualizarSaldo(caixa.getSaldo(), sangriaFechamento.getTipo());
-			
+
 			movimentacaoRepository.save(sangriaFechamento);
 		}
-		
-		//Delega o fechamento para a propria Model, que ja sabe o que fazer
+
+		// Delega o fechamento para a propria Model, que ja sabe o que fazer
 		caixa.fecharCaixa(gerente);
-		
+
 		return caixaRepository.save(caixa);
-		
+
 	}
-	
-	//=========================================================
-	//5º Ação do CAIXA - CONSULTAR MOVIMENTAÇÕES
-	//Somente Leitura
-	//=========================================================
-	
+
+	// =========================================================
+	// 6º Ação do CAIXA - CONSULTAR MOVIMENTAÇÕES
+	// Somente Leitura
+	// =========================================================
+
 	@Transactional(readOnly = true)
-	public List<MovimentacaoCaixa> consMovimentacaoCaixas(Integer caixaId){
+	public List<MovimentacaoCaixa> consMovimentacaoCaixas(Integer caixaId) {
 		// Confirma que o caixa existe antes de buscar movimentações
-		caixaRepository.findById(caixaId)
-			.orElseThrow(() -> new CaixaNaoEncontradoException(caixaId));
-		
+		caixaRepository.findById(caixaId).orElseThrow(() -> new CaixaNaoEncontradoException(caixaId));
+
 		return movimentacaoRepository.findByCaixaId(caixaId);
 	}
-	
-	//================================================================================
-		// 6º Ação do CAIXA - Registrar Estorno (saída autorizada pelo gerente)
-		// Regaras da Ação: gerente autoriza | caixa ABERTO | valor > 0 | saldo suficiente
-		//================================================================================
-		
-		@Transactional
-		public MovimentacaoCaixa registrarEstorno(Integer caixaId, 
-												BigDecimal valor, 
-												String loginGerente, 
-												String senhaGerente,
-												String motivo) {
-			
-			//Validações sem acessar o banco
-			if(valor == null || valor.compareTo(BigDecimal.ZERO) <= 0 ) {
-				throw new IllegalArgumentException("O valor não pode ser negativo");
-			}
-			
-			if (motivo == null || motivo.isBlank()) {
-				throw new IllegalArgumentException("Informe o motivo do estorno");
-			}
-			
-			//Autentica o Gerente
-			Usuario gerente = usuarioService.autenticarGerente(loginGerente, senhaGerente);
-			
-			//Busca o caixa aberto
-			Caixa caixa = buscaCaixaAberto(caixaId);
-			
-			// REGRA: não pode fazer estorno maior que o saldo atual
-			if (valor.compareTo(caixa.getSaldo()) > 0) {
-				throw new NegocioException(
-						"Estorno (R$" + valor + ") excede o saldo atual do caixa.");
-			}
-			
-			// Usa o Static Factory Method já valida gerente e valor
-			MovimentacaoCaixa estorno = MovimentacaoCaixa.criarSaidaSangria(caixa, valor, gerente, "Estorno: " + motivo);
-			
-			//Atualiza o saldo do caixa
-			caixa.atualizarSaldo(valor, estorno.getTipo());
-			
-			caixaRepository.save(caixa);
-			return movimentacaoRepository.save(estorno);
-		}
-	
-	//=========================================================
-	//MÉTODO BUSCAR CAIXA ABERTO 
-	//evita repetição nos métodos que precisam dessa verificação
-	//=========================================================
+
+	// =========================================================
+	// MÉTODO BUSCAR CAIXA ABERTO
+	// evita repetição nos métodos que precisam dessa verificação
+	// =========================================================
 	public Caixa buscaCaixaAberto(Integer caixaId) {
-		Caixa caixa = caixaRepository.findById(caixaId)
-				.orElseThrow(() -> new CaixaNaoEncontradoException(caixaId));
-		if(caixa.getStatus() != StatusCaixa.ABERTO) {
+		Caixa caixa = caixaRepository.findById(caixaId).orElseThrow(() -> new CaixaNaoEncontradoException(caixaId));
+		if (caixa.getStatus() != StatusCaixa.ABERTO) {
 			throw new CaixaFechadoException(caixaId);
 		}
-		
+
 		return caixa;
 	}
-	
-	
+
 	/**
 	 * Busca o caixa atualmente aberto.
 	 * 
-	 * CONCEITOS IMPORTANTES:
-	 * - Utiliza Optional para representar a possibilidade de não existir caixa aberto.
-	 * - Lança exceção específica de negócio (NenhumCaixaAbertoException) para tratamento adequado no controller.
+	 * CONCEITOS IMPORTANTES: - Utiliza Optional para representar a possibilidade de
+	 * não existir caixa aberto. - Lança exceção específica de negócio
+	 * (NenhumCaixaAbertoException) para tratamento adequado no controller.
 	 * 
 	 * @return Caixa aberto atual
 	 * @throws NenhumCaixaAbertoException se não houver caixa aberto
 	 */
 	@Transactional(readOnly = true)
 	public Caixa buscarCaixaAbertoAtual() {
-	    return caixaRepository.findFirstByStatusOrderByDataAberturaDesc(StatusCaixa.ABERTO)
-	            .orElseThrow(() -> new NenhumCaixaAbertoException("Não há caixa aberto no momento."));
+		return caixaRepository.findFirstByStatusOrderByDataAberturaDesc(StatusCaixa.ABERTO)
+				.orElseThrow(() -> new NenhumCaixaAbertoException("Não há caixa aberto no momento."));
 	}
 	
+	/**
+	 * Método de estorno interno usado por outros serviços
+	 */
+	
+	@Transactional
+	public MovimentacaoCaixa realizarEstornoInterno(Integer movimentacaoId, Integer gerenteId, String motivo) {
+	    MovimentacaoCaixa mov = movimentacaoRepository.findById(movimentacaoId)
+	            .orElseThrow(() -> new EntidadeNaoEncontradaException("Lançamento não encontrado", movimentacaoId));
+
+	    Usuario gerente = usuarioService.buscaPorId(gerenteId);
+	    if (!gerente.isGerente()) {
+	        throw new NegocioException("Apenas gerentes podem autorizar estorno");
+	    }
+
+	    Caixa caixa = buscaCaixaAberto(mov.getCaixa().getId());
+	    BigDecimal valor = mov.getValor();
+	    if (valor.compareTo(caixa.getSaldo()) > 0) {
+	        throw new NegocioException("Valor estornado (R$" + valor + ") excede o saldo atual do caixa.");
+	    }
+
+	    MovimentacaoCaixa estorno = MovimentacaoCaixa.criarSaidaSangria(caixa, valor, gerente, "ESTORNO: " + motivo);
+	    caixa.atualizarSaldo(valor, estorno.getTipo());
+	    caixaRepository.save(caixa);
+	    return movimentacaoRepository.save(estorno);
+	}
+
+	// =============================================================
+	// MÉTODOS DTO (conversão dentro da transação)
+	// =============================================================
+	@Transactional
+	public CaixaStatusResponse buscarCaixaAbertoAtualResponse() {
+
+		try {
+			Caixa caixa = buscarCaixaAbertoAtual();
+			
+			return CaixaStatusResponse.deCaixaAberto(caixa);
+			
+		} catch (NenhumCaixaAbertoException e) {
+			
+			return CaixaStatusResponse.vazio();
+			
+		}
+
+	}
+
+	@Transactional
+	public CaixaResponse abrirCaixaResponse(CaixaAbrirRequest request) {
+
+		Caixa caixa = abrirCaixa(request.operadorId(), request.loginGerente(), request.senhaGerente(),
+				request.valorInicial());
+
+		return CaixaResponse.from(caixa);
+
+	}
+
+	@Transactional
+	public CaixaResponse fecharCaixaResponse(Integer caixaId, CaixaFecharRequest request) {
+
+		Caixa caixa = fecharCaixa(caixaId, request.loginGerente(), request.senhaGerente());
+
+		return CaixaResponse.from(caixa);
+
+	}
+
+	@Transactional
+	public MovimentacaoCaixaResponse realizarSangriaResponse(Integer Caixaid, CaixaSangriaRequest request) {
+
+		MovimentacaoCaixa mov = realizarSangria(Caixaid, request.loginGerente(), request.senhaGerente(),
+				request.valor(), request.motivo());
+
+		return MovimentacaoCaixaResponse.from(mov);
+	}
+
+	@Transactional
+	public MovimentacaoCaixaResponse realizarEstornoResponse(Integer movimentacaoId, CaixaEstornoRequest request) {
+
+		MovimentacaoCaixa mov = realizarEstorno(
+				movimentacaoId, 
+				request.loginGerente(), 
+				request.senhaGerente(),
+				request.motivo());
+
+		return MovimentacaoCaixaResponse.from(mov);
+	}
+
 }

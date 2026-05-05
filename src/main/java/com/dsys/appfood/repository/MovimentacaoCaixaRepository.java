@@ -1,12 +1,14 @@
 package com.dsys.appfood.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.dsys.appfood.domain.enums.TipoMovimentacao;
 import com.dsys.appfood.domain.model.MovimentacaoCaixa;
 import com.dsys.appfood.dto.ResumoCaixaResponse;
 
@@ -34,6 +36,8 @@ public interface MovimentacaoCaixaRepository extends JpaRepository<MovimentacaoC
 	// --- CALCULA O TOTAL DE ENTRADAS DE UM CAIXA  ---
 	@Query("SELECT COALESCE(SUM(m.valor),0) FROM MovimentacaoCaixa m WHERE m.caixa.id = :caixaId AND m.tipo = 'ENTRADA'")
 	BigDecimal totalEntradas(@Param("caixaId") Integer caixaId);
+	
+	Optional<MovimentacaoCaixa> findByCaixaIdAndPedidoIdAndTipo(Integer caixaId, Integer pedidoId, TipoMovimentacao tipo);
 	
 	// --- CALCULA O TOTAL DE SAÍDAS DE UM CAIXA  ---
 	@Query("SELECT COALESCE(SUM(m.valor),0) FROM MovimentacaoCaixa m WHERE m.caixa.id = :caixaId AND m.tipo = 'SAIDA'")
