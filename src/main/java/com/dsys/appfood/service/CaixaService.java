@@ -46,7 +46,7 @@ public class CaixaService {
 
 	// Injeção via construtor - campos final garatem a imutabilidade
 	public CaixaService(CaixaRepository caixaRepository, UsuarioService usuarioService,
-			MovimentacaoCaixaRepository movimentacaoRepository) {
+			MovimentacaoCaixaRepository movimentacaoRepository, MovimentacaoCaixaService movimentacaoCaixaService) {
 		this.caixaRepository = caixaRepository;
 		this.usuarioService = usuarioService;
 		this.movimentacaoRepository = movimentacaoRepository;
@@ -345,9 +345,9 @@ public class CaixaService {
 	}
 
 	@Transactional
-	public MovimentacaoCaixaResponse realizarSangriaResponse(Integer Caixaid, CaixaSangriaRequest request) {
+	public MovimentacaoCaixaResponse realizarSangriaResponse(Integer caixaId, CaixaSangriaRequest request) {
 
-		MovimentacaoCaixa mov = realizarSangria(Caixaid, request.loginGerente(), request.senhaGerente(),
+		MovimentacaoCaixa mov = realizarSangria(caixaId, request.loginGerente(), request.senhaGerente(),
 				request.valor(), request.motivo());
 
 		return MovimentacaoCaixaResponse.from(mov);

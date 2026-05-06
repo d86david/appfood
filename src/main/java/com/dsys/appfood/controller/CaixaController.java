@@ -1,7 +1,7 @@
 package com.dsys.appfood.controller;
 
 
-import com.dsys.appfood.domain.model.MovimentacaoCaixa;
+
 import com.dsys.appfood.dto.CaixaAbrirRequest;
 import com.dsys.appfood.dto.CaixaEstornoRequest;
 import com.dsys.appfood.dto.CaixaResponse;
@@ -13,9 +13,11 @@ import com.dsys.appfood.dto.CaixaSangriaRequest;
 import com.dsys.appfood.service.CaixaService;
 import com.dsys.appfood.service.MovimentacaoCaixaService;
 
+import jakarta.validation.Valid;
+
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -47,7 +49,7 @@ public class CaixaController {
     // 1. ABRIR CAIXA
     // =============================================================
 	@PostMapping("/abertura")
-	public ResponseEntity<CaixaResponse> abrirCaixa(@RequestBody CaixaAbrirRequest request){
+	public ResponseEntity<CaixaResponse> abrirCaixa(@RequestBody @Valid CaixaAbrirRequest request){
 		
 		CaixaResponse response = caixaService.abrirCaixaResponse(request);
 		
@@ -73,7 +75,7 @@ public class CaixaController {
     // =============================================================
 	@PostMapping("/{caixaId}/fechamento")
 	public ResponseEntity<CaixaResponse> fecharCaixa(@PathVariable Integer caixaId, 
-														@RequestBody CaixaFecharRequest request){
+														@RequestBody @Valid CaixaFecharRequest request){
 		
 		CaixaResponse response = caixaService.fecharCaixaResponse(caixaId, request);
 		
@@ -85,8 +87,8 @@ public class CaixaController {
     // 2. REALIZAR SANGRIA
     // =============================================================
 	@PostMapping("/{caixaId}/sangrias")
-	public ResponseEntity<MovimentacaoCaixaResponse> realizarSangria(@PathVariable Integer caixaId, 
-																	@RequestBody CaixaSangriaRequest request){
+	public ResponseEntity<MovimentacaoCaixaResponse> realizarSangria(@PathVariable  Integer caixaId, 
+																	@RequestBody @Valid CaixaSangriaRequest request){
 		
 		MovimentacaoCaixaResponse response = caixaService.realizarSangriaResponse(caixaId, request);
 				
@@ -97,10 +99,10 @@ public class CaixaController {
     // 3. REGISTRAR ESTORNO
     // =============================================================
 	@PostMapping("/movimentacoes/{movimentacaoId}/estorno")
-    public ResponseEntity<MovimentacaoCaixaResponse> registrarEstorno(@PathVariable Integer movimentoId,
-                                                                      @RequestBody CaixaEstornoRequest request) {
+    public ResponseEntity<MovimentacaoCaixaResponse> registrarEstorno(@PathVariable Integer movimentacaoId,
+                                                                      @RequestBody @Valid CaixaEstornoRequest request) {
         
-    	MovimentacaoCaixaResponse response = caixaService.realizarEstornoResponse(movimentoId, request);
+    	MovimentacaoCaixaResponse response = caixaService.realizarEstornoResponse(movimentacaoId, request);
         
         return ResponseEntity.ok(response);
     }
@@ -114,16 +116,9 @@ public class CaixaController {
             @RequestParam(required = false) @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm") LocalDateTime inicio,
             @RequestParam(required = false) @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm") LocalDateTime fim) {
         
-        List<MovimentacaoCaixa> movs;
-        if (inicio != null && fim != null) {
-            movs = movimentacaoCaixaService.extratoPorCaixaPeriodo(caixaId, inicio, fim);
-        } else {
-            movs = movimentacaoCaixaService.extratoPorCaixa(caixaId);
-        }
-        
-        List<MovimentacaoCaixaResponse> response = movs.stream()
-        		.map(MovimentacaoCaixaResponse::from)
-        		.collect(Collectors.toList());
+           
+        List<MovimentacaoCaixaResponse> response = movimentacaoCaixaService.listarMovimentacoesResponse(caixaId, inicio, fim);
+        		
         return ResponseEntity.ok(response);
    }
     

@@ -3,6 +3,7 @@ package com.dsys.appfood.repository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -21,6 +22,9 @@ public interface MovimentacaoContaCorrenteRepository extends JpaRepository<Movim
 	// --- PESQUISAR MOVIMENTAÇÃO DE UMA CONTA ORDENADA POR DATA ---
 	List<MovimentacaoContaCorrente> findByContaIdAndDataHoraBetweenOrderByDataHoraDesc(Integer contaId,
 			LocalDateTime inicio, LocalDateTime fim);
+	
+	// --- BUSCAR MOVIMENTAÇÃO ASSOCIADA A UM PAGAMENTO ---
+	Optional<MovimentacaoContaCorrente> findByPagamentoId(Integer pagamentoId);
 
 	// --- CALCULA O TOTAL DE ENTRADAS DE UMA CONTA ---
 	@Query("SELECT COALESCE(SUM(m.valor),0) FROM MovimentacaoContaCorrente m WHERE m.conta.id = :contaId AND m.tipo = 'ENTRADA'")

@@ -1,6 +1,7 @@
 package com.dsys.appfood.service;
 
 import com.dsys.appfood.domain.model.MovimentacaoCaixa;
+import com.dsys.appfood.dto.MovimentacaoCaixaResponse;
 import com.dsys.appfood.dto.ResumoCaixaResponse;
 import com.dsys.appfood.exception.CaixaNaoEncontradoException;
 import com.dsys.appfood.repository.CaixaRepository;
@@ -9,6 +10,7 @@ import com.dsys.appfood.repository.MovimentacaoCaixaRepository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -147,11 +149,33 @@ public class MovimentacaoCaixaService {
 			throw new CaixaNaoEncontradoException(caixaId);
 		}
 		
-		BigDecimal entrdas = movimentacaoRepository.totalEntradas(caixaId);
+		BigDecimal entradas = movimentacaoRepository.totalEntradas(caixaId);
 		BigDecimal saidas = movimentacaoRepository.totalSaidas(caixaId);
-		BigDecimal saldo = entrdas.subtract(saidas);
+		BigDecimal saldo = entradas.subtract(saidas);
 		
-		return new ResumoCaixaResponse(caixaId, entrdas, saidas, saldo); 
+		return new ResumoCaixaResponse(caixaId, entradas, saidas, saldo); 
+	}
+	
+	
+	// =============================================================
+	// MÉTODOS DTO (conversão dentro da transação)
+	// =============================================================
+	@Transactional(readOnly = true)
+	public List<MovimentacaoCaixaResponse> listarMovimentacoesResponse(Integer caixaId, 
+			LocalDateTime inicio,LocalDateTime fim){
+		
+		List<MovimentacaoCaixa> movs;
+		
+		if(inicio != null && fim != null) {
+			movs = extratoPorCaixaPeriodo(caixaId, inicio, fim);
+		}else {
+			movs = extratoPorCaixa(caixaId);
+		}
+		
+		return movs.stream()
+				.map(MovimentacaoCaixaResponse::from)
+				.collect(Collectors.toList());
+		
 	}
 
 }
