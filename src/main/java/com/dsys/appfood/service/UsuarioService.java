@@ -1,6 +1,7 @@
 package com.dsys.appfood.service;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -126,8 +127,9 @@ public class UsuarioService {
 		Usuario usuarioStatus = usuarioRepository.findById(id)
 				.orElseThrow(() -> new UsuarioNaoEncontradoException(id));
 		
-		// Só Altera se for Realmente diferente do estado atual 
-		if(usuarioStatus.isAtivo().equals(novoStatus)) {
+		// Objects.equals previne NullPointerException se novoStatus ou contaStatus.isAtiva() forem null
+	    // Só entra no bloco se o status for DIFERENTE do atual 
+		if(!Objects.equals(usuarioStatus.isAtivo(),novoStatus)) {
 			usuarioStatus.setAtivo(novoStatus);
 		}
 		

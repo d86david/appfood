@@ -1,6 +1,7 @@
 package com.dsys.appfood.service;
 
 import com.dsys.appfood.domain.model.MovimentacaoContaCorrente;
+import com.dsys.appfood.dto.MovimentacaoContaCorrenteResponse;
 import com.dsys.appfood.dto.ResumoContaCorrenteResponse;
 import com.dsys.appfood.exception.ContaNaoEncontradaException;
 import com.dsys.appfood.repository.ContaCorrenteRepository;
@@ -81,9 +82,9 @@ public class MovimentacaoContaCorrenteService {
 
 		return totalEntradasConta;
 	}
-	
+
 	/**
-	 * Calcula o total de saídas de uma conta 
+	 * Calcula o total de saídas de uma conta
 	 */
 	@Transactional(readOnly = true)
 	public BigDecimal totalSaidasConta(Integer contaId) {
@@ -93,7 +94,7 @@ public class MovimentacaoContaCorrenteService {
 		return totalSaidas;
 
 	}
-	
+
 	/**
 	 * Calcula o saldo líquido da conta com base nas movimentações. Fórmula: Total
 	 * Entradas - Total Saídas
@@ -102,25 +103,26 @@ public class MovimentacaoContaCorrenteService {
 	public BigDecimal saldoLiquido(Integer contaId) {
 		return totalEntradasConta(contaId).subtract(totalSaidasConta(contaId));
 	}
-	
+
 	/**
 	 * Gera um resumo financeiro da conta por período.
 	 */
 	@Transactional(readOnly = true)
-	public ResumoContaCorrenteResponse gerarResumoContaPeriodo(Integer contaId, LocalDateTime inicio, LocalDateTime fim) {
-		
-		if(!contaCorrenteRepository.existsById(contaId)) {
+	public ResumoContaCorrenteResponse gerarResumoContaPeriodo(Integer contaId, LocalDateTime inicio,
+			LocalDateTime fim) {
+
+		if (!contaCorrenteRepository.existsById(contaId)) {
 			throw new ContaNaoEncontradaException(contaId);
 		}
-		
+
 		BigDecimal entradas = movimentacaoContaCorrenteRepository.totalEntradasPeriodo(contaId, inicio, fim);
 		BigDecimal saidas = movimentacaoContaCorrenteRepository.totalSaidasPeriodo(contaId, inicio, fim);
 		BigDecimal saldo = entradas.subtract(saidas);
-		
+
 		return new ResumoContaCorrenteResponse(contaId, entradas, saidas, saldo);
-		
+
 	}
-	
+
 	/**
 	 * Gera um resumo financeiro da conta do dia .
 	 * 
@@ -128,14 +130,14 @@ public class MovimentacaoContaCorrenteService {
 	 */
 	@Transactional(readOnly = true)
 	public ResumoContaCorrenteResponse gerarResumoHoje(Integer contaId) {
-		
+
 		LocalDateTime inicio = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);
 		LocalDateTime fim = LocalDateTime.now();
-		
+
 		return gerarResumoContaPeriodo(contaId, inicio, fim);
-		
+
 	}
-	
+
 	/**
 	 * Gera um resumo financeiro da conta sem especificar um período .
 	 * 
@@ -143,17 +145,35 @@ public class MovimentacaoContaCorrenteService {
 	 */
 	@Transactional(readOnly = true)
 	public ResumoContaCorrenteResponse gerarResumoConta(Integer contaId) {
-		
-		if(!contaCorrenteRepository.existsById(contaId)) {
+
+		if (!contaCorrenteRepository.existsById(contaId)) {
 			throw new ContaNaoEncontradaException(contaId);
 		}
-		
-		
+
 		BigDecimal entradas = movimentacaoContaCorrenteRepository.totalEntradasConta(contaId);
 		BigDecimal saidas = movimentacaoContaCorrenteRepository.totalSaidasConta(contaId);
 		BigDecimal saldo = entradas.subtract(saidas);
-		
+
 		return new ResumoContaCorrenteResponse(contaId, entradas, saidas, saldo);
 	}
+
+	// =============================================================
+	// MÉTODOS DTO (conversão dentro da transação)
+	// =============================================================
+
+	// Extratos
+	@Transactional(readOnly = true)
+		public List<MovimentacaoContaCorrenteResponse> extratoPorContaResponse(Integer contaId,
+		        LocalDateTime inicio, LocalDateTime fim){
+			List<MovimentacaoContaCorrente> movs;
+		    if (inicio != null && fim != null) {
+		        movs = extratoPorContaPeriodo(contaId, inicio, fim);
+		    } else {
+		        movs = extratoPorConta(contaId);
+		    }
+		    return movs.stream()
+		    		.map(MovimentacaoContaCorrenteResponse::from)
+		    		.toList();
+		}
 
 }

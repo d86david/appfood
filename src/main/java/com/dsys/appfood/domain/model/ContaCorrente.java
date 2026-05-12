@@ -44,7 +44,7 @@ public class ContaCorrente {
 	@Column(name = "saldo_atual")
 	private BigDecimal saldoAtual = BigDecimal.ZERO;
 
-	private boolean ativa = true;
+	private Boolean ativa = true;
 
 	@Enumerated(EnumType.STRING)
 	private TipoConta tipo;
@@ -113,8 +113,13 @@ public class ContaCorrente {
 		return saldoAtual;
 	}
 
-	public boolean isAtiva() {
+	public Boolean isAtiva() {
 		return ativa;
+	}
+	
+
+	public void setAtiva(Boolean ativa) {
+		this.ativa = ativa;
 	}
 
 	public TipoConta getTipo() {

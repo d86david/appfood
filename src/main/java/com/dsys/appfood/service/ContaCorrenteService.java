@@ -8,6 +8,8 @@ import com.dsys.appfood.domain.model.ContaCorrente;
 import com.dsys.appfood.domain.model.MovimentacaoContaCorrente;
 import com.dsys.appfood.domain.model.Pagamento;
 import com.dsys.appfood.domain.model.Usuario;
+import com.dsys.appfood.dto.ContaCorrenteRequest;
+import com.dsys.appfood.dto.ContaCorrenteResponse;
 import com.dsys.appfood.exception.ContaJaCadastradaException;
 import com.dsys.appfood.exception.ContaNaoEncontradaException;
 import com.dsys.appfood.exception.NegocioException;
@@ -17,6 +19,7 @@ import com.dsys.appfood.repository.MovimentacaoContaCorrenteRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,15 +36,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ContaCorrenteService {
 
+	private final UsuarioService usuarioService;
 	private final ConfiguracaoPagamentoRepository configuracaoRepository;
 	private final MovimentacaoContaCorrenteRepository movimentacaoRepository;
 	private final ContaCorrenteRepository contaRepository;
 
 	public ContaCorrenteService(ContaCorrenteRepository contaRepository,
-			MovimentacaoContaCorrenteRepository movimentacaoRepository, ConfiguracaoPagamentoRepository configuracaoRepository) {
+			MovimentacaoContaCorrenteRepository movimentacaoRepository, ConfiguracaoPagamentoRepository configuracaoRepository, UsuarioService usuarioService) {
 		this.contaRepository = contaRepository;
 		this.movimentacaoRepository = movimentacaoRepository;
 		this.configuracaoRepository = configuracaoRepository;
+		this.usuarioService = usuarioService;
 	}
 
 	// ============================================================
@@ -118,44 +123,21 @@ public class ContaCorrenteService {
 	}
 
 	// =============================================================
-	// ATIVAÇÃO E INATIVAÇÃO
+	// ALTERAR STATUS
 	// =============================================================
-
-	// Ativar
 	@Transactional
-	public void ativarConta(Integer id) {
+	public void alterarStatus(Integer id, Boolean novoStatus) {
 
 		// Busca Conta e lança exceção se não existir
-		ContaCorrente conta = contaRepository.findById(id).orElseThrow(() -> new ContaNaoEncontradaException(id));
+		ContaCorrente contaStatus = contaRepository.findById(id).orElseThrow(() -> new ContaNaoEncontradaException(id));
 
-		// Confirma se conta está inativa
-		if (conta.isAtiva()) {
-			throw new NegocioException("Conta já ativa id: " + id);
+		// Objects.equals previne NullPointerException se novoStatus ou contaStatus.isAtiva() forem null
+	    // Só entra no bloco se o status for DIFERENTE do atual
+		if (!Objects.equals(contaStatus.isAtiva(),novoStatus)) {
+			contaStatus.setAtiva(novoStatus);
 		}
-
-		conta.ativarConta();
-
-		contaRepository.save(conta);
-
 	}
 
-	// Inativar
-	@Transactional
-	public void inativaConta(Integer id) {
-
-		// Busca Conta e lança exceção se não existir
-		ContaCorrente conta = contaRepository.findById(id).orElseThrow(() -> new ContaNaoEncontradaException(id));
-
-		// Confirma se conta está ativa
-		if (!conta.isAtiva()) {
-			throw new NegocioException("Conta já inativa id: " + id);
-		}
-
-		conta.inativar();
-
-		contaRepository.save(conta);
-
-	}
 
 	// =============================================================
 	// MOVIMENTAÇÕES
@@ -236,5 +218,75 @@ public class ContaCorrenteService {
 		return buscarPorId(contaId).getSaldoAtual();
 	}
 	
+
+	// =============================================================
+	//  MÉTODOS DTO (conversão dentro da transação)
+	// =============================================================
+	@Transactional
+	public ContaCorrenteResponse cadastrarResponse(ContaCorrenteRequest request) {
+		
+		ContaCorrente conta = cadastrarConta(request.nome(), request.tipo(), request.banco(), 
+				request.codBanco(), request.agencia(), request.conta());
+		return ContaCorrenteResponse.from(conta);
+		
+	}
 	
+	@Transactional
+	public ContaCorrenteResponse editarResponse(Integer id, ContaCorrenteRequest request) {
+		
+		ContaCorrente contaAtualizada = editarConta(id, request.nome(), request.banco(), 
+				request.codBanco(), request.agencia(), request.conta());
+		return ContaCorrenteResponse.from(contaAtualizada);
+	}
+	
+	@Transactional(readOnly = true)
+	public ContaCorrenteResponse buscarPorIdResponse(Integer id) {
+		
+		return ContaCorrenteResponse.from(buscarPorId(id));
+		
+	}
+	
+	@Transactional(readOnly = true)
+	public List<ContaCorrenteResponse> listarAtivasResponse(){
+		
+		return listarAtivas().stream().map(ContaCorrenteResponse::from).toList();
+		
+	}
+	
+	@Transactional
+	public MovimentacaoContaCorrente realizarEstornoInterno(Integer movimentacaoId, Integer gerenteId, String motivo) {
+	    MovimentacaoContaCorrente mov = movimentacaoRepository.findById(movimentacaoId)
+	            .orElseThrow(() -> new ContaNaoEncontradaException(movimentacaoId));
+
+	    Usuario gerente = usuarioService.buscaPorId(gerenteId);
+	    if (!gerente.isGerente()) {
+	        throw new NegocioException("Apenas gerentes podem autorizar estorno");
+	    }
+
+	    ContaCorrente conta = mov.getConta();
+	    if (!conta.isAtiva()) {
+	        throw new NegocioException("Conta inativa não pode receber movimentações.");
+	    }
+
+	    BigDecimal valor = mov.getValor();
+	    TipoMovimentacao tipoEstorno;
+	    // Verifica se o estorno é de uma entrada (saída para estornar)
+	    if (mov.getTipo() == TipoMovimentacao.SAIDA) {
+	    	// Cria movimentação de saída como estorno
+		    tipoEstorno = TipoMovimentacao.SAIDA;
+		    conta.debitar(valor);
+	    }else {
+	    	// Cria movimentação de entrada como estorno
+	    	tipoEstorno = TipoMovimentacao.ENTRADA;
+		    conta.creditar(valor);
+	    }
+
+	    
+	    MovimentacaoContaCorrente estorno = new MovimentacaoContaCorrente(
+		        conta, tipoEstorno, valor,
+		        "ESTORNO: " + motivo, gerente
+		    );
+	    contaRepository.save(conta);
+	    return movimentacaoRepository.save(estorno);
+	}
 }
