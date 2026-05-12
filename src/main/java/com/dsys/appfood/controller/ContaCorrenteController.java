@@ -1,12 +1,12 @@
 package com.dsys.appfood.controller;
 
 import com.dsys.appfood.domain.model.MovimentacaoContaCorrente;
-import com.dsys.appfood.dto.ContaCorrenteEstornoRequest;
-import com.dsys.appfood.dto.ContaCorrenteRequest;
-import com.dsys.appfood.dto.ContaCorrenteResponse;
-import com.dsys.appfood.dto.ContaStatusRequest;
-import com.dsys.appfood.dto.MovimentacaoContaCorrenteResponse;
-import com.dsys.appfood.dto.ResumoContaCorrenteResponse;
+import com.dsys.appfood.dto.request.ContaCorrenteEstornoRequest;
+import com.dsys.appfood.dto.request.ContaCorrenteRequest;
+import com.dsys.appfood.dto.request.ContaStatusRequest;
+import com.dsys.appfood.dto.response.ContaCorrenteResponse;
+import com.dsys.appfood.dto.response.MovimentacaoContaCorrenteResponse;
+import com.dsys.appfood.dto.response.ResumoContaCorrenteResponse;
 import com.dsys.appfood.service.ContaCorrenteService;
 import com.dsys.appfood.service.MovimentacaoContaCorrenteService;
 

@@ -13,9 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.dsys.appfood.domain.enums.TipoPedido;
 import com.dsys.appfood.domain.model.*;
-import com.dsys.appfood.dto.DesempenhoEntregadorResponse;
-import com.dsys.appfood.dto.ProdutoVendidoResponse;
-import com.dsys.appfood.dto.VendasPerioDoResponse;
+import com.dsys.appfood.dto.response.DesempenhoEntregadorResponse;
+import com.dsys.appfood.dto.response.ProdutoVendidoResponse;
+import com.dsys.appfood.dto.response.VendasPeriodoResponse;
 import com.dsys.appfood.repository.*;
 
 /**
@@ -54,7 +54,7 @@ public class RelatorioService {
      * Relatório de vendas por período: total de pedidos, faturamento, ticket médio.
      */
     @Transactional(readOnly = true)
-    public VendasPerioDoResponse vendasNoPeriodo(LocalDate dataInicio, LocalDate dataFim) {
+    public VendasPeriodoResponse vendasNoPeriodo(LocalDate dataInicio, LocalDate dataFim) {
         LocalDateTime inicio = dataInicio.atStartOfDay();
         LocalDateTime fim = dataFim.atTime(LocalTime.MAX);
 
@@ -82,7 +82,7 @@ public class RelatorioService {
         Map<TipoPedido, Long> pedidosPorTipo = pedidos.stream()
                 .collect(Collectors.groupingBy(Pedido::getTipo, Collectors.counting()));
 
-        return new VendasPerioDoResponse(dataInicio, dataFim, totalPedidos,
+        return new VendasPeriodoResponse(dataInicio, dataFim, totalPedidos,
                 faturamentoBruto, totalDescontos, faturamentoLiquido, ticketMedio, pedidosPorTipo);
     }
 

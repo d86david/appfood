@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import com.dsys.appfood.domain.enums.TipoMovimentacao;
 import com.dsys.appfood.domain.model.MovimentacaoCaixa;
-import com.dsys.appfood.dto.ResumoCaixaResponse;
+import com.dsys.appfood.dto.response.ResumoCaixaResponse;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

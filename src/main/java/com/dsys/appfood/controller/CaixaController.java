@@ -2,14 +2,14 @@ package com.dsys.appfood.controller;
 
 
 
-import com.dsys.appfood.dto.CaixaAbrirRequest;
-import com.dsys.appfood.dto.CaixaEstornoRequest;
-import com.dsys.appfood.dto.CaixaResponse;
-import com.dsys.appfood.dto.CaixaStatusResponse;
-import com.dsys.appfood.dto.CaixaFecharRequest;
-import com.dsys.appfood.dto.MovimentacaoCaixaResponse;
-import com.dsys.appfood.dto.ResumoCaixaResponse;
-import com.dsys.appfood.dto.CaixaSangriaRequest;
+import com.dsys.appfood.dto.request.CaixaAbrirRequest;
+import com.dsys.appfood.dto.request.CaixaEstornoRequest;
+import com.dsys.appfood.dto.request.CaixaFecharRequest;
+import com.dsys.appfood.dto.request.CaixaSangriaRequest;
+import com.dsys.appfood.dto.response.CaixaResponse;
+import com.dsys.appfood.dto.response.CaixaStatusResponse;
+import com.dsys.appfood.dto.response.MovimentacaoCaixaResponse;
+import com.dsys.appfood.dto.response.ResumoCaixaResponse;
 import com.dsys.appfood.service.CaixaService;
 import com.dsys.appfood.service.MovimentacaoCaixaService;
 

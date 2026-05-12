@@ -1,8 +1,8 @@
 package com.dsys.appfood.service;
 
 import com.dsys.appfood.domain.model.MovimentacaoCaixa;
-import com.dsys.appfood.dto.MovimentacaoCaixaResponse;
-import com.dsys.appfood.dto.ResumoCaixaResponse;
+import com.dsys.appfood.dto.response.MovimentacaoCaixaResponse;
+import com.dsys.appfood.dto.response.ResumoCaixaResponse;
 import com.dsys.appfood.exception.CaixaNaoEncontradoException;
 import com.dsys.appfood.repository.CaixaRepository;
 import com.dsys.appfood.repository.MovimentacaoCaixaRepository;

@@ -1,8 +1,8 @@
 package com.dsys.appfood.service;
 
 import com.dsys.appfood.domain.model.Borda;
-import com.dsys.appfood.dto.BordaRequest;
-import com.dsys.appfood.dto.BordaResponse;
+import com.dsys.appfood.dto.request.BordaRequest;
+import com.dsys.appfood.dto.response.BordaResponse;
 import com.dsys.appfood.exception.BordaJaCadastradaException;
 import com.dsys.appfood.exception.BordaNaoEncontradaException;
 import com.dsys.appfood.exception.IngredienteJaCadastradoException;
@@ -10,7 +10,6 @@ import com.dsys.appfood.repository.BordaRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -170,7 +169,7 @@ public class BordaService {
 		return buscarBordaPorNome(nome)
 				.stream()
 				.map(BordaResponse::from)
-				.collect(Collectors.toList());
+				.toList();
 		
 	}
 	
@@ -179,7 +178,7 @@ public class BordaService {
 		return listarTodasBordas()
 				.stream()
 				.map(BordaResponse::from)
-				.collect(Collectors.toList());
+				.toList();
 	}
 	
 }

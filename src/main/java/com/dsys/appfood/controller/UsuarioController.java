@@ -1,12 +1,12 @@
 package com.dsys.appfood.controller;
 
 import com.dsys.appfood.domain.model.Usuario;
-import com.dsys.appfood.dto.UuarioLoginRequest;
-import com.dsys.appfood.dto.UsuarioAlterarSenhaRequest;
-import com.dsys.appfood.dto.UsuarioCadastroRequest;
-import com.dsys.appfood.dto.UsuarioEdicaoRequest;
-import com.dsys.appfood.dto.UsuarioResponse;
-import com.dsys.appfood.dto.UsuarioStatusRequest;
+import com.dsys.appfood.dto.request.UsuarioAlterarSenhaRequest;
+import com.dsys.appfood.dto.request.UsuarioCadastroRequest;
+import com.dsys.appfood.dto.request.UsuarioEdicaoRequest;
+import com.dsys.appfood.dto.request.UsuarioStatusRequest;
+import com.dsys.appfood.dto.request.UuarioLoginRequest;
+import com.dsys.appfood.dto.response.UsuarioResponse;
 import com.dsys.appfood.service.ProdutoService;
 import com.dsys.appfood.service.UsuarioService;
 

@@ -1,8 +1,8 @@
 package com.dsys.appfood.service;
 
 import com.dsys.appfood.domain.model.MovimentacaoContaCorrente;
-import com.dsys.appfood.dto.MovimentacaoContaCorrenteResponse;
-import com.dsys.appfood.dto.ResumoContaCorrenteResponse;
+import com.dsys.appfood.dto.response.MovimentacaoContaCorrenteResponse;
+import com.dsys.appfood.dto.response.ResumoContaCorrenteResponse;
 import com.dsys.appfood.exception.ContaNaoEncontradaException;
 import com.dsys.appfood.repository.ContaCorrenteRepository;
 import com.dsys.appfood.repository.MovimentacaoContaCorrenteRepository;

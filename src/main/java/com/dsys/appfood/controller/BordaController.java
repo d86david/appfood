@@ -18,9 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.dsys.appfood.domain.model.Borda;
-import com.dsys.appfood.dto.BordaRequest;
-import com.dsys.appfood.dto.BordaResponse;
-
+import com.dsys.appfood.dto.request.BordaRequest;
+import com.dsys.appfood.dto.response.BordaResponse;
 
 import jakarta.validation.Valid;
 

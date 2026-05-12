@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.dsys.appfood.domain.model.Categoria;
-import com.dsys.appfood.dto.CategoriaRequest;
-import com.dsys.appfood.dto.CategoriaResponse;
+import com.dsys.appfood.dto.request.CategoriaRequest;
+import com.dsys.appfood.dto.response.CategoriaResponse;
 import com.dsys.appfood.exception.CategoriaJaCadastradaException;
 import com.dsys.appfood.exception.CategoriaNaoEncontradaException;
 import com.dsys.appfood.exception.NegocioException;

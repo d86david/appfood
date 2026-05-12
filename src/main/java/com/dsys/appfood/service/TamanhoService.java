@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.dsys.appfood.domain.model.Tamanho;
+import com.dsys.appfood.dto.request.TamanhoRequest;
+import com.dsys.appfood.dto.response.TamanhoResponse;
 import com.dsys.appfood.exception.NegocioException;
 import com.dsys.appfood.exception.TamanhoJaCadastradoException;
 import com.dsys.appfood.exception.TamanhoNaoEncontradoException;
@@ -136,5 +138,47 @@ public class TamanhoService {
 		return tamanhoRepository.findByNomeContainingIgnoreCase(nome);
 		
 	}
+	
+	
+	// =============================================================
+	//  MÉTODOS DTO (conversão dentro da transação)
+	// =============================================================
+	
+	@Transactional
+	public TamanhoResponse cadastrarTamanhoResponse(TamanhoRequest request) {
+		
+		Tamanho tamanho = cadastrarTamanho(request.nome());
+		
+		return TamanhoResponse.from(tamanho);
+		
+	}
+	
+	@Transactional
+	public TamanhoResponse editarTamanhoResponse(Integer id, TamanhoRequest request) {
+		
+		Tamanho tamanhoAtualizado = editarTamanho(id, request.nome());
+		
+		return TamanhoResponse.from(tamanhoAtualizado);
+		
+	}
+	
+	@Transactional(readOnly = true)
+	public TamanhoResponse buscarPorIdResponse(Integer id) {
+		
+		return TamanhoResponse.from(buscarPorId(id));
+		
+	}
+	
+	@Transactional(readOnly = true)
+	public List<TamanhoResponse> buscarPorNomeResponse(String nome) {
+		
+		return buscarTamanhoPorNome(nome)
+				.stream()
+				.map(TamanhoResponse::from)
+				.toList();
+		
+	}
+	
+	// listarTodasAsBordasResponse()
 
 }

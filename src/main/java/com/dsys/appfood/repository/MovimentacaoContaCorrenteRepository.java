@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.dsys.appfood.domain.model.MovimentacaoContaCorrente;
-import com.dsys.appfood.dto.ResumoContaCorrenteResponse;
+import com.dsys.appfood.dto.response.ResumoContaCorrenteResponse;
 
 @Repository
 public interface MovimentacaoContaCorrenteRepository extends JpaRepository<MovimentacaoContaCorrente, Integer> {

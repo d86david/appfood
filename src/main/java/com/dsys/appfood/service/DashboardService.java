@@ -15,10 +15,10 @@ import com.dsys.appfood.domain.enums.StatusPedido;
 import com.dsys.appfood.domain.enums.TipoPedido;
 import com.dsys.appfood.domain.model.Caixa;
 import com.dsys.appfood.domain.model.Pedido;
-import com.dsys.appfood.dto.CaixaStatusResponse;
-import com.dsys.appfood.dto.IndicadoresDiariosResponse;
-import com.dsys.appfood.dto.PedidoResumoResponse;
-import com.dsys.appfood.dto.ProdutoVendidoResponse;
+import com.dsys.appfood.dto.response.CaixaStatusResponse;
+import com.dsys.appfood.dto.response.IndicadoresDiariosResponse;
+import com.dsys.appfood.dto.response.PedidoResumoResponse;
+import com.dsys.appfood.dto.response.ProdutoVendidoResponse;
 import com.dsys.appfood.exception.NenhumCaixaAbertoException;
 import com.dsys.appfood.repository.PedidoRepository;
 

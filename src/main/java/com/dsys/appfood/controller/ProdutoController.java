@@ -1,7 +1,7 @@
 package com.dsys.appfood.controller;
 
-import com.dsys.appfood.dto.ProdutoRequest;
-import com.dsys.appfood.dto.ProdutoResponse;
+import com.dsys.appfood.dto.request.ProdutoRequest;
+import com.dsys.appfood.dto.response.ProdutoResponse;
 import com.dsys.appfood.service.ProdutoService;
 
 import jakarta.validation.Valid;

@@ -39,7 +39,7 @@ O projeto foi desenvolvido com foco em boas práticas de arquitetura, separaçã
 - Histórico completo de movimentações (entradas e saídas)
 
 ### 👥 Usuários
-- Perfis: `OPERADOR`, `GERENTE` e `ADM`
+- Perfis: `OPERADOR`, `GERENTE`
 - Autenticação com senha protegida por **BCrypt**
 - Controle de autorização por perfil nas operações sensíveis
 
@@ -55,13 +55,13 @@ O projeto segue a arquitetura em camadas do Spring Boot:
 
 ```
 ┌─────────────────────────────────────────────┐
-│                  Controller                  │  ← Recebe requisições HTTP
+│                  Controller                 │  ← Recebe requisições HTTP
 ├─────────────────────────────────────────────┤
-│                   Service                    │  ← Regras de negócio
+│                   Service                   │  ← Regras de negócio
 ├─────────────────────────────────────────────┤
-│                  Repository                  │  ← Acesso ao banco de dados
+│                  Repository                 │  ← Acesso ao banco de dados
 ├─────────────────────────────────────────────┤
-│               Model / Entity                 │  ← Estrutura dos dados
+│               Model / Entity                │  ← Estrutura dos dados
 └─────────────────────────────────────────────┘
 ```
 
@@ -81,95 +81,187 @@ O projeto segue a arquitetura em camadas do Spring Boot:
 src/main/java/com/dsys/appfood/
 │
 ├──📂 confi/
-│  └── SecurityConfig.java          # BCrypt + configuração de segurança
+│  └── SecurityConfig.java            # BCrypt + configuração de segurança
 │
 ├──📂controller/                      # Endpoints HTTP (em construção)
+│   ├── BordaController.java      
+│   ├── CaixaController.java
+│   ├── CategoriaController.java
+│   ├── ContaController.java
+│   ├── ProdutoController.java
+│   ├── UsuarioController.java
+│   ├── TamanhoController.java   
+│   
 │
 ├── 📂domain/
 │   ├── 📂enums/
-│   │   ├── FormaPagamento.java      # DINHEIRO, PIX, CREDITO, DEBITO, VOUCHER
-│   │   ├── StatusCaixa.java         # ABERTO, FECHADO
-│   │   ├── StatusPedido.java        # fluxo completo do pedido
-│   │   ├── TipoCustomizacao.java    # ADICIONAL, REMOCAO, BORDA
-│   │   ├── TipoMovimentacao.java    # ENTRADA, SAIDA
-│   │   ├── TipoPedido.java          # BALCAO, ENTREGA
-│   │   └── TipoUsuario.java         # OPERADOR, GERENTE, ADM
+│   │   ├── FormaPagamento.java      
+│   │   ├── StatusCaixa.java         
+│   │   ├── StatusPedido.java  
+│   │   ├── TipoConta.java         
+│   │   ├── TipoCustomizacao.java
+│   │   ├── TipoDocumento.java       
+│   │   ├── TipoMovimentacao.java    
+│   │   ├── TipoPedido.java          
+│   │   └── TipoUsuario.java         
 │   │
 │   └── 📂model/
-│       ├── Caixa.java               # ciclo de vida do caixa
-│       ├── Categoria.java           # agrupamento de produtos
-│       ├── Cliente.java             # dados do cliente delivery
-│       ├── ComposicaoPadrao.java    # receita base do produto
-│       ├── Endereco.java            # endereço de entrega
-│       ├── Entregador.java          # entregador e taxa
-│       ├── Ingrediente.java         # ingrediente com valor adicional
-│       ├── ItemCustomizacao.java    # modificação em um sabor
-│       ├── ItemPedido.java          # uma pizza dentro do pedido
-│       ├── MovimentacaoCaixa.java   # entrada/saída no caixa
-│       ├── Pagamento.java           # pagamento vinculado ao pedido
-│       ├── Pedido.java              # pedido completo com histórico
-│       ├── PrecoVariavel.java       # preço do produto por tamanho
-│       ├── Produto.java             # produto do cardápio
-│       ├── StatusPedidoHistorico.java # histórico de mudanças de status
-│       ├── SubItemSabor.java        # sabor dentro de um item
-│       ├── Tamanho.java             # tamanho do produto
-│       └── Usuario.java             # usuário do sistema
+│       ├── Caixa.java              	# ciclo de vida do caixa
+│       ├── Categoria.java          	# agrupamento de produtos
+│       ├── Cliente.java            	# dados do cliente delivery
+│       ├── ComposicaoPadrao.java    	# receita base do produto
+│       ├── Endereco.java            	# endereço de entrega
+│       ├── Entregador.java          	# entregador e taxa
+│       ├── Ingrediente.java         	# ingrediente com valor adicional
+│       ├── ItemCustomizacao.java    	# modificação em um sabor
+│       ├── ItemPedido.java          	# uma pizza dentro do pedido
+│       ├── MovimentacaoCaixa.java   	# entrada/saída no caixa
+│       ├── Pagamento.java           	# pagamento vinculado ao pedido
+│       ├── Pedido.java              	# pedido completo com histórico
+│       ├── PrecoVariavel.java       	# preço do produto por tamanho
+│       ├── Produto.java             	# produto do cardápio
+│       ├── StatusPedidoHistorico.java 	# histórico de mudanças de status
+│       ├── SubItemSabor.java        	# sabor dentro de um item
+│       ├── Tamanho.java             	# tamanho do produto
+│       └── Usuario.java             	# usuário do sistema
 │
-├── 📂dto/                             # Data Transfer Objects
-│   └── PrecoTamanhoRequest.java     # tamanhoId + valor
+├── 📂dto/                             	# Data Transfer Objects
+│   ├── 📂request/     	
+│   │	├── BordaRequest.java
+│   │	├── CaixaAbrirRequest.java
+│   │	├── CaixaEstornoRequest.java
+│   │	├── CaixaFecharRequest.java
+│   │	├── CaixaSangriaRequest.java
+│   │	├── CategoriaRequest.java
+│   │	├── ContaCorrenteEstornoRequest.java
+│   │	├── ContaCorrenteRequest.java
+│   │	├── ContaStatusRequest.java
+│   │	├── PagamentoRequest.java
+│   │	├── PrecoTamanhoRequest.java
+│   │	├── ProdutoRequest.java
+│   │	├── TamanhoRequest.java
+│   │	├── UsuarioAlterarSenhaRequest.java
+│   │	├── UsuarioCadastroRequest.java
+│   │	├── UsuarioEdicaoRequest.java
+│   │	├── UsuarioStatusRequest.java
+│   │	└── UsuarioLoginRequest.java
+│   │
+│   └── 📂response/
+│    	├── BordaResponse.java
+│    	├── CaixaResponse.java
+│    	├── CaixaStatusResponse.java
+│    	├── CategoriaResponse.java
+│    	├── ContaCorrenteResponse.java
+│    	├── DesempenhoEntregadorResponse.java
+│    	├── IndicadoresDiariosResponse.java
+│    	├── MovimentacaoCaixaResponse.java
+│    	├── MovimentacaoContaResponse.java
+│    	├── PagamentoComTrocoResponse.java
+│    	├── PagamentoResponse.java
+│    	├── PedidoResumoResponse.java
+│    	├── PrecoTamanhoResponse.java
+│    	├── ProdutoResponse.java
+│    	├── ProdutoVendidoResponse.java
+│    	├── ResumoCaixaResponse.java
+│    	├── ResumoContaCorrenteResponse.java
+│    	├── TamanhoResponse.java
+│    	├── UsuarioResponse.java
+│    	└── VendasPeriodoResponse.java
 │
 ├── 📂exception/                      
+│   ├── BordaJaCadastradaException.java
+│   ├── BordaNaoEncontradaException.java
 │   ├── CaixaFechadoException.java
 │   ├── CaixaNaoEncontradoException.java
+│   ├── CategoriaJaCadastradaException.java
 │   ├── CategoriaNaoEncontradaException.java
+│   ├── ClienteJaCadastradoException.java
 │   ├── ClienteNaoEncontradoException.java
+│   ├── EnderecoNaoEncontradoException.java
+│   ├── EntidadeJaCadastradaException.java
 │   ├── EntidadeNaoEncontradaException.java
 │   ├── EntregadorNaoEncontradoException.java
 │   ├── ErroResponse.java
 │   ├── GlobalExceptionHandler.java
+│   ├── IngredienteJaCadastradoException.java
 │   ├── IngredienteNaoEncontradoException.java
+│   ├── MesaJaCadastradaException.java
+│   ├── MesaNaoEncontradaException.java
 │   ├── NegocioException.java
+│   ├── NenhumCaixaAbertoException.java
+│   ├── PagamentoNaoEncontradoException.java
 │   ├── PedidoNaoEncontradoException.java
+│   ├── PrecoVariavelNaoEncontradoException.java
 │   ├── ProdutoNaoEncontradoException.java
+│   ├── TamanhoJaCadastradoException.java
 │   ├── TamanhoNaoEncontradoException.java
-│   ├── UsuarioNaoEncontradoException.java
-│   └── ...
+│   └── UsuarioNaoEncontradoException.java
 │
 ├── 📂mapper/                          # Conversores Entity ↔ DTO (em construção)
 │
 ├── 📂repository/                      # Interfaces Spring Data JPA
+│   ├── BordaRepository.java
 │   ├── CaixaRepository.java
 │   ├── CategoriaRepository.java
 │   ├── ClienteRepository.java
+│   ├── ComposicaoPadraoRepository.java
+│   ├── ConfiguracaoPagamentoRepository.java
+│   ├── ContaCorrenteRepository.java
+│   ├── EnderecoRepository.java
+│   ├── EntregadorRepository.java
+│   ├── IngredienteRepository.java
+│   ├── ItemCustomizacaoRepository.java
+│   ├── ItemPedidoRepository.java
+│   ├── MesaRepository.java
 │   ├── MovimentacaoCaixaRepository.java
+│   ├── MovimentacaoContaCorrenteRepository.java
+│   ├── PagamentoRepository.java
 │   ├── PedidoRepository.java
+│   ├── PrecoVariavelRepository.java
 │   ├── ProdutoRepository.java
+│   ├── StatusPedidoHistoricoRepository.java
+│   ├── SubItemSaborRepository.java
 │   ├── TamanhoRepository.java
-│   ├── UsuarioRepository.java
-│   └── ...
+│   └── UsuarioRepository.java
 │
 └── 📂service/                       # Camada de negócio
-    ├── CaixaService.java            # abertura, sangria, fechamento
-    ├── CategoriaService.java        # CRUD de categorias
-    ├── ProdutoService.java          # cadastro e gestão de produtos
-    ├── TamanhoService.java          # gestão de tamanhos
-    └── UsuarioService.java          # autenticação e cadastro
+     ├── BordaService.java   
+     ├── CaixaService.java 	
+     ├── CategoriaService.java
+     ├── ClienteService.java
+     ├── ComposicaoPadraoService.java
+     ├── ContaCorrenteService.java
+     ├── DashboardService.java
+     ├── EnderecoService.java
+     ├── EntregadorService.java
+     ├── IngredienteService.java
+     ├── MesaService.java
+     ├── MovimentacaoCaixaService.java
+     ├── MovimentacaoContaCorrenteService.java
+     ├── PagamentoService.java
+     ├── PedidoService.java
+     ├── PrecoVariavelService.java	 
+     ├── ProdutoService.java      
+     ├── RelatorioService.java
+     ├── StatusPedidoHistoricoService.java	 
+     ├── TamanhoService.java          
+     └── UsuarioService.java         
 ```
 
 ---
 
 ## 🛠️ Tecnologias
 
-| Tecnologia | Versão | Uso |
-|---|---|---|
-| Java | 17 | Linguagem principal |
-| Spring Boot | 4.0.3 | Framework principal |
-| Spring Data JPA | — | Persistência e repositórios |
-| Spring Security | — | BCrypt para senhas |
-| Hibernate | 7.2.4 | ORM |
-| MySQL | 5.7+ | Banco de dados |
-| HikariCP | — | Pool de conexões |
-| Maven | — | Gerenciamento de dependências |
+| Tecnologia  	  | Versão | Uso 						   |
+|-----------------|--------|-------------------------------|
+| Java 		  	  | 17 	   | Linguagem principal 		   |
+| Spring Boot 	  | 4.0.3  | Framework principal 		   |
+| Spring Data JPA | — 	   | Persistência e repositórios   |
+| Spring Security | —      | BCrypt para senhas     	   |
+| Hibernate 	  | 7.2.4  | ORM 						   |
+| MySQL 		  | 5.7+   | Banco de dados 		       |
+| HikariCP 		  | — 	   | Pool de conexões 			   |
+| Maven  	 	  | — 	   | Gerenciamento de dependências |
 
 ---
 
@@ -250,20 +342,19 @@ Caixa ──< MovimentacaoCaixa
 
 O projeto está em desenvolvimento ativo. Camadas concluídas:
 
-- [x] Model — todas as entidades mapeadas
+- [x] Model — todas as entidades mapeadas com JPA
 - [x] Repository — todos os repositórios com queries customizadas
-- [x] Services Completos — CaixaService, CategoriaService, ProdutoService, TamanhoService, UsuarioService
-- [ ] Service — EntregadorService (em andamento)
-- [ ] DTOs completos
-- [ ] Controllers
-- [ ] Tratamento global de exceções
+- [x] Services — todos os services completos com as regras de negócio
+- [ ] DTOs completos (em andamento)
+- [ ] Controllers (em andamento)
+- [x] Tratamento global de exceções
 - [ ] Documentação da API (Swagger)
 
 ---
 
 ## 👨‍💻 Autor
 
-Desenvolvido por **David** como projeto de aprendizado de Java com Spring Boot.
+Desenvolvido por **David** como projeto de estudo de Java com Spring Boot.
 
 ---
 

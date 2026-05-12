@@ -1,8 +1,8 @@
 package com.dsys.appfood.controller;
 
 import com.dsys.appfood.domain.model.Categoria;
-import com.dsys.appfood.dto.CategoriaRequest;
-import com.dsys.appfood.dto.CategoriaResponse;
+import com.dsys.appfood.dto.request.CategoriaRequest;
+import com.dsys.appfood.dto.response.CategoriaResponse;
 import com.dsys.appfood.service.CategoriaService;
 
 import jakarta.validation.Valid;
