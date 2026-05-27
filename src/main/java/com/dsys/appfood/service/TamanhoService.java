@@ -179,6 +179,12 @@ public class TamanhoService {
 		
 	}
 	
-	// listarTodasAsBordasResponse()
+	@Transactional(readOnly = true)
+	public List<TamanhoResponse> listarTodasOsTamanhosResponse(){
+		
+		return listarTodosTamanhos().stream()
+				.map(TamanhoResponse::from)
+				.toList();
+	}
 
 }

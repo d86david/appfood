@@ -54,7 +54,7 @@ public interface MovimentacaoCaixaRepository extends JpaRepository<MovimentacaoC
 	 * 
 	 * Este método é o mais "inteligente", pois ele já cria o objeto DTO e calcula tudo de uma vez no banco.
 	 */ 
-	@Query("SELECT new com.dsys.appfood.dto.ResumoCaixaResponse(" +
+	@Query("SELECT new com.dsys.appfood.dto.response.ResumoCaixaResponse(" +
 		       "m.caixa.id, " +
 		       "COALESCE(SUM(CASE WHEN m.tipo = 'ENTRADA' THEN m.valor ELSE 0 END), 0), " +
 		       "COALESCE(SUM(CASE WHEN m.tipo = 'SAIDA' THEN m.valor ELSE 0 END), 0), " +

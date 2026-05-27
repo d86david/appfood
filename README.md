@@ -89,8 +89,8 @@ src/main/java/com/dsys/appfood/
 │   ├── CategoriaController.java
 │   ├── ContaController.java
 │   ├── ProdutoController.java
-│   ├── UsuarioController.java
 │   ├── TamanhoController.java   
+│   └── UsuarioController.java
 │   
 │
 ├── 📂domain/

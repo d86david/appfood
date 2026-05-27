@@ -1,5 +1,6 @@
 package com.dsys.appfood.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,4 +14,6 @@ public interface IngredienteRepository extends JpaRepository<Ingrediente, Intege
 	//BUSCA INGREDIENTE PELO NOME
 	Optional<Ingrediente> findByNomeIgnoreCase(String nome);
 	
+	// LISTA INGREDIENTE PELO NOME
+	List<Ingrediente> findByNomeContainingIgnoreCase(String nome);
 }

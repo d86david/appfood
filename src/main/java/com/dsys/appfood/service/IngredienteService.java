@@ -3,6 +3,8 @@ package com.dsys.appfood.service;
 import com.dsys.appfood.domain.model.ComposicaoPadrao;
 import com.dsys.appfood.domain.model.Ingrediente;
 import com.dsys.appfood.domain.model.Produto;
+import com.dsys.appfood.dto.request.IngredienteRequest;
+import com.dsys.appfood.dto.response.IngredienteResponse;
 import com.dsys.appfood.exception.IngredienteJaCadastradoException;
 import com.dsys.appfood.exception.IngredienteNaoEncontradoException;
 import com.dsys.appfood.exception.NegocioException;
@@ -133,6 +135,16 @@ public class IngredienteService {
 		return ingredienteRepository.findById(id)
 				.orElseThrow(() -> new IngredienteNaoEncontradoException(id));
 	}
+	
+	@Transactional(readOnly = true)
+	public List<Ingrediente> buscarIngredientePorNome(String nome){
+		if (nome == null || nome.isBlank()) {
+			throw new IllegalArgumentException("O nome deve ser informado");
+		}
+
+		return ingredienteRepository.findByNomeContainingIgnoreCase(nome);
+		
+	}
 
 	@Transactional(readOnly = true)
 	public List<Produto> buscarProdutosPorIngrediente(Integer ingredienteId){
@@ -149,4 +161,46 @@ public class IngredienteService {
 				.collect(Collectors.toList());
 	}
 	
+	
+	// =============================================================
+	//  MÉTODOS DTO (conversão dentro da transação)
+	// =============================================================
+	@Transactional
+	public IngredienteResponse cadastrarIngredienteResponse(IngredienteRequest request) {
+		
+		Ingrediente novoIngrediente = cadastrarIngrediente(request.nome(), request.valorAdicional());
+		
+		return IngredienteResponse.from(novoIngrediente);
+	}
+	
+	@Transactional
+	public IngredienteResponse editarIngredienteResponse (Integer id, IngredienteRequest request) {
+		
+		Ingrediente ingredienteAtualizado = editarIngrediente(id, request.nome(), request.valorAdicional());
+		
+		return IngredienteResponse.from(ingredienteAtualizado);
+	}
+	
+	@Transactional(readOnly = true)
+	public IngredienteResponse buscarPorIdResponse(Integer id) {
+		
+		return IngredienteResponse.from(buscarIngredientePorId(id));
+	}
+	
+	@Transactional(readOnly = true)
+	public List<IngredienteResponse> buscarPorNomeResponse(String nome){
+		
+		return buscarIngredientePorNome(nome)
+				.stream()
+				.map(IngredienteResponse::from)
+				.toList();
+	}
+	
+	@Transactional(readOnly = true)
+	public List<IngredienteResponse> listarTodosIngredientesResponse(){
+		
+		return listarTodosIngredientes().stream()
+				.map(IngredienteResponse::from)
+				.toList();
+	}
 }

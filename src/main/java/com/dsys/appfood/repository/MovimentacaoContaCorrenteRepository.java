@@ -47,7 +47,7 @@ public interface MovimentacaoContaCorrenteRepository extends JpaRepository<Movim
 	 * Este método é o mais "inteligente", pois ele já cria o objeto DTO e calcula
 	 * tudo de uma vez no banco.
 	 */
-	@Query("SELECT new com.dsys.appfood.dto.ResumoContaCorrenteResponse(" + "m.conta.id, "
+	@Query("SELECT new com.dsys.appfood.dto.response.ResumoContaCorrenteResponse(" + "m.conta.id, "
 			+ "COALESCE(SUM(CASE WHEN m.tipo = 'ENTRADA' THEN m.valor ELSE 0 END), 0), "
 			+ "COALESCE(SUM(CASE WHEN m.tipo = 'SAIDA' THEN m.valor ELSE 0 END), 0), "
 			+ "COALESCE(SUM(CASE WHEN m.tipo = 'ENTRADA' THEN m.valor ELSE -m.valor END), 0)) "
