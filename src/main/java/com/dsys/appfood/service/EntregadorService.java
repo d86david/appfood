@@ -2,11 +2,15 @@ package com.dsys.appfood.service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.dsys.appfood.domain.model.Entregador;
+import com.dsys.appfood.dto.request.EntregadorRequest;
+import com.dsys.appfood.dto.request.EntregadorStatusRequest;
+import com.dsys.appfood.dto.response.EntregadorResponse;
 import com.dsys.appfood.exception.EntregadorNaoEncontradoException;
 import com.dsys.appfood.repository.EntregadorRepository;
 
@@ -106,47 +110,23 @@ public class EntregadorService {
 	}
 
 	// =============================================================
-	// ATIVAÇÃO
+	// ALTERAR STATUS DO ENTREGADOR 
 	// =============================================================
 	
 	@Transactional
-	public void ativarEntregador(Integer id) {
+	public void alterarStatusEntregador(Integer id, Boolean novoStatus) {
 		
 		// BUSCA ENTREGADOR POR ID
-		Entregador entregador =  entregadorRepository.findById(id)
+		Entregador entregadorStatus =  entregadorRepository.findById(id)
 				.orElseThrow(() -> new EntregadorNaoEncontradoException(id));
 		
-		//USA O OBJETO EM MEÓRIA 
-		if(entregador.isAtivo()) {
-			throw new IllegalArgumentException("Entregador ja ativo id: " + id );
+		// Objects.equals previne NullPointerException se novoStatus ou entregadorStatus.isAtivo() forem null
+	    // Só entra no bloco se o status for DIFERENTE do atual  
+		if(!Objects.equals(entregadorStatus.isAtivo(), novoStatus) ) {
+			entregadorStatus.setAtivo(novoStatus);
 		}
 		
-		//ATIVAR
-		entregador.ativar();
-		
-		entregadorRepository.save(entregador);
-		
-	}
-
-	// =============================================================
-	// INATIVAÇÃO
-	// =============================================================
-	@Transactional
-	public void inativarEntregador(Integer id) {
-		
-		// BUSCA ENTREGADOR POR ID
-		Entregador entregador = entregadorRepository.findById(id)
-				.orElseThrow(() -> new EntregadorNaoEncontradoException(id));
-		
-		//VERIFICA SE O ENTREGADOR JA ESTÁ INATIVO 
-		if(!entregador.isAtivo()) {
-			throw new IllegalArgumentException("Entregador ja inativo id: " + id );
-		}
-		
-		//INATIVAR
-		entregador.inativar();
-		
-		entregadorRepository.save(entregador);
+		entregadorRepository.save(entregadorStatus);
 		
 	}
 	
@@ -175,6 +155,57 @@ public class EntregadorService {
 	        throw new IllegalArgumentException("O nome deve ser informado.");
 	    }
 		return entregadorRepository.findByNomeContainingIgnoreCase(nome);
+	}
+	
+	// =============================================================
+	//  MÉTODOS DTO (conversão dentro da transação)
+	// =============================================================
+	
+	@Transactional
+	public EntregadorResponse cadastrarEntregdorResponse(EntregadorRequest request) {
+		
+		Entregador entregador = cadastrarEntregdor(request.nome(), request.telefone(), 
+				request.valorPorEntrega(), request.valorDiaria());
+		
+		return EntregadorResponse.from(entregador);
+		
+	}
+	
+	@Transactional
+	public EntregadorResponse editarEntregadorResponse(Integer id, EntregadorRequest request) {
+		
+		Entregador entregadorAtualizado = editarEntregador(id, request.nome(), request.telefone(), request.valorPorEntrega(), request.valorDiaria());
+		
+		return EntregadorResponse.from(entregadorAtualizado);
+		
+	}
+	
+	@Transactional
+	public void alterarStatusEntregadorResponse(Integer id, EntregadorStatusRequest request) {
+		
+		alterarStatusEntregador(id, request.ativo());
+		
+	}
+	
+	@Transactional(readOnly = true)
+	public EntregadorResponse buscarEntregadorPorIdResponse(Integer id) {
+		return EntregadorResponse.from(buscarEntregadorPorId(id));
+	}
+	
+	@Transactional(readOnly = true)
+	public List<EntregadorResponse> listarTodosEntregadoresResponse(){
+		return listarTodosEntregadores().stream()
+				.map(EntregadorResponse:: from)
+				.toList();
+	}
+	
+	@Transactional(readOnly = true)
+	public List<EntregadorResponse> buscaEntregadorPorNomeResponse(String nome){
+		
+		return buscaEntregadorPorNome(nome).stream()
+				.map(EntregadorResponse::from)
+				.toList();
+		
 	}
 
 }

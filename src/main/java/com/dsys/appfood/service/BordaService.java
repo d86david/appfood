@@ -9,8 +9,9 @@ import com.dsys.appfood.exception.IngredienteJaCadastradoException;
 import com.dsys.appfood.repository.BordaRepository;
 
 import java.math.BigDecimal;
-import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -120,8 +121,8 @@ public class BordaService {
 	// BUSCAS
 	// =============================================================
 	@Transactional(readOnly = true)
-	public List<Borda> listarTodasBordas(){
-		return bordaRepository.findAll();
+	public Page<Borda> listarTodasBordas(Pageable pageable){
+		return bordaRepository.findAll(pageable);
 	}
 	
 	@Transactional(readOnly = true)
@@ -131,12 +132,12 @@ public class BordaService {
 	}
 	
 	@Transactional(readOnly = true)
-	public List<Borda> buscarBordaPorNome (String nome) {
+	public Page<Borda> buscarBordaPorNome (String nome, Pageable pageable) {
 		if (nome == null || nome.isBlank()) {
 			throw new IllegalArgumentException("O Nome deve ser informado");
 		}
 
-		return bordaRepository.findByNomeContainingIgnoreCase(nome);
+		return bordaRepository.findByNomeContainingIgnoreCase(nome, pageable);
 	}
 	
 	// =============================================================
@@ -165,20 +166,16 @@ public class BordaService {
 	}
 	
 	@Transactional(readOnly = true)
-	public List<BordaResponse> buscarPorNomeResponse(String nome) {
-		return buscarBordaPorNome(nome)
-				.stream()
-				.map(BordaResponse::from)
-				.toList();
+	public Page<BordaResponse> buscarPorNomeResponse(String nome, Pageable pageable) {
+		return buscarBordaPorNome(nome, pageable)
+				.map(BordaResponse::from);
 		
 	}
 	
 	@Transactional(readOnly = true)
-	public List<BordaResponse> listarTodasAsBordasResponse(){
-		return listarTodasBordas()
-				.stream()
-				.map(BordaResponse::from)
-				.toList();
+	public Page<BordaResponse> listarTodasAsBordasResponse(Pageable pageable){
+		return listarTodasBordas(pageable)
+				.map(BordaResponse::from);
 	}
 	
 }

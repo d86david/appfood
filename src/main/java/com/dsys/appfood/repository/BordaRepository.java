@@ -1,8 +1,10 @@
 package com.dsys.appfood.repository;
 
-import java.util.List;
+
 import java.util.Optional;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -15,5 +17,5 @@ public interface BordaRepository extends JpaRepository<Borda, Integer> {
 	Optional<Borda> findByNomeIgnoreCase(String nome);
 	
 	// LISTA BORDA PELO NOME
-	List<Borda> findByNomeContainingIgnoreCase(String nome);
+	Page<Borda> findByNomeContainingIgnoreCase(String nome, Pageable pageable);
 }

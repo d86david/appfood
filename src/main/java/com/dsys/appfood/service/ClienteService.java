@@ -5,10 +5,10 @@ import com.dsys.appfood.domain.model.Cliente;
 import com.dsys.appfood.domain.model.Endereco;
 import com.dsys.appfood.exception.ClienteJaCadastradoException;
 import com.dsys.appfood.exception.ClienteNaoEncontradoException;
-import com.dsys.appfood.exception.NegocioException;
 import com.dsys.appfood.repository.ClienteRepository;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -71,7 +71,7 @@ public class ClienteService {
 			}
 
 			// Reativa e atualiza os dados
-			existente.ativar();
+			existente.setAtivo(true);
 			existente.setNome(nomePadronizado);
 			existente.setEndereco(endereco);
 			existente.setObservacaoCliente(observacaoCliente);
@@ -126,7 +126,7 @@ public class ClienteService {
 			}
 
 			// Reativa e atualiza os dados
-			existente.ativar();
+			existente.setAtivo(true);
 			existente.setNome(nomePadronizado);
 			existente.setTelefoneSecundario(telefoneSecundario);
 			existente.setTipoDocumento(tipoDocumento);
@@ -194,41 +194,21 @@ public class ClienteService {
 	}
 
 	// =============================================================
-	// ATIVAR
+	// ALTERAR STATUS DO CLIENTE
 	// =============================================================
 	@Transactional
-	public void ativarCliente(Integer id) {
+	public void alterarStatusCliente(Integer id, Boolean novoStatus) {
 
 		// Busca Cliente e lança Exceção se não existir
-		Cliente cliente = clienteRepository.findById(id).orElseThrow(() -> new ClienteNaoEncontradoException(id));
+		Cliente clienteStatus = clienteRepository.findById(id).orElseThrow(() -> new ClienteNaoEncontradoException(id));
 
-		// Confirma se usuario está ativo
-		if (cliente.isAtivo()) {
-			throw new NegocioException("Cliente já ativo id: " + id);
+		// Objects.equals previne NullPointerException se novoStatus ou clienteStatus.isAtivo() forem null
+	    // Só entra no bloco se o status for DIFERENTE do atual 
+		if (!Objects.equals(clienteStatus.isAtivo(), novoStatus)) {
+			clienteStatus.setAtivo(novoStatus);
 		}
 
-		cliente.ativar();
-
-		clienteRepository.save(cliente);
-	}
-
-	// =============================================================
-	// INATIVAR
-	// =============================================================
-	@Transactional
-	public void inativarCliente(Integer id) {
-
-		// Busca Cliente e lança Exceção se não existir
-		Cliente cliente = clienteRepository.findById(id).orElseThrow(() -> new ClienteNaoEncontradoException(id));
-
-		// Confirma se usuario não está ativo
-		if (!cliente.isAtivo()) {
-			throw new NegocioException("Cliente já ativo id: " + id);
-		}
-
-		cliente.inativar();
-
-		clienteRepository.save(cliente);
+		clienteRepository.save(clienteStatus);
 	}
 
 	// =============================================================

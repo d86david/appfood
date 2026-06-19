@@ -5,7 +5,7 @@ public class MesaJaCadastradaException extends EntidadeJaCadastradaException {
 private static final long serialVersionUID = 1L;
 	
 	public MesaJaCadastradaException(Integer numero) {
-		super("A mesa " + numero + " já está cadastrado");
+		super("A mesa " + numero + " já está cadastrada");
 	}
 	
 	public MesaJaCadastradaException(Integer numero, Integer id) {

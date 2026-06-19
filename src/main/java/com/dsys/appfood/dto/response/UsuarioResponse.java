@@ -10,7 +10,7 @@ public record UsuarioResponse(
 	    String login,
 	    String telefone,
 	    TipoUsuario tipo,
-	    boolean ativo
+	    Boolean ativo
 		
 		) {
 	

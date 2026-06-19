@@ -19,7 +19,7 @@ public class Entregador {
 	
 	private String telefone;
 	
-	private boolean ativo = true;
+	private Boolean ativo = true;
 	
 	@Column(name = "valor_diaria")
 	private BigDecimal valorDiaria;
@@ -64,10 +64,14 @@ public class Entregador {
 		this.telefone = telefone;
 	}
 	
-	public boolean isAtivo() {
+	public Boolean isAtivo() {
 		return this.ativo;
 	}
 	
+	public void setAtivo(Boolean ativo) {
+		this.ativo = ativo;
+	}
+
 	public BigDecimal getValorDiaria() {
 		return this.valorDiaria;
 	}
@@ -113,18 +117,6 @@ public class Entregador {
 			this.valorDiaria = valor;
 			
 		}
-	
-	//===========================================
-	// ATIVAR E INATIVAR
-	//===========================================
-	
-	public void ativar() {
-		this.ativo = true;
-	}
-	
-	public void inativar() {
-		this.ativo = false;
-	}
 	
 	//===========================================
 	// HASHCODE E EQUALS

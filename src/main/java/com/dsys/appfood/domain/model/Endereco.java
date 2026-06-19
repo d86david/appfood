@@ -11,7 +11,7 @@ public class Endereco {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
-
+	
 	@Column(nullable = false)
 	private String logradouro;
 

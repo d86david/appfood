@@ -3,8 +3,9 @@ package com.dsys.appfood.controller;
 import com.dsys.appfood.service.BordaService;
 
 import java.net.URI;
-import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -89,16 +90,16 @@ public class BordaController {
 	// 5. BUSCAR BORDA POR NOME E LISTA 
 	// ====================================================================================================
 	@GetMapping
-	public ResponseEntity<List<BordaResponse>> buscarPorNome( @RequestParam(required = false) String nome){
+	public ResponseEntity<Page<BordaResponse>> buscarPorNome( @RequestParam(required = false) String nome, Pageable pageable){
 		
-		List<BordaResponse> lista;
+		Page<BordaResponse> paginaResultados;
 		
 		if(nome != null) {
-			lista = bordaService.buscarPorNomeResponse(nome);
+			paginaResultados = bordaService.buscarPorNomeResponse(nome, pageable);
 		}else {
-			lista = bordaService.listarTodasAsBordasResponse();
+			paginaResultados = bordaService.listarTodasAsBordasResponse(pageable);
 		}
 		
-		return ResponseEntity.ok(lista);
+		return ResponseEntity.ok(paginaResultados);
 	}
 }

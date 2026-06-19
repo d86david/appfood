@@ -127,11 +127,13 @@ public class UsuarioService {
 		Usuario usuarioStatus = usuarioRepository.findById(id)
 				.orElseThrow(() -> new UsuarioNaoEncontradoException(id));
 		
-		// Objects.equals previne NullPointerException se novoStatus ou contaStatus.isAtiva() forem null
+		// Objects.equals previne NullPointerException se novoStatus ou usuarioStatus.isAtivo() forem null
 	    // Só entra no bloco se o status for DIFERENTE do atual 
 		if(!Objects.equals(usuarioStatus.isAtivo(),novoStatus)) {
 			usuarioStatus.setAtivo(novoStatus);
 		}
+		
+		usuarioRepository.save(usuarioStatus);
 		
 	}
 

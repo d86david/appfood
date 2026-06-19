@@ -23,7 +23,7 @@ public class Cliente {
 	@Column(name = "telefone_secundario")
 	private String telefoneSecundario;
 
-	private boolean ativo = true;
+	private Boolean ativo = true;
 
 	@Column(name = "tipo_documento")
 	private TipoDocumento tipoDocumento;
@@ -94,8 +94,13 @@ public class Cliente {
 		this.telefoneSecundario = telefoneSecundario;
 	}
 
-	public boolean isAtivo() {
+	public Boolean isAtivo() {
 		return ativo;
+	}
+	
+
+	public void setAtivo(Boolean ativo) {
+		this.ativo = ativo;
 	}
 
 	public TipoDocumento getTipoDocumento() {
@@ -154,18 +159,7 @@ public class Cliente {
 			this.telefonePrincipal = telefone;
 		}
 	}
-
-	// ===========================================
-	// ATIVAR E DESATIVAR CLIENTE
-	// ===========================================
-	public void ativar() {
-		this.ativo = true;
-	}
-
-	public void inativar() {
-		this.ativo = false;
-	}
-
+	
 	// ===========================================
 	// HASHCODE E EQUALS
 	// ===========================================

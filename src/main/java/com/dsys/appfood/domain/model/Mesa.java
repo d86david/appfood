@@ -21,11 +21,11 @@ public class Mesa {
 	private Integer numero;
 
 	@Column(nullable = false)
-	private boolean ocupada = false;
+	private Boolean ocupada = false;
 
 	private Integer capacidade;
 
-	private boolean ativa;
+	private Boolean ativa = true;
 
 	// ===========================================
 	// CONSTRUTORES
@@ -57,7 +57,7 @@ public class Mesa {
 		this.numero = numero;
 	}
 
-	public boolean isOcupada() {
+	public Boolean isOcupada() {
 		return ocupada;
 	}
 
@@ -69,11 +69,11 @@ public class Mesa {
 		this.capacidade = capacidade;
 	}
 
-	public boolean isAtiva() {
+	public Boolean isAtiva() {
 		return ativa;
 	}
 
-	public void setAtiva(boolean ativa) {
+	public void setAtiva(Boolean ativa) {
 		this.ativa = ativa;
 	}
 
