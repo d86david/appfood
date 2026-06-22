@@ -15,8 +15,9 @@ import com.dsys.appfood.repository.MesaRepository;
 import com.dsys.appfood.repository.PedidoRepository;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -142,22 +143,20 @@ public class MesaService {
 
 	// Listar todas as mesas
 	@Transactional(readOnly = true)
-	public List<Mesa> listarTodasAsMesas() {
-		return mesaRepository.findAllByOrderByNumeroAsc();
+	public Page<Mesa> listarTodasAsMesas(Pageable pageable) {
+		return mesaRepository.findAllByOrderByNumeroAsc(pageable);
 	}
 
 	// Listar mesas livres
 	@Transactional(readOnly = true)
-	public List<Mesa> listarMesasLivres() {
-		return mesaRepository.findByOcupadaFalseAndAtivaTrueOrderByNumeroAsc();
+	public Page<Mesa> listarMesasLivres( Pageable pageable) {
+		return mesaRepository.findByOcupadaFalseAndAtivaTrueOrderByNumeroAsc(pageable);
 	}
 
 	// Listar mesas ocupadas
 	@Transactional(readOnly = true)
-	public List<Mesa> listarMesasOcupadas() {
-		return mesaRepository.findAllByOrderByNumeroAsc().stream()
-				.filter(mesa -> mesa.isOcupada() && mesa.isAtiva())
-				.collect(Collectors.toList());
+	public Page<Mesa> listarMesasOcupadas(Pageable pageable) {
+		return mesaRepository.findByOcupadaTrueAndAtivaTrueOrderByNumeroAsc(pageable);
 	}
 
 	// ============================================================
@@ -255,29 +254,23 @@ public class MesaService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<MesaResponse> listarTodasAsMesaResponse(){
+	public Page<MesaResponse> listarTodasAsMesaResponse(Pageable pageable){
 		
-		return listarTodasAsMesas().stream()
-				.map(MesaResponse::from)
-				.toList();
+		return listarTodasAsMesas(pageable).map(MesaResponse::from);
 		
 	}
 
 	@Transactional(readOnly = true)
-	public List<MesaResponse> listarMesasLivresResponse() {
+	public Page<MesaResponse> listarMesasLivresResponse(Pageable pageable) {
 		
-		return listarMesasLivres().stream()
-				.map(MesaResponse::from)
-				.toList();
+		return listarMesasLivres(pageable).map(MesaResponse::from);
 		
 	}
 
 	@Transactional(readOnly = true)
-	public List<MesaResponse> listarMesasOcupadasResponse() {
+	public Page<MesaResponse> listarMesasOcupadasResponse(Pageable pageable) {
 		
-		return listarMesasOcupadas().stream()
-				.map(MesaResponse::from)
-				.toList();
+		return listarMesasOcupadas(pageable).map(MesaResponse::from);
 		
 	}
 	

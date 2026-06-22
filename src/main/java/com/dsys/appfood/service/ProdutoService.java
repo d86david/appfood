@@ -2,8 +2,9 @@ package com.dsys.appfood.service;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -194,27 +195,27 @@ public class ProdutoService {
 		}
 		
 		@Transactional(readOnly = true)
-		public List<Produto> listarTodosProdutos(){
-			return produtoRepository.findAll();
+		public Page<Produto> listarTodosProdutos(Pageable pageable){
+			return produtoRepository.findAll(pageable);
 		}
 		
 		
 		@Transactional(readOnly = true)
-		public List<Produto> buscarProdutoPorNome(String nome){
+		public Page<Produto> buscarProdutoPorNome(String nome, Pageable pageable){
 			
 			//Validações
 			if(nome == null || nome.isBlank()) {
 				throw new IllegalArgumentException("O nome do produto deve ser informado");
 			}
 			
-			return produtoRepository.findByNomeContainingIgnoreCase(nome);
+			return produtoRepository.findByNomeContainingIgnoreCase(nome, pageable);
 		}
 		
 		@Transactional(readOnly = true)
-		public List<Produto> listarProdutoPorCategoria(Integer categoriaId){
+		public Page<Produto> listarProdutoPorCategoria(Integer categoriaId, Pageable pageable){
 			Categoria categoria = categoriaService.buscarCategoriaPorId(categoriaId);
 			
-			return produtoRepository.findByCategoria(categoria);
+			return produtoRepository.findByCategoria(categoria, pageable);
 			
 		}
 		
@@ -232,24 +233,18 @@ public class ProdutoService {
 		}
 		
 		@Transactional(readOnly = true)
-		public List<ProdutoResponse> listarTodosProdutosResponse() {
-		    return listarTodosProdutos().stream()
-		            .map(ProdutoResponse::from)
-		            .collect(Collectors.toList());
+		public Page<ProdutoResponse> listarTodosProdutosResponse(Pageable pageable) {
+		    return listarTodosProdutos(pageable).map(ProdutoResponse::from);
 		}
 		
 		@Transactional(readOnly = true)
-		public List<ProdutoResponse> buscarProdutoPorNomeResponse(String nome) {
-		    return buscarProdutoPorNome(nome).stream()
-		            .map(ProdutoResponse::from)
-		            .collect(Collectors.toList());
+		public Page<ProdutoResponse> buscarProdutoPorNomeResponse(String nome, Pageable pageable) {
+		    return buscarProdutoPorNome(nome, pageable).map(ProdutoResponse::from);
 		}
 
 		@Transactional(readOnly = true)
-		public List<ProdutoResponse> listarProdutoPorCategoriaResponse(Integer categoriaId) {
-		    return listarProdutoPorCategoria(categoriaId).stream()
-		            .map(ProdutoResponse::from)
-		            .collect(Collectors.toList());
+		public Page<ProdutoResponse> listarProdutoPorCategoriaResponse(Integer categoriaId, Pageable pageable) {
+		    return listarProdutoPorCategoria(categoriaId, pageable).map(ProdutoResponse::from);
 		}
 
 		@Transactional

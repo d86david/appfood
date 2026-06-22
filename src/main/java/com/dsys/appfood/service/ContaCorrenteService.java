@@ -18,9 +18,10 @@ import com.dsys.appfood.repository.ContaCorrenteRepository;
 import com.dsys.appfood.repository.MovimentacaoContaCorrenteRepository;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Objects;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -204,13 +205,13 @@ public class ContaCorrenteService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<ContaCorrente> listarAtivas() {
-		return contaRepository.findByAtivaTrue();
+	public Page<ContaCorrente> listarAtivas(Pageable pageable) {
+		return contaRepository.findByAtivaTrue(pageable);
 	}
 
 	@Transactional(readOnly = true)
-	public List<MovimentacaoContaCorrente> extrato(Integer contaId) {
-		return movimentacaoRepository.findByContaIdOrderByDataHoraDesc(contaId);
+	public Page<MovimentacaoContaCorrente> extrato(Integer contaId, Pageable pageable) {
+		return movimentacaoRepository.findByContaIdOrderByDataHoraDesc(contaId, pageable);
 	}
 
 	@Transactional(readOnly = true)
@@ -247,9 +248,10 @@ public class ContaCorrenteService {
 	}
 	
 	@Transactional(readOnly = true)
-	public List<ContaCorrenteResponse> listarAtivasResponse(){
+	public Page<ContaCorrenteResponse> listarAtivasResponse(Pageable pageable){
 		
-		return listarAtivas().stream().map(ContaCorrenteResponse::from).toList();
+		return listarAtivas(pageable)
+				.map(ContaCorrenteResponse::from);
 		
 	}
 	

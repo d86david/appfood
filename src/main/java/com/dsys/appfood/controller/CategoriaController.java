@@ -8,8 +8,9 @@ import com.dsys.appfood.service.CategoriaService;
 import jakarta.validation.Valid;
 
 import java.net.URI;
-import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -91,17 +92,17 @@ public class CategoriaController {
 	// 5. BUSCAS CATEGORIA POR NOME E LISTAS
 	// ====================================================================================================
 	@GetMapping
-	public ResponseEntity<List<CategoriaResponse>> listar(@RequestParam(required = false) String nome) {
+	public ResponseEntity<Page<CategoriaResponse>> listar(@RequestParam(required = false) String nome, Pageable pageable) {
 
-		List<CategoriaResponse> lista;
+		Page<CategoriaResponse> paginaResultados;
 
 		if (nome != null) {
-			lista = categoriaService.buscarPorNomeResponse(nome);
+			paginaResultados = categoriaService.buscarPorNomeResponse(nome, pageable);
 		} else {
-			lista = categoriaService.listarTodasCategoriasResponse();
+			paginaResultados = categoriaService.listarTodasCategoriasResponse(pageable);
 		}
 
-		return ResponseEntity.ok(lista);
+		return ResponseEntity.ok(paginaResultados);
 	}
 
 }

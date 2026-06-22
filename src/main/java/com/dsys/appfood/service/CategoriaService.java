@@ -1,9 +1,9 @@
 package com.dsys.appfood.service;
 
 import com.dsys.appfood.repository.ProdutoRepository;
-import java.util.List;
-import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -119,14 +119,14 @@ public class CategoriaService {
 	// LISTA - Carregar todas as Cadastradas
 	//=============================================================
 	@Transactional(readOnly = true)
-	public List<Categoria> listarTodasCategorias(){
-		return categoriaRepository.findAll();
+	public Page<Categoria> listarTodasCategorias(Pageable pageable){
+		return categoriaRepository.findAll(pageable);
 	}
 	
 	@Transactional(readOnly = true)
-	public List<Categoria> buscarCategoriaPorNome(String nome){
+	public Page<Categoria> buscarCategoriaPorNome(String nome, Pageable pageable){
 		
-		return categoriaRepository.findByNomeContainingIgnoreCase(nome);
+		return categoriaRepository.findByNomeContainingIgnoreCase(nome, pageable);
 				
 	}
 	
@@ -164,21 +164,17 @@ public class CategoriaService {
 	}
 	
 	@Transactional(readOnly = true)
-	public List<CategoriaResponse> buscarPorNomeResponse(String nome){
+	public Page<CategoriaResponse> buscarPorNomeResponse(String nome, Pageable pageable){
 		
-		return buscarCategoriaPorNome(nome)
-				.stream()
-				.map(CategoriaResponse::from)
-				.collect(Collectors.toList());
+		return buscarCategoriaPorNome(nome, pageable)
+				.map(CategoriaResponse::from);
 	}
 	
 	@Transactional(readOnly = true)
-	public List<CategoriaResponse> listarTodasCategoriasResponse(){
+	public Page<CategoriaResponse> listarTodasCategoriasResponse(Pageable pageable){
 		
-		return listarTodasCategorias()
-				.stream()
-				.map(CategoriaResponse::from)
-				.collect(Collectors.toList());
+		return listarTodasCategorias(pageable)
+				.map(CategoriaResponse::from);
 	}
 
 	

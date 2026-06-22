@@ -12,8 +12,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
-import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -117,9 +118,9 @@ public class MesaController {
 	// 7. LISTAR MESAS OCUPADAS 
 	// ====================================================================================================
 	@GetMapping("ocupadas")
-	public ResponseEntity<List<MesaResponse>> listarMesasOcupadas(){
+	public ResponseEntity<Page<MesaResponse>> listarMesasOcupadas(Pageable pageable){
 		
-		return ResponseEntity.ok(mesaService.listarMesasOcupadasResponse());
+		return ResponseEntity.ok(mesaService.listarMesasOcupadasResponse(pageable));
 		
 	}
 	
@@ -128,9 +129,9 @@ public class MesaController {
 	// 8. LISTAR MESAS LIVRES 
 	// ====================================================================================================
 	@GetMapping("livres")
-	public ResponseEntity<List<MesaResponse>> listarMesasLivres(){
+	public ResponseEntity<Page<MesaResponse>> listarMesasLivres(Pageable pageable){
 		
-		return ResponseEntity.ok(mesaService.listarMesasLivresResponse());
+		return ResponseEntity.ok(mesaService.listarMesasLivresResponse(pageable));
 		
 	}	
 	
@@ -138,9 +139,9 @@ public class MesaController {
 	// 9. LISTAR MESAS
 	// ====================================================================================================
 	@GetMapping
-	public ResponseEntity<List<MesaResponse>> listarMesas(){
+	public ResponseEntity<Page<MesaResponse>> listarMesas(Pageable pageable){
 		
-		return ResponseEntity.ok(mesaService.listarTodasAsMesaResponse());
+		return ResponseEntity.ok(mesaService.listarTodasAsMesaResponse(pageable));
 		
 	}
 

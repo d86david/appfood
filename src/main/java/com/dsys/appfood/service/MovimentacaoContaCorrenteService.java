@@ -9,8 +9,9 @@ import com.dsys.appfood.repository.MovimentacaoContaCorrenteRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,22 +43,22 @@ public class MovimentacaoContaCorrenteService {
 	 * 
 	 */
 	@Transactional(readOnly = true)
-	public List<MovimentacaoContaCorrente> extratoPorConta(Integer contaId) {
+	public Page<MovimentacaoContaCorrente> extratoPorConta(Integer contaId, Pageable pageable) {
 
 		// Verifica se a conta exite antes de consultar a movimentação
 		if (!contaCorrenteRepository.existsById(contaId)) {
 			throw new ContaNaoEncontradaException(contaId);
 		}
 
-		return movimentacaoContaCorrenteRepository.findByContaIdOrderByDataHoraDesc(contaId);
+		return movimentacaoContaCorrenteRepository.findByContaIdOrderByDataHoraDesc(contaId, pageable);
 	}
 
 	/**
 	 * Consulta mpvimentação de uma conta, dentro de um período específico
 	 */
 	@Transactional(readOnly = true)
-	public List<MovimentacaoContaCorrente> extratoPorContaPeriodo(Integer contaId, LocalDateTime inicio,
-			LocalDateTime fim) {
+	public Page<MovimentacaoContaCorrente> extratoPorContaPeriodo(Integer contaId, LocalDateTime inicio,
+			LocalDateTime fim, Pageable pageable) {
 
 		// Verifica se a conta existe antes de consultar as movimentações
 		if (!contaCorrenteRepository.existsById(contaId)) {
@@ -70,7 +71,7 @@ public class MovimentacaoContaCorrenteService {
 		}
 
 		return movimentacaoContaCorrenteRepository.findByContaIdAndDataHoraBetweenOrderByDataHoraDesc(contaId, inicio,
-				fim);
+				fim, pageable);
 	}
 
 	/**
@@ -163,17 +164,15 @@ public class MovimentacaoContaCorrenteService {
 
 	// Extratos
 	@Transactional(readOnly = true)
-		public List<MovimentacaoContaCorrenteResponse> extratoPorContaResponse(Integer contaId,
-		        LocalDateTime inicio, LocalDateTime fim){
-			List<MovimentacaoContaCorrente> movs;
+		public Page<MovimentacaoContaCorrenteResponse> extratoPorContaResponse(Integer contaId,
+		        LocalDateTime inicio, LocalDateTime fim, Pageable pageable){
+			Page<MovimentacaoContaCorrente> movs;
 		    if (inicio != null && fim != null) {
-		        movs = extratoPorContaPeriodo(contaId, inicio, fim);
+		        movs = extratoPorContaPeriodo(contaId, inicio, fim, pageable);
 		    } else {
-		        movs = extratoPorConta(contaId);
+		        movs = extratoPorConta(contaId, pageable);
 		    }
-		    return movs.stream()
-		    		.map(MovimentacaoContaCorrenteResponse::from)
-		    		.toList();
+		    return movs.map(MovimentacaoContaCorrenteResponse::from);
 		}
 
 }

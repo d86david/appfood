@@ -8,8 +8,9 @@ import com.dsys.appfood.service.IngredienteService;
 import jakarta.validation.Valid;
 
 import java.net.URI;
-import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -96,16 +97,16 @@ public class IngredienteController {
 	// 5. BUSCAR INGREDIENTE POR NOME E LISTA 
 	// ====================================================================================================
 	@GetMapping
-	public ResponseEntity<List<IngredienteResponse>> buscarPorNome(@RequestParam(required = false) String nome){
+	public ResponseEntity<Page<IngredienteResponse>> buscarPorNome(@RequestParam(required = false) String nome, Pageable pageable){
 		
-		List<IngredienteResponse> lista;
+		Page<IngredienteResponse> paginaResultados;
 		
 		if(nome != null) {
-			lista = ingredienteService.buscarPorNomeResponse(nome);
+			paginaResultados = ingredienteService.buscarPorNomeResponse(nome, pageable);
 		}else {
-			lista = ingredienteService.listarTodosIngredientesResponse();
+			paginaResultados = ingredienteService.listarTodosIngredientesResponse(pageable);
 		}
 		
-		return ResponseEntity.ok(lista);
+		return ResponseEntity.ok(paginaResultados);
 	}
 }

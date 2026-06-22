@@ -2,9 +2,10 @@ package com.dsys.appfood.repository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,11 +18,11 @@ import com.dsys.appfood.dto.response.ResumoContaCorrenteResponse;
 public interface MovimentacaoContaCorrenteRepository extends JpaRepository<MovimentacaoContaCorrente, Integer> {
 
 	// --- PESQUISAR MOVIMENTAÇÃO DE UMA CONTA ORDENADO POR DATA --
-	List<MovimentacaoContaCorrente> findByContaIdOrderByDataHoraDesc(Integer contaId);
+	Page<MovimentacaoContaCorrente> findByContaIdOrderByDataHoraDesc(Integer contaId, Pageable pageable);
 
 	// --- PESQUISAR MOVIMENTAÇÃO DE UMA CONTA ORDENADA POR DATA ---
-	List<MovimentacaoContaCorrente> findByContaIdAndDataHoraBetweenOrderByDataHoraDesc(Integer contaId,
-			LocalDateTime inicio, LocalDateTime fim);
+	Page<MovimentacaoContaCorrente> findByContaIdAndDataHoraBetweenOrderByDataHoraDesc(Integer contaId,
+			LocalDateTime inicio, LocalDateTime fim, Pageable pageable);
 	
 	// --- BUSCAR MOVIMENTAÇÃO ASSOCIADA A UM PAGAMENTO ---
 	Optional<MovimentacaoContaCorrente> findByPagamentoId(Integer pagamentoId);

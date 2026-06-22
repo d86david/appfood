@@ -1,8 +1,9 @@
 package com.dsys.appfood.repository;
 
-import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -16,14 +17,14 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer>{
 	Optional<Produto> findByNomeIgnoreCaseAndCategoria(String nome, Categoria categoria);
 	
 	// --- LISTAR PRODUTOS PELO NOME ---
-	List<Produto> findByNomeContainingIgnoreCase(String nome);
+	Page<Produto> findByNomeContainingIgnoreCase(String nome, Pageable pageable);
 	
 	// --- LISTAR PRODUTOS PELA CATEGORIA (Objeto)---
-	List<Produto> findByCategoria(Categoria categoria);
+	Page<Produto> findByCategoria(Categoria categoria, Pageable pageable);
 	
 	// --- LISTAR PRODUTOS PELO ID DA CATEGORIA --- 
 	//Util quando só tem o ID - evita buscar a Categoria só para depois buscar os produtos
-	List<Produto> findByCategoriaId(Integer categoriaId);
+	Page<Produto> findByCategoriaId(Integer categoriaId, Pageable pageable);
 	
 	// --- VERIFICAR SE EXISTE PRODUTO COM ESSE NOME NA MESMA CATEGORIA ---
     // Vai ser necessário no Service para evitar duplicata

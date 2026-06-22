@@ -1,9 +1,10 @@
 package com.dsys.appfood.service;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Objects;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -137,8 +138,8 @@ public class EntregadorService {
 
 	// Listar todos os entregadores
 	@Transactional(readOnly = true)
-	public List<Entregador> listarTodosEntregadores() {
-		return entregadorRepository.findAll();
+	public Page<Entregador> listarTodosEntregadores(Pageable pageable) {
+		return entregadorRepository.findAll(pageable);
 	}
 
 	// Busca Entregador por ID
@@ -150,11 +151,11 @@ public class EntregadorService {
 
 	// Busca Entregador pelo nome
 	@Transactional(readOnly = true)
-	public List<Entregador> buscaEntregadorPorNome(String nome) {
+	public Page<Entregador> buscaEntregadorPorNome(String nome, Pageable pageable) {
 		if (nome == null || nome.isBlank()) {
 	        throw new IllegalArgumentException("O nome deve ser informado.");
 	    }
-		return entregadorRepository.findByNomeContainingIgnoreCase(nome);
+		return entregadorRepository.findByNomeContainingIgnoreCase(nome, pageable);
 	}
 	
 	// =============================================================
@@ -193,18 +194,14 @@ public class EntregadorService {
 	}
 	
 	@Transactional(readOnly = true)
-	public List<EntregadorResponse> listarTodosEntregadoresResponse(){
-		return listarTodosEntregadores().stream()
-				.map(EntregadorResponse:: from)
-				.toList();
+	public Page<EntregadorResponse> listarTodosEntregadoresResponse(Pageable pageable){
+		return listarTodosEntregadores(pageable).map(EntregadorResponse:: from);
 	}
 	
 	@Transactional(readOnly = true)
-	public List<EntregadorResponse> buscaEntregadorPorNomeResponse(String nome){
+	public Page<EntregadorResponse> buscaEntregadorPorNomeResponse(String nome, Pageable pageable){
 		
-		return buscaEntregadorPorNome(nome).stream()
-				.map(EntregadorResponse::from)
-				.toList();
+		return buscaEntregadorPorNome(nome, pageable).map(EntregadorResponse::from);
 		
 	}
 

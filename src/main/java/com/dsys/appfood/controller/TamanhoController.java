@@ -3,8 +3,9 @@ package com.dsys.appfood.controller;
 import com.dsys.appfood.service.TamanhoService;
 
 import java.net.URI;
-import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -93,16 +94,16 @@ public class TamanhoController {
 	// 5. BUSCAR POR NOME E LISTAR 
 	// ====================================================================================================
 	@GetMapping
-	public ResponseEntity<List<TamanhoResponse>> listar(@RequestParam (required = false) String nome){
+	public ResponseEntity<Page<TamanhoResponse>> listar(@RequestParam (required = false) String nome, Pageable pageable){
 		
-		List<TamanhoResponse> lista;
+		Page<TamanhoResponse> paginaResultados;
 		
 		if(nome != null ) {
-			lista = tamanhoService.buscarPorNomeResponse(nome);
+			paginaResultados = tamanhoService.buscarPorNomeResponse(nome, pageable);
 		}else {
-			lista = tamanhoService.listarTodasOsTamanhosResponse();
+			paginaResultados = tamanhoService.listarTodasOsTamanhosResponse(pageable);
 		}
 		
-		return ResponseEntity.ok(lista);
+		return ResponseEntity.ok(paginaResultados);
 	}
 }

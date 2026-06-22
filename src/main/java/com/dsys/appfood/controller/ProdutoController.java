@@ -7,8 +7,9 @@ import com.dsys.appfood.service.ProdutoService;
 import jakarta.validation.Valid;
 
 import java.net.URI;
-import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -83,19 +84,21 @@ public class ProdutoController {
     // 7. OUTRAS BUSCAS
     // =============================================================
 	@GetMapping
-    public ResponseEntity<List<ProdutoResponse>> listar(
+    public ResponseEntity<Page<ProdutoResponse>> listar(
             @RequestParam(required = false) String nome,
-            @RequestParam(required = false) Integer categoriaId) {
+            @RequestParam(required = false) Integer categoriaId,
+            Pageable pageable) {
 
-        List<ProdutoResponse> lista;
+        Page<ProdutoResponse> paginaResultados;
+        
         if (nome != null) {
-            lista = produtoService.buscarProdutoPorNomeResponse(nome);
+            paginaResultados = produtoService.buscarProdutoPorNomeResponse(nome, pageable);
         } else if (categoriaId != null) {
-            lista = produtoService.listarProdutoPorCategoriaResponse(categoriaId);
+            paginaResultados = produtoService.listarProdutoPorCategoriaResponse(categoriaId, pageable);
         } else {
-            lista = produtoService.listarTodosProdutosResponse();
+            paginaResultados = produtoService.listarTodosProdutosResponse(pageable);
         }
-        return ResponseEntity.ok(lista);
+        return ResponseEntity.ok(paginaResultados);
     }
 
 }

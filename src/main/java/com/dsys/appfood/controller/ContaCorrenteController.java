@@ -14,8 +14,9 @@ import jakarta.validation.Valid;
 
 import java.net.URI;
 import java.time.LocalDateTime;
-import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -124,19 +125,20 @@ public class ContaCorrenteController {
 	// 7. EXTRATO
 	// ====================================================================================================
 	@GetMapping
-	public ResponseEntity<List<ContaCorrenteResponse>> listarAtivas() {
-		return ResponseEntity.ok(contaCorrenteService.listarAtivasResponse());
+	public ResponseEntity<Page<ContaCorrenteResponse>> listarAtivas(Pageable pageable) {
+		return ResponseEntity.ok(contaCorrenteService.listarAtivasResponse(pageable));
 	}
 	
 	@GetMapping("/{contaId}/movimentacoes")
-	public ResponseEntity<List<MovimentacaoContaCorrenteResponse>> extrato(
+	public ResponseEntity<Page<MovimentacaoContaCorrenteResponse>> extrato(
 			@PathVariable Integer contaId,
             @RequestParam(required = false) @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm") LocalDateTime inicio,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm") LocalDateTime fim){
+            @RequestParam(required = false) @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm") LocalDateTime fim,
+            Pageable pageable){
 		
-		List<MovimentacaoContaCorrenteResponse> lista = movimentacaoService
-                .extratoPorContaResponse(contaId, inicio, fim);
-		return ResponseEntity.ok(lista);
+		Page<MovimentacaoContaCorrenteResponse> paginaResultado = movimentacaoService
+                .extratoPorContaResponse(contaId, inicio, fim, pageable);
+		return ResponseEntity.ok(paginaResultado);
 	}
 
 }

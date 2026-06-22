@@ -8,8 +8,9 @@ import com.dsys.appfood.service.EntregadorService;
 import jakarta.validation.Valid;
 
 import java.net.URI;
-import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -97,16 +98,16 @@ public class EntregadorController {
 	// 5. BUSCAR ENTREGADOR POR NOME E LISTA 
 	// ====================================================================================================
 	@GetMapping
-	public ResponseEntity<List<EntregadorResponse>> listarPorNome(@RequestParam(required = false) String nome){
+	public ResponseEntity<Page<EntregadorResponse>> listarPorNome(@RequestParam(required = false) String nome, Pageable pageable){
 		
-		List<EntregadorResponse> lista;
+		Page<EntregadorResponse> paginaResultados;
 		
 		if(nome != null) {
-			lista = entregadorService.buscaEntregadorPorNomeResponse(nome);
+			paginaResultados = entregadorService.buscaEntregadorPorNomeResponse(nome, pageable);
 		}else {
-			lista = entregadorService.listarTodosEntregadoresResponse();
+			paginaResultados = entregadorService.listarTodosEntregadoresResponse(pageable);
 		}
-		return ResponseEntity.ok(lista);
+		return ResponseEntity.ok(paginaResultados);
 	}
 
 }

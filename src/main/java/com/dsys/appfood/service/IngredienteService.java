@@ -15,6 +15,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -126,8 +128,8 @@ public class IngredienteService {
 	// BUSCAS
 	// =============================================================
 	@Transactional(readOnly = true)
-	public List<Ingrediente> listarTodosIngredientes() {
-		return ingredienteRepository.findAll();
+	public Page<Ingrediente> listarTodosIngredientes(Pageable pageable) {
+		return ingredienteRepository.findAll(pageable);
 	}
 	
 	@Transactional(readOnly = true)
@@ -137,12 +139,12 @@ public class IngredienteService {
 	}
 	
 	@Transactional(readOnly = true)
-	public List<Ingrediente> buscarIngredientePorNome(String nome){
+	public Page<Ingrediente> buscarIngredientePorNome(String nome, Pageable pageable){
 		if (nome == null || nome.isBlank()) {
 			throw new IllegalArgumentException("O nome deve ser informado");
 		}
 
-		return ingredienteRepository.findByNomeContainingIgnoreCase(nome);
+		return ingredienteRepository.findByNomeContainingIgnoreCase(nome, pageable);
 		
 	}
 
@@ -188,19 +190,14 @@ public class IngredienteService {
 	}
 	
 	@Transactional(readOnly = true)
-	public List<IngredienteResponse> buscarPorNomeResponse(String nome){
+	public Page<IngredienteResponse> buscarPorNomeResponse(String nome, Pageable pageable){
 		
-		return buscarIngredientePorNome(nome)
-				.stream()
-				.map(IngredienteResponse::from)
-				.toList();
+		return buscarIngredientePorNome(nome, pageable).map(IngredienteResponse::from);
 	}
 	
 	@Transactional(readOnly = true)
-	public List<IngredienteResponse> listarTodosIngredientesResponse(){
+	public Page<IngredienteResponse> listarTodosIngredientesResponse(Pageable pageable){
 		
-		return listarTodosIngredientes().stream()
-				.map(IngredienteResponse::from)
-				.toList();
+		return listarTodosIngredientes(pageable).map(IngredienteResponse::from);
 	}
 }

@@ -1,8 +1,9 @@
 package com.dsys.appfood.service;
 
 import com.dsys.appfood.repository.PrecoVariavelRepository;
-import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -122,20 +123,20 @@ public class TamanhoService {
 	
 	// Listar todos
 	@Transactional(readOnly = true)
-	public List<Tamanho> listarTodosTamanhos(){
-		return tamanhoRepository.findAll();
+	public Page<Tamanho> listarTodosTamanhos(Pageable pageable){
+		return tamanhoRepository.findAll(pageable);
 	}
 	
 	// Buscar por nome
 	@Transactional(readOnly = true)
-	public List<Tamanho> buscarTamanhoPorNome(String nome){
+	public Page<Tamanho> buscarTamanhoPorNome(String nome, Pageable pageable){
 		
 		//Validações
 		if(nome == null || nome.isBlank()) {
 			throw new IllegalArgumentException("O tamanho deve ser informado");
 		}
 		
-		return tamanhoRepository.findByNomeContainingIgnoreCase(nome);
+		return tamanhoRepository.findByNomeContainingIgnoreCase(nome, pageable);
 		
 	}
 	
@@ -170,21 +171,16 @@ public class TamanhoService {
 	}
 	
 	@Transactional(readOnly = true)
-	public List<TamanhoResponse> buscarPorNomeResponse(String nome) {
+	public Page<TamanhoResponse> buscarPorNomeResponse(String nome, Pageable pageable) {
 		
-		return buscarTamanhoPorNome(nome)
-				.stream()
-				.map(TamanhoResponse::from)
-				.toList();
+		return buscarTamanhoPorNome(nome, pageable).map(TamanhoResponse::from);
 		
 	}
 	
 	@Transactional(readOnly = true)
-	public List<TamanhoResponse> listarTodasOsTamanhosResponse(){
+	public Page<TamanhoResponse> listarTodasOsTamanhosResponse(Pageable pageable){
 		
-		return listarTodosTamanhos().stream()
-				.map(TamanhoResponse::from)
-				.toList();
+		return listarTodosTamanhos(pageable).map(TamanhoResponse::from);
 	}
 
 }
