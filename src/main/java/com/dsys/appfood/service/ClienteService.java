@@ -7,10 +7,11 @@ import com.dsys.appfood.exception.ClienteJaCadastradoException;
 import com.dsys.appfood.exception.ClienteNaoEncontradoException;
 import com.dsys.appfood.repository.ClienteRepository;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -216,18 +217,18 @@ public class ClienteService {
 	// =============================================================
 
 	@Transactional(readOnly = true)
-	public List<Cliente> listarTodosClientes() {
-		return clienteRepository.findAll();
+	public Page<Cliente> listarTodosClientes(Pageable pageable) {
+		return clienteRepository.findAll(pageable);
 	}
 
 	@Transactional(readOnly = true)
-	public List<Cliente> buscarClientePeloNome(String nome) {
+	public Page<Cliente> buscarClientePeloNome(String nome, Pageable pageable) {
 		// Validações
 		if (nome == null || nome.isBlank()) {
 			throw new IllegalArgumentException("O Nome deve ser informado");
 		}
 
-		return clienteRepository.findByNomeContainingIgnoreCase(nome);
+		return clienteRepository.findByNomeContainingIgnoreCase(nome, pageable);
 	}
 
 	@Transactional(readOnly = true)

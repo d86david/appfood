@@ -10,6 +10,8 @@ import com.dsys.appfood.repository.StatusPedidoHistoricoRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -122,10 +124,11 @@ public class StatusPedidoHistoricoService {
      * Útil para relatórios operacionais.
      */
     @Transactional(readOnly = true)
-    public List<StatusPedidoHistorico> buscarPorStatusEPeriodo(StatusPedido status,
+    public Page<StatusPedidoHistorico> buscarPorStatusEPeriodo(StatusPedido status,
                                                                LocalDateTime inicio,
-                                                               LocalDateTime fim) {
-        return historicoRepository.findByStatusAndDataHoraBetweenOrderByDataHoraDesc(status, inicio, fim);
+                                                               LocalDateTime fim, 
+                                                               Pageable pageable) {
+        return historicoRepository.findByStatusAndDataHoraBetweenOrderByDataHoraDesc(status, inicio, fim, pageable);
     }
 
 }

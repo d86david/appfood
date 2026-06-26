@@ -1,7 +1,10 @@
 package com.dsys.appfood.controller;
 
+import com.dsys.appfood.dto.request.ComposicaoRequest;
 import com.dsys.appfood.dto.request.ProdutoRequest;
+import com.dsys.appfood.dto.response.ComposicaoPadraoResponse;
 import com.dsys.appfood.dto.response.ProdutoResponse;
+import com.dsys.appfood.service.ComposicaoPadraoService;
 import com.dsys.appfood.service.ProdutoService;
 
 import jakarta.validation.Valid;
@@ -26,11 +29,14 @@ import org.springframework.web.util.UriComponentsBuilder;
 @RequestMapping("/api/produtos")
 public class ProdutoController {
 	
+	private final ComposicaoPadraoService composicaoPadraoService;
 	private final ProdutoService produtoService;
+	
 
-	public ProdutoController(ProdutoService produtoService) {
+	public ProdutoController(ProdutoService produtoService, ComposicaoPadraoService composicaoPadraoService) {
 		
 		this.produtoService = produtoService;
+		this.composicaoPadraoService = composicaoPadraoService;
 		
 	}
 	
@@ -49,7 +55,34 @@ public class ProdutoController {
 	}
 	
 	// =============================================================
-    // 2. EDITAR PRODUTO
+    // 2. DEFINIR COMPOSIÇÃO PADRÃO
+    // =============================================================
+	@PostMapping("/{produtoId}/composicao")
+	public ResponseEntity<ComposicaoPadraoResponse> definirComposicao(
+			@PathVariable Integer produtoId,
+			@RequestBody @Valid ComposicaoRequest request) {
+		
+		ComposicaoPadraoResponse response = composicaoPadraoService.definirComposicaoResponse(produtoId, request);
+		
+		return ResponseEntity.ok(response);
+		
+	}
+	
+	// =============================================================
+    // 3. ADICIONAR INGREDIENTE NA COMPOSIÇÃO
+    // =============================================================
+	@PostMapping("/{produtoId}/composicao/ingredientes/{ingredienteId}")
+	public ResponseEntity<ComposicaoPadraoResponse> adicionarIngrediente(
+			@PathVariable Integer produtoId,
+			@PathVariable Integer ingredienteId) {
+		
+		ComposicaoPadraoResponse response = composicaoPadraoService.adicionarIngredienteResponse(produtoId, ingredienteId);
+		return ResponseEntity.ok(response);
+		
+	}
+	
+	// =============================================================
+    // 4. EDITAR PRODUTO
     // =============================================================
 	@PutMapping("/{id}")
 	public ResponseEntity<ProdutoResponse> atualizar(@PathVariable Integer id, @RequestBody @Valid ProdutoRequest request){
@@ -60,7 +93,7 @@ public class ProdutoController {
 	
 	
 	// =============================================================
-    // 3. EXCLUIR PRODUTO
+    // 5. EXCLUIR PRODUTO
     // =============================================================
 	@DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable Integer id) {
@@ -68,9 +101,25 @@ public class ProdutoController {
         return ResponseEntity.noContent().build();
     }
 	
+	// =============================================================
+    // 6. REMOVER INGREDIENTE DA COMPOSIÇÃO
+    // =============================================================
+	@DeleteMapping("/{produtoId}/composicao/ingredientes/{ingredienteId}")
+	public ResponseEntity<Void> removerIngrediente(
+			@PathVariable Integer produtoId,
+			@PathVariable Integer ingredienteId){
+		
+		// O método removerIngredienteResponse retorna o DTO atualizado, mas podemos descartar ou retornar
+		composicaoPadraoService.removerIngredienteResponse(produtoId, ingredienteId);
+		
+		// O ideal para DELETE é retornar 204 No Content
+		return ResponseEntity.noContent().build();
+		
+	}
+	
 	
 	// =============================================================
-    // 6. BUSCAR PRODUTO POR ID
+    // 7. BUSCAR PRODUTO POR ID
     // =============================================================
 	@GetMapping("/{id}")
 	public ResponseEntity<ProdutoResponse> buscarPorId(@PathVariable Integer id){
@@ -81,7 +130,16 @@ public class ProdutoController {
 	}
 	
 	// =============================================================
-    // 7. OUTRAS BUSCAS
+    // 8. BUSCAR COMPOSIÇÃO
+    // =============================================================
+	@GetMapping("/{produtoId}/composicao")
+	public ResponseEntity<ComposicaoPadraoResponse> buscarComposicao(@PathVariable Integer produtoId) {
+	    ComposicaoPadraoResponse response = composicaoPadraoService.buscarReceitaResponse(produtoId);
+	    return ResponseEntity.ok(response);
+	}
+	
+	// =============================================================
+    // 9. OUTRAS BUSCAS DE PRODUTO
     // =============================================================
 	@GetMapping
     public ResponseEntity<Page<ProdutoResponse>> listar(
@@ -100,5 +158,8 @@ public class ProdutoController {
         }
         return ResponseEntity.ok(paginaResultados);
     }
+	
+	
+	
 
 }
