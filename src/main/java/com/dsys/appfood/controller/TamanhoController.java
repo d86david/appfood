@@ -45,7 +45,7 @@ public class TamanhoController {
 		TamanhoResponse response = tamanhoService.cadastrarTamanhoResponse(request);
 		
 		// 2. Retornar o código 201 (Created) e a URL do novo recurso
-		URI uri = uriBulider.path("tamanhos/{id}").buildAndExpand(response.id()).toUri();
+		URI uri = uriBulider.path("/api/tamanhos/{id}").buildAndExpand(response.id()).toUri();
 		
 		// 3. Devolver o DTO de Saída (Response)
 		return ResponseEntity.created(uri).body(response);

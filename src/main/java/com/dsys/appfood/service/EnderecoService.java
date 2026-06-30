@@ -151,6 +151,15 @@ public class EnderecoService {
 		return enderecoRepository.findAll(pageable);
 	}
 	
+	// Buscar Endereço por ID
+	@Transactional(readOnly = true)
+	public Endereco buscarEnderecoPorId(Integer id) {
+		
+		return enderecoRepository.findById(id)
+				.orElseThrow(() -> new EnderecoNaoEncontradoException(id));
+		
+	}
+	
 	// =============================================================
 	//  MÉTODOS DTO (conversão dentro da transação)
 	// =============================================================
@@ -204,6 +213,11 @@ public class EnderecoService {
 		return listarTodosOsEnderecos(pageable)
 				.map(EnderecoResponse::from);
 		
+	}
+	
+	@Transactional(readOnly = true)
+	public EnderecoResponse buscarEnderecoPorIdResponse(Integer id) {
+		return EnderecoResponse.from(buscarEnderecoPorId(id));
 	}
 
 }

@@ -3,6 +3,8 @@ package com.dsys.appfood.service;
 import com.dsys.appfood.domain.enums.TipoDocumento;
 import com.dsys.appfood.domain.model.Cliente;
 import com.dsys.appfood.domain.model.Endereco;
+import com.dsys.appfood.dto.request.ClienteRequest;
+import com.dsys.appfood.dto.response.ClienteResponse;
 import com.dsys.appfood.exception.ClienteJaCadastradoException;
 import com.dsys.appfood.exception.ClienteNaoEncontradoException;
 import com.dsys.appfood.repository.ClienteRepository;
@@ -27,11 +29,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ClienteService {
 
+	private final EnderecoService enderecoService;
 	private final ClienteRepository clienteRepository;
 
-	public ClienteService(ClienteRepository clienteRepository) {
+	public ClienteService(ClienteRepository clienteRepository, EnderecoService enderecoService) {
 
 		this.clienteRepository = clienteRepository;
+		this.enderecoService = enderecoService;
 	}
 
 	// =============================================================
@@ -241,5 +245,85 @@ public class ClienteService {
 	public Cliente buscarClientePorId(Integer id) {
 		return clienteRepository.findById(id).orElseThrow(() -> new ClienteNaoEncontradoException(id));
 	}
+	
+	// =============================================================
+	//  MÉTODOS DTO (conversão dentro da transação)
+	// =============================================================
+	@Transactional
+	public ClienteResponse cadastrarClienteResponse (ClienteRequest request) {
+		
+		// 1. Buscar o Endereço pelo ID
+		Endereco endereco = enderecoService.buscarEnderecoPorId(request.enderecoId());
+		
+		// 2. Chamar o método de cadastro completo existente
+		Cliente cliente = cadastrarClienteCompleto(
+				request.nome(), 
+				request.telefonePrincipal(), 
+				request.telefoneSegundario(),
+				request.tipoDocumento(), 
+				request.documento(), 
+				request.email(), 
+				request.observacaoCliente(), endereco);
+		
+		// 3. Converter para DTO e retornar
+		return ClienteResponse.from(cliente);
+	}
+	
+	@Transactional
+	public ClienteResponse cadastrarClienteRapidoResponse (ClienteRequest request) {
+		
+		Endereco endereco = enderecoService.buscarEnderecoPorId(request.enderecoId());
+		
+		Cliente cliente = cadastrarClienteRapido(
+				request.nome(), 
+				request.telefonePrincipal(), 
+				request.observacaoCliente(), 
+				endereco);
+		
+		return ClienteResponse.from(cliente);
+		
+	}
+	
+	@Transactional
+	public ClienteResponse editarClienteResponse (Integer id, ClienteRequest request) {
+		
+		// 1. Buscar o Endereco
+		Endereco endereco = enderecoService.buscarEnderecoPorId(request.enderecoId());
+		
+		// 2. Chamar o método de edição existente
+		Cliente cliente = editarCliente(
+				id, 
+				request.nome(), 
+				request.telefonePrincipal(), 
+				request.telefoneSegundario(), 
+				request.tipoDocumento(), 
+				request.documento(), 
+				request.email(), 
+				request.observacaoCliente(), 
+				endereco);
+		
+		return ClienteResponse.from(cliente);
+		
+	}
+	
+	 @Transactional(readOnly = true)
+	    public ClienteResponse buscarClientePorIdResponse(Integer id) {
+	        return ClienteResponse.from(buscarClientePorId(id));
+	    }
+
+	    @Transactional(readOnly = true)
+	    public Page<ClienteResponse> listarTodosClientesResponse(Pageable pageable) {
+	        return listarTodosClientes(pageable).map(ClienteResponse::from);
+	    }
+
+	    @Transactional(readOnly = true)
+	    public Page<ClienteResponse> buscarClientePeloNomeResponse(String nome, Pageable pageable) {
+	        return buscarClientePeloNome(nome, pageable).map(ClienteResponse::from);
+	    }
+
+	    @Transactional(readOnly = true)
+	    public ClienteResponse buscarClientePeloTelefoneResponse(String telefone) {
+	        return ClienteResponse.from(buscarClientePeloTelefone(telefone));
+	    }
 
 }

@@ -44,7 +44,7 @@ public class EnderecoController {
 		EnderecoResponse response = enderecoService.cadastrarEnderecoResponse(request);
 		// 1. Chamar o Service para executar as regras de negócio e salvar
 
-		URI uri = uriBuilder.path("enderecos/{id}").buildAndExpand(response.id()).toUri();
+		URI uri = uriBuilder.path("/api/enderecos/{id}").buildAndExpand(response.id()).toUri();
 		// 2. Retornar o código 201 (Created) e a URL do novo recurso
 
 		return ResponseEntity.created(uri).body(response);

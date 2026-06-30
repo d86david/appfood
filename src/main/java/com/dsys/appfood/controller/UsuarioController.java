@@ -49,7 +49,7 @@ public class UsuarioController {
 		Usuario usuarioSalvo = usuarioService.cadastrar(request.nome(), request.login(), request.senha(), request.telefone(), request.tipo());
 		
 		// 2. Retornar o código 201 (Created) e a URL do novo recurso
-		URI uri = uriBuilder.path("/usuarios/{id}").buildAndExpand(usuarioSalvo.getId()).toUri();
+		URI uri = uriBuilder.path("/api/usuarios/{id}").buildAndExpand(usuarioSalvo.getId()).toUri();
 		
 		// 3. Devolver o DTO de Saída (Response)
 		return ResponseEntity.created(uri).body(UsuarioResponse.from(usuarioSalvo));

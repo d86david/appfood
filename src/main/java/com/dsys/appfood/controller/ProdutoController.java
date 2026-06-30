@@ -48,7 +48,7 @@ public class ProdutoController {
 		
 		ProdutoResponse response = produtoService.cadastrarProdutoResponse(request);
 		
-		URI uri = uriBuilder.path("/produtos/{id}").buildAndExpand(response.id()).toUri();
+		URI uri = uriBuilder.path("/api/produtos/{id}").buildAndExpand(response.id()).toUri();
 		
 		return ResponseEntity.created(uri).body(response);
 		

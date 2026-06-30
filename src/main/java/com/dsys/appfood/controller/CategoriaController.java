@@ -46,7 +46,7 @@ public class CategoriaController {
 		CategoriaResponse response = categoriaService.cadastrarCategoriaResponse(request);
 
 		// 2. Retornar o código 201 (Created) e a URL do novo recurso
-		URI uri = uriBuilder.path("/categorias/{id}").buildAndExpand(response.id()).toUri();
+		URI uri = uriBuilder.path("/api/categorias/{id}").buildAndExpand(response.id()).toUri();
 
 		// 3. Devolver o DTO de Saída (Response)
 		return ResponseEntity.created(uri).body(response);

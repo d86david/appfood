@@ -48,7 +48,7 @@ public class IngredienteController {
 		IngredienteResponse response = ingredienteService.cadastrarIngredienteResponse(request);
 		
 		// 2. Retornar o código 201 (Created) e a URL do novo recurso
-		URI uri = uriBuilder.path("ingredientes/{id}").buildAndExpand(response.id()).toUri();
+		URI uri = uriBuilder.path("/api/ingredientes/{id}").buildAndExpand(response.id()).toUri();
 	
 		// 3. Devolver o DTO de Saída (Response)
 		return ResponseEntity.created(uri).body(response);

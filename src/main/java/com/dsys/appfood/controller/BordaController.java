@@ -45,7 +45,7 @@ public class BordaController {
 		BordaResponse response = bordaService.cadastrarBordaResponse(request);
 		
 		// 2. Retornar o código 201 (Created) e a URL do novo recurso
-		URI uri = uriBuilder.path("bordas/{id}").buildAndExpand(response.id()).toUri();
+		URI uri = uriBuilder.path("/api/bordas/{id}").buildAndExpand(response.id()).toUri();
 
 		// 3. Devolver o DTO de Saída (Response)
 		return ResponseEntity.created(uri).body(response);
