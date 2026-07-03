@@ -4,6 +4,8 @@ package com.dsys.appfood.repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -21,10 +23,7 @@ public interface PedidoRepository extends JpaRepository<Pedido, Integer>{
 	 * @return
 	 */
 	List<Pedido> findByClienteId(Integer clienteId);
-	
-	//--- PESQUISAR POR STATUS DE PEDIDO ---
-	List<Pedido> findByStatus(StatusPedido status);
-	
+		
 	// --- PESQUISAR PEDIDOS POR TIPO NUMERO DA MESA E STATUS
 	List<Pedido> findByTipoAndNumeroMesaAndStatusNotIn(TipoPedido tipo, Integer numeroMesa, List<StatusPedido> status);
 	
@@ -36,4 +35,13 @@ public interface PedidoRepository extends JpaRepository<Pedido, Integer>{
 	
 	//--- PESQUISAR POR STATUS DE PEDIDO ORDENADO POR HORA DA ABERTURA ---
 	List<Pedido> findByStatusInOrderByDtHoraAberturaAsc(List<StatusPedido> statusPendentes);
+	
+	//--- PESQUISAR PEDIDOS POR STATUS COM PAGINAÇÃO ---
+	Page<Pedido> findByStatus(StatusPedido status, Pageable pageable );
+	
+	//--- PESQUISAR PEDIDOS POR TIPO COM PAGINAÇÃO ---
+	Page<Pedido> findByTipo (TipoPedido tipo, Pageable pageable);
+	
+	//--- PESQUISAR PEDIDOS POR SATUS E TIPO COM PAGINAÇÃO
+	Page<Pedido> finByStatusAndTipo(StatusPedido status, TipoPedido tipo, Pageable pageable);
 }

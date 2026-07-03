@@ -3,6 +3,7 @@ package com.dsys.appfood.service;
 import com.dsys.appfood.domain.enums.StatusPedido;
 import com.dsys.appfood.domain.model.Pedido;
 import com.dsys.appfood.domain.model.StatusPedidoHistorico;
+import com.dsys.appfood.dto.response.StatusPedidoHistoricoResponse;
 import com.dsys.appfood.exception.PedidoNaoEncontradoException;
 import com.dsys.appfood.repository.PedidoRepository;
 import com.dsys.appfood.repository.StatusPedidoHistoricoRepository;
@@ -30,13 +31,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class StatusPedidoHistoricoService {
 	
+	private final PedidoService pedidoService;
 	private final PedidoRepository pedidoRepository;
 	private final StatusPedidoHistoricoRepository historicoRepository;
 
-	public StatusPedidoHistoricoService(StatusPedidoHistoricoRepository historicoRepository, PedidoRepository pedidoRepository) {
+	public StatusPedidoHistoricoService(StatusPedidoHistoricoRepository historicoRepository, PedidoRepository pedidoRepository, PedidoService pedidoService) {
 		
 		this.historicoRepository = historicoRepository;
 		this.pedidoRepository = pedidoRepository;
+		this.pedidoService = pedidoService;
 	}
 	
 	/**
@@ -129,6 +132,21 @@ public class StatusPedidoHistoricoService {
                                                                LocalDateTime fim, 
                                                                Pageable pageable) {
         return historicoRepository.findByStatusAndDataHoraBetweenOrderByDataHoraDesc(status, inicio, fim, pageable);
+    }
+    
+	// =============================================================
+	//  MÉTODOS DTO (conversão dentro da transação)
+	// =============================================================
+    
+    @Transactional(readOnly = true)
+    public List<StatusPedidoHistoricoResponse> historicoDoPedidoResponse(Integer pedidoId){
+    	
+    	return pedidoService.buscarPorId(pedidoId)
+    			.getHistoricoStatus()
+    			.stream()
+    			.map(StatusPedidoHistoricoResponse :: from)
+    			.toList();
+    	
     }
 
 }

@@ -24,8 +24,8 @@ public record PedidoResumoResponse (
     			pedido.getTipo(),
     			pedido.getStatusAtual(),
     			pedido.getDtHoraAbertura(),
-    			pedido.getCliente().getNome(),
-    			pedido.getValorLiquido()
+    			pedido.getCliente() != null ? pedido.getCliente().getNome() : pedido.getNomeBalcao(),
+    			pedido.calcularTotal()
     			
     			);
     }

@@ -2,6 +2,7 @@ package com.dsys.appfood.controller;
 
 import com.dsys.appfood.dto.request.ComposicaoRequest;
 import com.dsys.appfood.dto.request.ProdutoRequest;
+import com.dsys.appfood.dto.request.ProdutoSimplesRequest;
 import com.dsys.appfood.dto.response.ComposicaoPadraoResponse;
 import com.dsys.appfood.dto.response.ProdutoResponse;
 import com.dsys.appfood.service.ComposicaoPadraoService;
@@ -47,6 +48,20 @@ public class ProdutoController {
 	public ResponseEntity<ProdutoResponse> cadastrar(@RequestBody @Valid ProdutoRequest request, UriComponentsBuilder uriBuilder){
 		
 		ProdutoResponse response = produtoService.cadastrarProdutoResponse(request);
+		
+		URI uri = uriBuilder.path("/api/produtos/{id}").buildAndExpand(response.id()).toUri();
+		
+		return ResponseEntity.created(uri).body(response);
+		
+	}
+	
+	// =============================================================
+    // 1. CADASTRAR NOVO PRODUTO SIMPLES - TAMANHO ÚNICO
+    // =============================================================
+	@PostMapping("/simples")
+	public ResponseEntity<ProdutoResponse> cadastrarSimples(@RequestBody @Valid ProdutoSimplesRequest request, UriComponentsBuilder uriBuilder){
+		
+		ProdutoResponse response = produtoService.cadastrarProdutoSimplesResponse(request);
 		
 		URI uri = uriBuilder.path("/api/produtos/{id}").buildAndExpand(response.id()).toUri();
 		

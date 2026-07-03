@@ -14,7 +14,9 @@ import com.dsys.appfood.domain.model.Produto;
 import com.dsys.appfood.domain.model.Tamanho;
 import com.dsys.appfood.dto.request.PrecoTamanhoRequest;
 import com.dsys.appfood.dto.request.ProdutoRequest;
+import com.dsys.appfood.dto.request.ProdutoSimplesRequest;
 import com.dsys.appfood.dto.response.ProdutoResponse;
+import com.dsys.appfood.exception.NegocioException;
 import com.dsys.appfood.exception.ProdutoNaoEncontradoException;
 import com.dsys.appfood.repository.ProdutoRepository;
 
@@ -98,6 +100,49 @@ public class ProdutoService {
 		
 			// RETORNAR
 			return produtoRepository.save(produto);
+		}
+		
+		// =============================================================
+		// CADASTRO SIMPLES - PARA PRODUTOS SEM TAMANHO
+		// =============================================================
+		
+		/**
+		 * Cadastra um produto que possui apenas um tamanho fixo (ÚNICO). 
+		 * Exemplos: Coca-Cola em lata, Brownie, Porção de Batata individual 
+		 * 
+		 * @param nome				Nome do produto
+		 * @param categoriaId 		ID da categoria (ex: Bebidas, Sobremesa)
+		 * @param imprimeCozinha	Se deve imprimir na cozinha
+		 * @param valor				Preço fixo do produto
+		 * @return Produto cadastrado com o tamanho "ÚNICO" associado
+		 */
+		@Transactional
+		public Produto cadastrarProdutoSimples(String nome, Boolean imprimeCozinha, Integer categoriaId, BigDecimal valor) {
+			
+			// 1. Busca o tamanho "ÚNICO" pelo nome
+			Tamanho tamanhoUnico = tamanhoService.buscarTamanhoUnico("ÚNICO");
+			if(tamanhoUnico == null) {
+				 throw new NegocioException("Tamanho 'ÚNICO' não encontrado. Execute a inicialização do sistema.");
+			}
+			
+			// 2. Busca categoria
+			Categoria categoria = categoriaService.buscarCategoriaPorId(categoriaId);
+			
+			// 3. VALIDAÇÃO: A categoria não pode ser personalizável (ex: Pizzas)
+			if(categoria.isPersonalizavel()) {
+				throw new NegocioException("Produtos personalizáveis (ex: Pizzas) não podem ser cadastrados com tamanho único. Use o método padrão.");
+			}
+			
+			// 4. Criar o produto
+			Produto produto = new Produto(nome.trim(), categoria, imprimeCozinha);
+			
+			// 5. Cria o PrecoVariavel com o tamanho "ÚNICO" e o valor informado
+			PrecoVariavel preco = new PrecoVariavel(produto, tamanhoUnico, valor);
+			produto.adicionarPreco(preco);
+			
+			// 6. Salva e retorna
+			return produtoRepository.save(produto);
+			
 		}
 		
 
@@ -256,6 +301,19 @@ public class ProdutoService {
 		        request.precos()
 		    );
 		    return ProdutoResponse.from(produto);
+		}
+		
+		@Transactional
+		public ProdutoResponse cadastrarProdutoSimplesResponse(ProdutoSimplesRequest request) {
+			
+			Produto produto = cadastrarProdutoSimples(
+					request.nome(), 
+					request.imprimeCozinha(), 
+					request.categoriaId(), 
+					request.valor()
+					);
+			return ProdutoResponse.from(produto);
+			
 		}
 
 		@Transactional

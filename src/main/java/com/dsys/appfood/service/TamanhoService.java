@@ -15,6 +15,8 @@ import com.dsys.appfood.exception.TamanhoJaCadastradoException;
 import com.dsys.appfood.exception.TamanhoNaoEncontradoException;
 import com.dsys.appfood.repository.TamanhoRepository;
 
+import jakarta.annotation.PostConstruct;
+
 /**
  * Classe responsavel por gerenciar os Tamanhos dos produtos .
  * 
@@ -34,7 +36,38 @@ public class TamanhoService {
 		this.tamanhoRepository = tamanhoRepository;
 		this.precoVariavelRepository = precoVariavelRepository;
 	}
-
+	
+	// ======================================================================
+    // MÉTODO DE INICIALIZAÇÃO - Executado UMA VEZ na inicialização do Spring
+    // ======================================================================
+	/**
+	 * Esse método garante que o tamanho "ÚNICO" (ou PADRÃO) exista no banco de dados
+	 * para ser usado por produtos que não possuem variação de tamanho
+	 * 
+	 * O @PostConstruct é executado automaticamente pelo Spring após a injeção
+	 * de dependencias e ANTES da aplicação começar receber requisições
+	 * 
+	 * CONCEITO: Inicialização de dados mestres (Master Data).
+	 * Útil para cadastros fixos que o sistema sempre vai precisar
+	 */
+	@PostConstruct
+	@Transactional
+	public void initTamanhoUnico() {
+		
+		//Verifica se já existe um tamanho com o nome "ÚNICO" (case insensitive)
+		boolean existe = tamanhoRepository.findByNomeIgnoreCase("ÚNICO").isPresent();
+		
+		if (!existe) {
+			//Cria e salva o tamanho "ÚNICO"
+			Tamanho unico = new Tamanho("ÚNICO");
+			tamanhoRepository.save(unico);
+			System.out.println(">>> Tamanho 'ÚNICO' criado com sucesso no banco de dados");
+		}else {
+			System.out.println(">>> Tamanho 'ÚNICO' ja existe.");
+		}
+		
+	}
+	
 	// =============================================================
 	// CADASTRO
 	// =============================================================
@@ -139,6 +172,19 @@ public class TamanhoService {
 		return tamanhoRepository.findByNomeContainingIgnoreCase(nome, pageable);
 		
 	}
+	
+	// Buscar Tamanho "ÚNICO"
+		@Transactional(readOnly = true)
+		public Tamanho buscarTamanhoUnico(String nome){
+			
+			//Validações
+			if(nome == null || nome.isBlank()) {
+				throw new IllegalArgumentException("O tamanho deve ser informado");
+			}
+			
+			return tamanhoRepository.findByNomeIgnoreCase(nome).orElseThrow(() -> new TamanhoNaoEncontradoException(null));
+			
+		}
 	
 	
 	// =============================================================
