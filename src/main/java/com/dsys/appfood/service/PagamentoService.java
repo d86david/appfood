@@ -9,6 +9,9 @@ import com.dsys.appfood.domain.model.MovimentacaoCaixa;
 import com.dsys.appfood.domain.model.Pagamento;
 import com.dsys.appfood.domain.model.Pedido;
 import com.dsys.appfood.domain.model.Usuario;
+import com.dsys.appfood.dto.request.PagamentoDinheiroRequest;
+import com.dsys.appfood.dto.request.PagamentoMultiploRequest;
+import com.dsys.appfood.dto.request.PagamentoRequest;
 import com.dsys.appfood.dto.response.PagamentoComTrocoResponse;
 import com.dsys.appfood.dto.response.PagamentoResponse;
 import com.dsys.appfood.exception.NegocioException;
@@ -19,7 +22,6 @@ import com.dsys.appfood.repository.PagamentoRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -162,17 +164,18 @@ public class PagamentoService {
 	 * @param operadorId - Quem está operando
 	 */
 	@Transactional
-	public List<Pagamento> registrarPagamentoMultiplo(Integer pedidoId, Integer caixaId, List<Pagamento> pagamentos,
+	public List<Pagamento> registrarPagamentoMultiplo(Integer pedidoId, Integer caixaId, List<PagamentoRequest> pagamentosRequest,
 			Integer operadorId) {
 
 		// Validação: Precisa ter pelo menos um pagamento
-		if (pagamentos == null || pagamentos.isEmpty()) {
+		if (pagamentosRequest == null || pagamentosRequest.isEmpty()) {
 			throw new IllegalArgumentException("É necessário informar pelo menos um pagamento");
 		}
 
-		return pagamentos.stream()
-				.map(p -> registrarPagamento(pedidoId, caixaId, p.getFormaPagamento(), p.getValor(), operadorId))
-				.collect(Collectors.toList());
+		// Mapeia os DTOs diretamente para a execução do registro
+		return pagamentosRequest.stream()
+				.map(p -> registrarPagamento(pedidoId, caixaId, p.formaPagamento(), p.valor(), operadorId))
+				.toList();
 	}
 
 	// ============================================================
@@ -247,7 +250,7 @@ public class PagamentoService {
 				operadorId);
 
 		// Monta reposta e retorna
-		return new PagamentoComTrocoResponse(PagamentoResponse.from(pagamento), troco, valorRecebido);
+		return PagamentoComTrocoResponse.of(pagamento, troco, valorRecebido);
 	}
 
 	// ============================================================
@@ -334,7 +337,74 @@ public class PagamentoService {
 	/**
 	 * BUSCAR PAGAMENTO POR ID
 	 */
+	@Transactional(readOnly = true)
 	public Pagamento buscarPorId(Integer id) {
 		return pagamentoRepository.findById(id).orElseThrow(() -> new PagamentoNaoEncontradoException(id));
 	}
+	
+	
+	// =============================================================
+	//  MÉTODOS DTO (conversão dentro da transação)
+	// =============================================================
+	
+	@Transactional
+	public PagamentoResponse registrarPagamentoResponse (
+			Integer pedidoId, 
+			Integer caixaId, 
+			Integer operadorId, 
+			PagamentoRequest request) {
+		
+		Pagamento pagamento =registrarPagamento(
+				pedidoId, 
+				caixaId, 
+				request.formaPagamento(), 
+				request.valor(), 
+				operadorId);
+		
+		return PagamentoResponse.from(pagamento);
+	}
+	
+	@Transactional
+	public List<PagamentoResponse> registrarPagamentoMultiploResponse (Integer pedidoId, Integer caixaId, 
+			PagamentoMultiploRequest request){
+		
+		 // Chama o serviço passando a lista de DTO e o operadorId do request
+		List<Pagamento> pagamentos = registrarPagamentoMultiplo(
+				pedidoId, 
+				caixaId, 
+				request.pagamentos(),
+				request.operadorId()
+				);
+		
+		//Converte o resultado final para o DTO de resposta
+		return pagamentos.stream()
+				.map(PagamentoResponse::from)
+				.toList();
+	}
+	
+	@Transactional
+	public PagamentoComTrocoResponse processarPagamentoDinheiroResponse(Integer pedidoId, Integer caixaId, 
+			PagamentoDinheiroRequest request) {
+		
+		PagamentoComTrocoResponse pagamento = processarPagamentoDinheiro(
+				pedidoId, 
+				caixaId, 
+				request.valorRecebido(), 
+				request.operadorId()
+				);
+		
+		return pagamento;
+		
+	}
+	
+	@Transactional(readOnly = true)
+	public List<PagamentoResponse> listarPagamentosDoPedidoResponse(Integer pedidoId){
+		
+		List<Pagamento> pagamentos = listarPagamentosDoPedido(pedidoId);
+		
+		return pagamentos.stream()
+				.map(PagamentoResponse :: from)
+				.toList();
+	}
+	
 }

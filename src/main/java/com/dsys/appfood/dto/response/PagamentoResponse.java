@@ -13,14 +13,16 @@ public record PagamentoResponse(
 		Integer id,
 		FormaPagamento formaPagto,
 		BigDecimal valor,
-		String operador
+		String operador,
+		String caixaStatus // "ABERTO" ou "FECHADO" (só para informação)
 		) {
 	public static PagamentoResponse from(Pagamento p) {
 		return new PagamentoResponse(
 				p.getId(),
 				p.getFormaPagamento(),
 				p.getValor(),
-				p.getOperador().getNome()
+				p.getOperador() != null ?  p.getOperador().getNome() : null,
+				p.getCaixa() != null ? p.getCaixa().getStatus().toString() : null
 				);
 	}
 }

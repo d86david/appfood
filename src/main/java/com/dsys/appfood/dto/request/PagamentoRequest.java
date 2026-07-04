@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 /**
- * DTO para receber múltiplo pagamentos de uma vez
+ * DTO para receber um pagamento de uma única forma.
  * 
  * - Objetivo simples, sem lógica de negócio - Apenas transporta dados entre
  * camadas - Evita expor entidades diretamente
