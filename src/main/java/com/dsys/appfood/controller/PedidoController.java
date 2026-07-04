@@ -62,6 +62,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  *  13. CONSULTAR PEDIDO POR ID 		-> GET	  /api/{pedidoId}
  *  14. LISTAR PEDIDOS COM FILTROS		-> GET    /api/pedidos
  *  15. CONSULTAR HISTÓRICO				-> GET    /api/{pedidoId}/historico
+ *  16. LISTAR PEDIDOS EM ABERTO        -> GET    /api/pedidos/abertos
  *  
  *  
  *  CONCEITOS RESTful APLICADOS
@@ -507,6 +508,39 @@ public class PedidoController {
     	List<StatusPedidoHistoricoResponse> historico = historicoService.historicoDoPedidoResponse(pedidoId);
     	
     	return ResponseEntity.ok(historico);
+    	
+    }
+    
+    
+    // =============================================================
+    // 16. LISTAR PEDIDOS EM ABERTO (GRADE DE PEDIDOS)
+    // =============================================================
+    /**
+     * Lista todos os pedidos em aberto (não finalizados e não cancelados).
+     * 
+     * PEDIDOS EM ABERTO INCLUEM:
+     * - PEDIDO_INICIADO
+     * - PENDENTE
+     * - EM_PREPARACAO
+     * - PRONTO
+     * - SAIU_PARA_ENTREGA
+     * 
+     * EXCLUI:
+     * - FINALIZADO
+     * - CANCELADO
+     * 
+     * CONCEITO: Esta listagem é a "grade de pedidos" que o atendente vê.
+     * Útil para monitorar o que está em andamento na cozinha e no balcão.
+     * Ordenação padrão: mais recentes primeiro.
+     */
+    @GetMapping("/abertos")
+    public ResponseEntity<Page<PedidoResumoResponse>> listarPedidosAbertos(
+    		@PageableDefault(size = 20  ) Pageable pageable // sem o argumento sort para ser ecolhido no front a ordenação, 
+    		){                                              // o front deverá enviar na URL ?sort=dtHoraAbertura,desc
+    	
+    	Page<PedidoResumoResponse> paginaResultados = pedidoService.listarPedidosAbertosResponse(pageable);
+    	
+    	return ResponseEntity.ok(paginaResultados);
     	
     }
 }

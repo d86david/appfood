@@ -786,5 +786,23 @@ public class PedidoService {
 		// Converte cada Pedido para PedidoResumoResponse usando o método from
 		return paginaPedidos.map(PedidoResumoResponse::from);
 	}
+	
+	@Transactional(readOnly = true)
+	public Page<PedidoResumoResponse> listarPedidosAbertosResponse (Pageable pageable){
+		
+		//Define os status que ENCERRAM o pedido (não são abertos )
+		List<StatusPedido> statusFechado = List.of(
+				StatusPedido.FINALIZADO,
+				StatusPedido.CANCELADO
+				);
+		
+		// Busca todos os pedido que NÃO estão nesses status 
+		Page<Pedido> paginaPedidos = pedidoRepository.findByStatusNotIn(statusFechado, pageable);
+		
+		// Converte para DTO de resumo
+		return paginaPedidos.map(PedidoResumoResponse::from);
+		
+		
+	}
 
 }

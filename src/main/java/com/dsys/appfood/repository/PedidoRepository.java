@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.dsys.appfood.domain.enums.StatusPedido;
@@ -19,8 +20,6 @@ public interface PedidoRepository extends JpaRepository<Pedido, Integer>{
 	/**
 	 * Metodo de pesquisa por Id de cliente
 	 * O Spring gera o SQL "SELECT * FROM pedido WHERE cliente_id = ?"
-	 * @param clienteId
-	 * @return
 	 */
 	List<Pedido> findByClienteId(Integer clienteId);
 		
@@ -44,4 +43,15 @@ public interface PedidoRepository extends JpaRepository<Pedido, Integer>{
 	
 	//--- PESQUISAR PEDIDOS POR SATUS E TIPO COM PAGINAÇÃO
 	Page<Pedido> finByStatusAndTipo(StatusPedido status, TipoPedido tipo, Pageable pageable);
+	
+	//--- PESQUISAR PEDIDOS EM ABERTO
+	/**
+     * Busca pedidos que NÃO estão FINALIZADOS nem CANCELADOS.
+     * Ou seja: PEDIDO_INICIADO, PENDENTE, EM_PREPARACAO, PRONTO, SAIU_PARA_ENTREGA
+     * 
+     * @param statusFechados Lista de status que encerram o pedido (FINALIZADO, CANCELADO)
+     * @return Página de pedidos em aberto, ordenados por data de abertura (mais recente primeiro)
+     */
+	Page<Pedido> findByStatusNotIn(@Param("statusFechados") List<StatusPedido> statusFechado, Pageable pageable);
+	
 }
