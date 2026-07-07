@@ -9,5 +9,8 @@ public record CategoriaRequest(
 		String nome,
 		
 		@NotNull(message = "Defina se a categoria é personalizável (ex: Pizzas)")
-		boolean personalizavel	
+		boolean personalizavel,	
+		
+		String impressora
+		
 		){}

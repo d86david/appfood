@@ -27,6 +27,7 @@ import com.dsys.appfood.dto.request.StatusPedidoRequest;
 import com.dsys.appfood.dto.request.VincularEntregadorRequest;
 import com.dsys.appfood.dto.response.PedidoResponse;
 import com.dsys.appfood.dto.response.PedidoResumoResponse;
+import com.dsys.appfood.event.PedidoStatusChangeEvent;
 import com.dsys.appfood.exception.NegocioException;
 import com.dsys.appfood.exception.PedidoNaoEncontradoException;
 import com.dsys.appfood.repository.ItemPedidoRepository;
@@ -35,6 +36,7 @@ import com.dsys.appfood.repository.PedidoRepository;
 import java.math.BigDecimal;
 import java.util.List;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -62,11 +64,13 @@ public class PedidoService {
 	private final ProdutoService produtoService;
 	private final UsuarioService usuarioService;
 	private final ClienteService clienteService;
+	private final ApplicationEventPublisher eventPublisher;
 
 	public PedidoService(ItemPedidoRepository itemPedidoRepository, ClienteService clienteService,
 			UsuarioService usuarioService, ProdutoService produtoService, TamanhoService tamanhoService,
 			PedidoRepository pedidoRepository, IngredienteService ingredienteService, BordaService bordaService,
-			MesaService mesaService, EntregadorService entregadorService, ComposicaoPadraoService composicaoService) {
+			MesaService mesaService, EntregadorService entregadorService, ComposicaoPadraoService composicaoService, 
+			ApplicationEventPublisher eventPublisher) {
 
 		this.clienteService = clienteService;
 		this.usuarioService = usuarioService;
@@ -78,6 +82,8 @@ public class PedidoService {
 		this.mesaService = mesaService;
 		this.entregadorService = entregadorService;
 		this.composicaoService = composicaoService;
+		this.eventPublisher = eventPublisher;
+		
 
 	}
 
@@ -482,6 +488,49 @@ public class PedidoService {
 		Pedido pedido = buscarPorId(pedidoId);
 		Usuario operador = usuarioService.buscaPorId(operadorId);
 
+	    // VALIDAÇÃO: Pedido já está finalizado ou cancelado?
+	    if (pedido.getStatus() == StatusPedido.FINALIZADO) {
+	        throw new NegocioException("O pedido #" + pedidoId + " já está finalizado.");
+	    }
+	    if (pedido.getStatus() == StatusPedido.CANCELADO) {
+	        throw new NegocioException("O pedido #" + pedidoId + " está cancelado e não pode ser finalizado.");
+	    }
+
+	    // VALIDAÇÃO: O pedido deve estar pago (regra de ouro!)
+	    if (!pedido.isPago()) {
+	        BigDecimal valorRestante = pedido.getValorRestante();
+	        throw new NegocioException(
+	            String.format("O pedido #%d não pode ser finalizado. Valor restante a pagar: R$ %.2f",
+	                pedidoId, valorRestante)
+	        );
+	    }
+
+	    // VALIDAÇÃO: O status deve ser PRONTO ou SAIU_PARA_ENTREGA
+	    StatusPedido statusAtual = pedido.getStatus();
+	    if (statusAtual != StatusPedido.PRONTO && statusAtual != StatusPedido.SAIU_PARA_ENTREGA) {
+	        throw new NegocioException(
+	            String.format("Pedido #%d está com status '%s'. Para finalizar, o pedido deve estar PRONTO ou SAIU_PARA_ENTREGA.",
+	                pedidoId, statusAtual)
+	        );
+	    }
+
+	    // VALIDAÇÃO: Se for ENTREGA, deve ter entregador vinculado
+	    if (pedido.getTipo() == TipoPedido.ENTREGA) {
+	        if (pedido.getEntregador() == null) {
+	            throw new NegocioException(
+	                "Pedido de ENTREGA #" + pedidoId + " não possui entregador vinculado. " +
+	                "Vincule um entregador antes de finalizar."
+	            );
+	        }
+	    }
+
+	    // VALIDAÇÃO: Se for MESA, deve ter número da mesa
+	    if (pedido.getTipo() == TipoPedido.MESA && pedido.getNumeroMesa() == null) {
+	        throw new NegocioException(
+	            "Pedido de MESA #" + pedidoId + " não possui número da mesa informado."
+	        );
+	    }
+
 		// FINALIZAR PEDIDOS, AS VALIDAÇÕES SÃO FEITAS NA MODEL
 		pedido.finalizarPedido(operador);
 
@@ -517,6 +566,16 @@ public class PedidoService {
 
 		Pedido pedido = buscarPorId(pedidoId);
 		Entregador entregador = entregadorService.buscarEntregadorPorId(entregadorId);
+		
+	    // VALIDAÇÃO: Apenas pedidos do tipo ENTREGA podem ter entregador
+	    if (pedido.getTipo() != TipoPedido.ENTREGA) {
+	        throw new NegocioException("Apenas pedidos do tipo ENTREGA podem ter entregador vinculado.");
+	    }
+
+	    // VALIDAÇÃO 3: Entregador deve estar ativo
+	    if (!entregador.isAtivo()) {
+	        throw new NegocioException("O entregador " + entregador.getNome() + " está inativo.");
+	    }
 
 		// Vincula o entregador as validações são feitas na model
 		pedido.vincularEntregador(entregador);
@@ -593,9 +652,46 @@ public class PedidoService {
 			throw new NegocioException("Não é possível alterar o status de um pedido já encerrado.");
 		}
 		
+		StatusPedido statusAnterior = pedido.getStatus();
+		
+		
+		// VALIDAÇÃO: Pedidos encerrados não podem mudar de status
+		if(statusAnterior == StatusPedido.CANCELADO || statusAnterior == StatusPedido.FINALIZADO) {
+			throw new NegocioException("Não é possivel alterar um pedido já encerrado");
+		}
+		
+		// VALIDAÇÃO: Ninguém pode mudar para finalizado via este método
+		if(novoStatus == StatusPedido.FINALIZADO) {
+			throw new NegocioException("Para finalizar um pedido, utilize o endpoint específico POST /pedidos/{id}/finalizar. " +
+		            					"Este método valida pagamento, entregador e outras regras de negócio.");
+		}
+		
+	    // VALIDAÇÃO: Para mudar para SAIU_PARA_ENTREGA, precisa ter entregador
+	    if (novoStatus == StatusPedido.SAIU_PARA_ENTREGA) {
+	        if (pedido.getEntregador() == null) {
+	            throw new NegocioException(
+	                "Não é possível despachar o pedido para entrega sem vincular um entregador. " +
+	                "Use o endpoint PUT /pedidos/{id}/entregador primeiro."
+	            );
+	        }
+	        // Verifica se o entregador está ativo
+	        if (!pedido.getEntregador().isAtivo()) {
+	            throw new NegocioException(
+	                "O entregador " + pedido.getEntregador().getNome() + " está inativo e não pode realizar entregas."
+	            );
+	        }
+	    }
+		
+		//Altera o status (já registra o histórico)
 		pedido.alteraStatus(novoStatus, operador);
+		
+		// Persiste antes de publicar o evento
+		Pedido pedidoSalvo = pedidoRepository.save(pedido);
 
-		return pedidoRepository.save(pedido);
+		// Publica o evento para quem estiver ouvindo
+		eventPublisher.publishEvent(new PedidoStatusChangeEvent(this, pedidoSalvo, statusAnterior, statusAnterior));
+		
+		return pedidoSalvo;
 	}
 
 	// =============================================================

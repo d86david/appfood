@@ -6,7 +6,8 @@ public record CategoriaResponse(
 		
 		Integer id,
 		String nome,
-		boolean personalizavel
+		boolean personalizavel,
+		String impressora
 		
 		) {
 	public static CategoriaResponse from (Categoria categoria) {
@@ -14,7 +15,8 @@ public record CategoriaResponse(
 				
 				categoria.getId(),
 				categoria.getNome(),
-				categoria.isPersonalizavel()
+				categoria.isPersonalizavel(),
+				categoria.getImpressora()
 				
 				);
 	}

@@ -40,7 +40,7 @@ public class CategoriaService {
 	//=============================================================
 	
 	@Transactional
-	public Categoria cadastrarCategoria(String nome, boolean personalizavel ) {
+	public Categoria cadastrarCategoria(String nome, boolean personalizavel, String impressora ) {
 		
 		// Verifica se o nome da Catgoria está em Branco
 		if(nome == null || nome.isBlank()) {
@@ -59,6 +59,7 @@ public class CategoriaService {
 		
 		// Tudo validado — agora sim cria e salva
 		Categoria categoria = new Categoria(nomePadronizado, personalizavel);
+		categoria.setImpressora(impressora != null ? impressora : "GERAL");
 		return categoriaRepository.save(categoria);
 	}
 	
@@ -66,7 +67,7 @@ public class CategoriaService {
 	// EDIÇÃO
 	//=============================================================
 	@Transactional
-	public Categoria editarCategoria(Integer id, String novoNome, boolean novoPersonalizavel) {
+	public Categoria editarCategoria(Integer id, String novoNome, boolean novoPersonalizavel, String novaImpressora) {
 		
 		//Validação sem banco
 		if(novoNome == null || novoNome.isBlank()) {
@@ -91,6 +92,7 @@ public class CategoriaService {
 		
 		categoria.setNome(nomePadronizado);
 		categoria.setPersonalizavel(novoPersonalizavel);
+		categoria.setImpressora(novaImpressora != null ? novaImpressora : "GERAL");
 		return categoriaRepository.save(categoria);
 	}
 	
@@ -142,7 +144,7 @@ public class CategoriaService {
 	@Transactional
 	public CategoriaResponse cadastrarCategoriaResponse(CategoriaRequest request) {
 		
-		Categoria categoria = cadastrarCategoria(request.nome(), request.personalizavel());
+		Categoria categoria = cadastrarCategoria(request.nome(), request.personalizavel(), request.impressora());
 		
 		return CategoriaResponse.from(categoria);
 		
@@ -151,7 +153,7 @@ public class CategoriaService {
 	@Transactional
 	public CategoriaResponse editarCategoriaResponse (Integer id, CategoriaRequest request) {
 		
-		Categoria categoriaAtualizada = editarCategoria(id, request.nome(), request.personalizavel());
+		Categoria categoriaAtualizada = editarCategoria(id, request.nome(), request.personalizavel(), request.impressora());
 		
 		return CategoriaResponse.from(categoriaAtualizada);
 		

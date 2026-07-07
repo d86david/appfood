@@ -17,6 +17,9 @@ public class Categoria {
 	
 	@Column(name = "personalizavel")
 	private boolean personalizavel;
+	
+	@Column(name = "impressora")
+	private String impressora;
 
 	//===========================================
 	// CONTRUTORES
@@ -54,6 +57,14 @@ public class Categoria {
 	public void setPersonalizavel(boolean personalizavel) {
 		this.personalizavel = personalizavel;
 	}
+	
+	 public String getImpressora() {
+	        return impressora;
+	    }
+
+	    public void setImpressora(String impressora) {
+	        this.impressora = impressora;
+	    }
 
 	//===========================================
 	// HASHCODE E EQUALS

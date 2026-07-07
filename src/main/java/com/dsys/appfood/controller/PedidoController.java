@@ -10,9 +10,12 @@ import com.dsys.appfood.dto.request.PedidoRequest;
 import com.dsys.appfood.dto.request.ReabrirPedidoRequest;
 import com.dsys.appfood.dto.request.StatusPedidoRequest;
 import com.dsys.appfood.dto.request.VincularEntregadorRequest;
+import com.dsys.appfood.dto.response.ImpressaoBalcaoResponse;
+import com.dsys.appfood.dto.response.ImpressaoCozinhaResponse;
 import com.dsys.appfood.dto.response.PedidoResponse;
 import com.dsys.appfood.dto.response.PedidoResumoResponse;
 import com.dsys.appfood.dto.response.StatusPedidoHistoricoResponse;
+import com.dsys.appfood.service.ImpressaoService;
 import com.dsys.appfood.service.PedidoService;
 import com.dsys.appfood.service.StatusPedidoHistoricoService;
 
@@ -63,7 +66,8 @@ import org.springframework.web.util.UriComponentsBuilder;
  *  14. LISTAR PEDIDOS COM FILTROS		-> GET    /api/pedidos
  *  15. CONSULTAR HISTÓRICO				-> GET    /api/{pedidoId}/historico
  *  16. LISTAR PEDIDOS EM ABERTO        -> GET    /api/pedidos/abertos
- *  
+ *  17. IMPRIMIR MANUAL BALCAO  		-> POST   /API//{pedidoId}/impressao/balcao
+ *  18. IMPRIMIR MANUAL COZINHA  		-> POST   /API//{pedidoId}/impressao/cozinha
  *  
  *  CONCEITOS RESTful APLICADOS
  *  - Recursos identificados por URIs: /api/pedidos/{id}
@@ -80,12 +84,14 @@ import org.springframework.web.util.UriComponentsBuilder;
 @RequestMapping("/api/pedidos")
 public class PedidoController {
 	
+	private final ImpressaoService impressaoService;
 	private final StatusPedidoHistoricoService historicoService;
 	private final PedidoService pedidoService;
 
-	public PedidoController(PedidoService pedidoService, StatusPedidoHistoricoService historicoService) {
+	public PedidoController(PedidoService pedidoService, StatusPedidoHistoricoService historicoService, ImpressaoService impressaoService) {
 		this.pedidoService = pedidoService;
 		this.historicoService = historicoService;
+		this.impressaoService = impressaoService;
 	}
 	
 	
@@ -543,24 +549,31 @@ public class PedidoController {
     	return ResponseEntity.ok(paginaResultados);
     	
     }
+    
+    // =============================================================
+    // 17. IMPRIMIR PEDIDO MANUAL BALCÃO (PARA REIMPRESSÃO)
+    // =============================================================
+    /**
+     *  Imprime o pedido do balcão manualmente (útil em caso de falha)
+     */
+    @PostMapping("/{pedidoId}/imprimir/balcao")
+    public ResponseEntity<ImpressaoBalcaoResponse> imprimirBalcao(@PathVariable Integer pedidoId){
+    	
+    	ImpressaoBalcaoResponse response = impressaoService.imprimirPedidoBalcao(pedidoId);
+    	return ResponseEntity.ok(response);
+    }
+    
+ // =============================================================
+    // 17. IMPRIMIR PEDIDO MANUAL COZINHA (PARA REIMPRESSÃO)
+    // =============================================================
+    /**
+     *  Imprime o pedido da cozinha manualmente (útil em caso de falha)
+     */
+    @PostMapping("/{pedidoId}/imprimir/cozinha")
+    public ResponseEntity<ImpressaoCozinhaResponse> imprimircozinha(@PathVariable Integer pedidoId){
+    	
+    	ImpressaoCozinhaResponse response = impressaoService.imprimirPedidoCozinha(pedidoId);
+    	return ResponseEntity.ok(response);
+    }
+    
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
