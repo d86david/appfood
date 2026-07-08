@@ -6,16 +6,16 @@ import java.util.stream.Collectors;
 import com.dsys.appfood.domain.model.Produto;
 
 public record ProdutoResponse(
-		
+
 		Integer id,
 	    String nome,
 	    boolean imprimeCozinha,
 	    Integer categoriaId,
 	    String categoriaNome,
 	    List<PrecoTamanhoResponse> precos
-		
+
 		) {
-	
+
 	/**
      * Converte uma entidade Produto para o DTO de resposta.
      * Deve ser chamado dentro de uma transação ativa (ex: no próprio service).

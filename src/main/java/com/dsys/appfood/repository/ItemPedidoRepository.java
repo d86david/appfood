@@ -10,8 +10,8 @@ import com.dsys.appfood.domain.model.ItemPedido;
 
 @Repository
 public interface ItemPedidoRepository extends JpaRepository<ItemPedido, Integer>{
-	
-	
+
+
 	List<ItemPedido> findByPedidoDtHoraAberturaBetween(LocalDateTime inicio, LocalDateTime fim);
-	
+
 }

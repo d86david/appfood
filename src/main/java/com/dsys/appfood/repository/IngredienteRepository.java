@@ -11,10 +11,10 @@ import com.dsys.appfood.domain.model.Ingrediente;
 
 @Repository
 public interface IngredienteRepository extends JpaRepository<Ingrediente, Integer>{
-	
+
 	//BUSCA INGREDIENTE PELO NOME
 	Optional<Ingrediente> findByNomeIgnoreCase(String nome);
-	
+
 	// LISTA INGREDIENTE PELO NOME
 	Page<Ingrediente> findByNomeContainingIgnoreCase(String nome, Pageable pageable);
 }

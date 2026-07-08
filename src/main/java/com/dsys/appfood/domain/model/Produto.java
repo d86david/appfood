@@ -6,7 +6,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "produto")
@@ -93,7 +102,7 @@ public class Produto {
 				.map(PrecoVariavel::getValor)
 				.findFirst().orElseThrow(() -> new IllegalSelectorException());
 	}
-	
+
 	/**
 	 * Adiciona um preço a Tamanho .
      * Este método garante a consistência da associação
@@ -103,7 +112,7 @@ public class Produto {
 	public void adicionarPreco(PrecoVariavel preco) {
 		Objects.requireNonNull(preco, "O preço não pode ser nulo");
 		preco.associarProduto(this);
-		precosVariaveis.add(preco);	
+		precosVariaveis.add(preco);
 	}
 
 	// ===============================
@@ -117,12 +126,12 @@ public class Produto {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if ((obj == null) || (getClass() != obj.getClass())) {
 			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		}
 		Produto other = (Produto) obj;
 		return Objects.equals(id, other.id);
 	}

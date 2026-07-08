@@ -17,9 +17,9 @@ import com.dsys.appfood.repository.EntregadorRepository;
 
 /**
  * Classe responsavel por gerenciar os entregadores.
- * 
+ *
  * Responsabilidade ÚNICA: regras de negócio relacionadas ao entregador
- * 
+ *
  * Este Service NÃO sabe nada sobre HTTP, Apenas processa e lança exceções de
  * negócio.
  */
@@ -84,13 +84,13 @@ public class EntregadorService {
 
 		// Padroniza o nome do entregador
 		String nomePadronizado = novoNome.trim();
-		
-		//VALIDAÇÕES COM BANCO 
-		
-		//Busca o entregadoe no banco 
+
+		//VALIDAÇÕES COM BANCO
+
+		//Busca o entregadoe no banco
 		Entregador entregador = entregadorRepository.findById(id)
 				.orElseThrow(() -> new EntregadorNaoEncontradoException(id));
-		
+
 		// Verifica se outro registro tem o mesmo telefone
 		entregadorRepository.findByTelefoneIgnoreCaseAndAtivoTrue(novoTelefone)
 							.ifPresent(existente -> {
@@ -99,38 +99,38 @@ public class EntregadorService {
 											"Ja existe um entregador ativo com o telefone: " + novoTelefone);
 								}
 							});
-		
+
 		// MONTAR E SALVAR
 		entregador.setNome(nomePadronizado);
 		entregador.setTelefone(novoTelefone);
 		entregador.definirValorPorEntrega(novoValor);
 		entregador.definirValorDiaria(novaDiaria);
-		
+
 		return entregadorRepository.save(entregador);
 
 	}
 
 	// =============================================================
-	// ALTERAR STATUS DO ENTREGADOR 
+	// ALTERAR STATUS DO ENTREGADOR
 	// =============================================================
-	
+
 	@Transactional
 	public void alterarStatusEntregador(Integer id, Boolean novoStatus) {
-		
+
 		// BUSCA ENTREGADOR POR ID
 		Entregador entregadorStatus =  entregadorRepository.findById(id)
 				.orElseThrow(() -> new EntregadorNaoEncontradoException(id));
-		
+
 		// Objects.equals previne NullPointerException se novoStatus ou entregadorStatus.isAtivo() forem null
-	    // Só entra no bloco se o status for DIFERENTE do atual  
+	    // Só entra no bloco se o status for DIFERENTE do atual
 		if(!Objects.equals(entregadorStatus.isAtivo(), novoStatus) ) {
 			entregadorStatus.setAtivo(novoStatus);
 		}
-		
+
 		entregadorRepository.save(entregadorStatus);
-		
+
 	}
-	
+
 
 	// =============================================================
 	// BUSCAS
@@ -157,52 +157,52 @@ public class EntregadorService {
 	    }
 		return entregadorRepository.findByNomeContainingIgnoreCase(nome, pageable);
 	}
-	
+
 	// =============================================================
 	//  MÉTODOS DTO (conversão dentro da transação)
 	// =============================================================
-	
+
 	@Transactional
 	public EntregadorResponse cadastrarEntregdorResponse(EntregadorRequest request) {
-		
-		Entregador entregador = cadastrarEntregdor(request.nome(), request.telefone(), 
+
+		Entregador entregador = cadastrarEntregdor(request.nome(), request.telefone(),
 				request.valorPorEntrega(), request.valorDiaria());
-		
+
 		return EntregadorResponse.from(entregador);
-		
+
 	}
-	
+
 	@Transactional
 	public EntregadorResponse editarEntregadorResponse(Integer id, EntregadorRequest request) {
-		
+
 		Entregador entregadorAtualizado = editarEntregador(id, request.nome(), request.telefone(), request.valorPorEntrega(), request.valorDiaria());
-		
+
 		return EntregadorResponse.from(entregadorAtualizado);
-		
+
 	}
-	
+
 	@Transactional
 	public void alterarStatusEntregadorResponse(Integer id, EntregadorStatusRequest request) {
-		
+
 		alterarStatusEntregador(id, request.ativo());
-		
+
 	}
-	
+
 	@Transactional(readOnly = true)
 	public EntregadorResponse buscarEntregadorPorIdResponse(Integer id) {
 		return EntregadorResponse.from(buscarEntregadorPorId(id));
 	}
-	
+
 	@Transactional(readOnly = true)
 	public Page<EntregadorResponse> listarTodosEntregadoresResponse(Pageable pageable){
 		return listarTodosEntregadores(pageable).map(EntregadorResponse:: from);
 	}
-	
+
 	@Transactional(readOnly = true)
 	public Page<EntregadorResponse> buscaEntregadorPorNomeResponse(String nome, Pageable pageable){
-		
+
 		return buscaEntregadorPorNome(nome, pageable).map(EntregadorResponse::from);
-		
+
 	}
 
 }

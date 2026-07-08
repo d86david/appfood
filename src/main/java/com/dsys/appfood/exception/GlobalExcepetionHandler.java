@@ -11,10 +11,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 /**
  * Captura exceções lançadas pelos Service e Controller
  * e traduz para respostas HTTP com formato padronizado
- * 
+ *
  * @RestControllerAdvice = @ControllerAdvice + @ResponseBody
  * Intercepta exceções de TODOS os Controllers automaticamente.
- * 
+ *
  */
 @RestControllerAdvice
 public class GlobalExcepetionHandler {
@@ -24,46 +24,46 @@ public class GlobalExcepetionHandler {
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public ErroResponse handlerNaoEncontrado(EntidadeNaoEncontradaException ex) {
 		return new ErroResponse("NÃO_ENCONTRADO", ex.getMessage());
-	
+
 	// ↑ Um único handler captura: EntregadorNaoEncontrado, ClienteNaoEncontrado, ProdutoNaoEncontrado — todos!
 	}
-	
+
 	// --- Endidade jpa cadastrada → HTTP 409 Conflict ---
     @ExceptionHandler(EntidadeJaCadastradaException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErroResponse handleEstado(EntidadeJaCadastradaException ex) {
         return new ErroResponse("CONFLITO", ex.getMessage());
     }
-	
-	// --- Regra de negócio violada -> HTTP 422 --- 
+
+	// --- Regra de negócio violada -> HTTP 422 ---
 	@ExceptionHandler(NegocioException.class)
 	@ResponseStatus(HttpStatus.UNPROCESSABLE_CONTENT)
 	public ErroResponse handlerNegocio(NegocioException ex) {
 		return new ErroResponse("REGRA_NEGOCIO", ex.getMessage());
 	}
-	
-	// --- Argumento Inválido -> HTTP 400 --- 
+
+	// --- Argumento Inválido -> HTTP 400 ---
 	@ExceptionHandler(IllegalArgumentException.class)
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	public ErroResponse handleArgumento(IllegalArgumentException ex) {
 		return new ErroResponse("ARGUMENTO_INVALIDO", ex.getMessage());
 	}
-	
-	// --- Argumento Inválido -> HTTP 400 --- 
+
+	// --- Argumento Inválido -> HTTP 400 ---
 		@ExceptionHandler(MethodArgumentNotValidException.class)
 		@ResponseStatus(HttpStatus.BAD_REQUEST)
 		public ErroResponse handleValidacao(MethodArgumentNotValidException ex) {
-			
+
 			//Pega todos os erros de todos os campos
 			String mensagem = ex.getBindingResult()
 					.getFieldErrors()
 					.stream()
 					.map(erro -> erro.getField() + ": " + erro.getDefaultMessage())
 					.collect(Collectors.joining(", "));
-			
+
 			return new ErroResponse("VALIDAÇÃO", mensagem);
 		}
-	
+
 	// --- Estado inválido → HTTP 409 Conflict ---
     @ExceptionHandler(IllegalStateException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
@@ -78,6 +78,6 @@ public class GlobalExcepetionHandler {
         return new ErroResponse("ERRO_INTERNO", "Ocorreu um erro inesperado.");
         // Não exponha ex.getMessage() aqui — pode vazar detalhes internos
     }
-	
-	
+
+
 }

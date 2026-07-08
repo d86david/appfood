@@ -1,17 +1,5 @@
 package com.dsys.appfood.controller;
 
-import com.dsys.appfood.domain.model.MovimentacaoContaCorrente;
-import com.dsys.appfood.dto.request.ContaCorrenteEstornoRequest;
-import com.dsys.appfood.dto.request.ContaCorrenteRequest;
-import com.dsys.appfood.dto.request.ContaStatusRequest;
-import com.dsys.appfood.dto.response.ContaCorrenteResponse;
-import com.dsys.appfood.dto.response.MovimentacaoContaCorrenteResponse;
-import com.dsys.appfood.dto.response.ResumoContaCorrenteResponse;
-import com.dsys.appfood.service.ContaCorrenteService;
-import com.dsys.appfood.service.MovimentacaoContaCorrenteService;
-
-import jakarta.validation.Valid;
-
 import java.net.URI;
 import java.time.LocalDateTime;
 
@@ -29,6 +17,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import com.dsys.appfood.domain.model.MovimentacaoContaCorrente;
+import com.dsys.appfood.dto.request.ContaCorrenteEstornoRequest;
+import com.dsys.appfood.dto.request.ContaCorrenteRequest;
+import com.dsys.appfood.dto.request.ContaStatusRequest;
+import com.dsys.appfood.dto.response.ContaCorrenteResponse;
+import com.dsys.appfood.dto.response.MovimentacaoContaCorrenteResponse;
+import com.dsys.appfood.dto.response.ResumoContaCorrenteResponse;
+import com.dsys.appfood.service.ContaCorrenteService;
+import com.dsys.appfood.service.MovimentacaoContaCorrenteService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/contas")
@@ -103,7 +103,7 @@ public class ContaCorrenteController {
 	public ResponseEntity<ContaCorrenteResponse> buscarPorId(@PathVariable Integer id) {
 		return ResponseEntity.ok(contaCorrenteService.buscarPorIdResponse(id));
 	}
-	
+
 	// ====================================================================================================
     // 6. OBTER RESUMO DA CONTA
     // ====================================================================================================
@@ -128,14 +128,14 @@ public class ContaCorrenteController {
 	public ResponseEntity<Page<ContaCorrenteResponse>> listarAtivas(Pageable pageable) {
 		return ResponseEntity.ok(contaCorrenteService.listarAtivasResponse(pageable));
 	}
-	
+
 	@GetMapping("/{contaId}/movimentacoes")
 	public ResponseEntity<Page<MovimentacaoContaCorrenteResponse>> extrato(
 			@PathVariable Integer contaId,
             @RequestParam(required = false) @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm") LocalDateTime inicio,
             @RequestParam(required = false) @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm") LocalDateTime fim,
             Pageable pageable){
-		
+
 		Page<MovimentacaoContaCorrenteResponse> paginaResultado = movimentacaoService
                 .extratoPorContaResponse(contaId, inicio, fim, pageable);
 		return ResponseEntity.ok(paginaResultado);

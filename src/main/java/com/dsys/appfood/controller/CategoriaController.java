@@ -1,12 +1,5 @@
 package com.dsys.appfood.controller;
 
-import com.dsys.appfood.domain.model.Categoria;
-import com.dsys.appfood.dto.request.CategoriaRequest;
-import com.dsys.appfood.dto.response.CategoriaResponse;
-import com.dsys.appfood.service.CategoriaService;
-
-import jakarta.validation.Valid;
-
 import java.net.URI;
 
 import org.springframework.data.domain.Page;
@@ -22,6 +15,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import com.dsys.appfood.domain.model.Categoria;
+import com.dsys.appfood.dto.request.CategoriaRequest;
+import com.dsys.appfood.dto.response.CategoriaResponse;
+import com.dsys.appfood.service.CategoriaService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/categorias")

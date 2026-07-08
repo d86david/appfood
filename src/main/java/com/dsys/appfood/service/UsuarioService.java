@@ -15,10 +15,10 @@ import com.dsys.appfood.repository.UsuarioRepository;
 
 /**
  * Classe responsavel pela autenticação e validações relacionadas a usuário
- * 
+ *
  * Responsabilidade ÚNICA: autenticação e validações relacionadas de usuários
- * 
- * 
+ *
+ *
  * Este Service NÃO sabe nada sobre HTTP, Apenas processa e lança exceções de
  * negócio.
  */
@@ -118,7 +118,7 @@ public class UsuarioService {
 
 		return usuarioRepository.save(usuarioAtualizado);
 	}
-	
+
 	// =============================================================
 	// ALTERAR STATUS
 	// =============================================================
@@ -126,15 +126,15 @@ public class UsuarioService {
 	public void alterarStatus(Integer id, Boolean novoStatus) {
 		Usuario usuarioStatus = usuarioRepository.findById(id)
 				.orElseThrow(() -> new UsuarioNaoEncontradoException(id));
-		
+
 		// Objects.equals previne NullPointerException se novoStatus ou usuarioStatus.isAtivo() forem null
-	    // Só entra no bloco se o status for DIFERENTE do atual 
+	    // Só entra no bloco se o status for DIFERENTE do atual
 		if(!Objects.equals(usuarioStatus.isAtivo(),novoStatus)) {
 			usuarioStatus.setAtivo(novoStatus);
 		}
-		
+
 		usuarioRepository.save(usuarioStatus);
-		
+
 	}
 
 
@@ -215,26 +215,26 @@ public class UsuarioService {
 	public Usuario buscaPorId(Integer id) {
 		return usuarioRepository.findById(id).orElseThrow(() -> new UsuarioNaoEncontradoException(id));
 	}
-	
+
 	@Transactional(readOnly = true)
 	public List<Usuario> buscaAtivosPorNome(String nome){
 		if (nome == null || nome.isBlank()) {
 			throw new IllegalArgumentException("O Nome deve ser informado");
 		}
-		
+
 		return usuarioRepository.findByNomeContainingIgnoreCaseAndAtivoTrue(nome);
 	}
-	
+
 	@Transactional(readOnly = true)
 	public List<Usuario> listarUsuariosAtivos(){
 		return usuarioRepository.findByAtivoTrue();
 	}
-	
+
 	@Transactional(readOnly = true)
 	public List<Usuario> listarUsuariosInativos(){
 		return usuarioRepository.findByAtivoFalse();
 	}
-	
+
 	@Transactional(readOnly = true)
 	public List<Usuario> listarTodosUsuarios(){
 		return usuarioRepository.findAll();

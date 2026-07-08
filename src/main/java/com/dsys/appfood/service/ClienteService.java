@@ -1,5 +1,13 @@
 package com.dsys.appfood.service;
 
+import java.util.Objects;
+import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.dsys.appfood.domain.enums.TipoDocumento;
 import com.dsys.appfood.domain.model.Cliente;
 import com.dsys.appfood.domain.model.Endereco;
@@ -9,20 +17,12 @@ import com.dsys.appfood.exception.ClienteJaCadastradoException;
 import com.dsys.appfood.exception.ClienteNaoEncontradoException;
 import com.dsys.appfood.repository.ClienteRepository;
 
-import java.util.Objects;
-import java.util.Optional;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 /**
  * Classe responsavel pela autenticação e validações relacionadas ao cliente
- * 
+ *
  * Responsabilidade ÚNICA: autenticação e validações relacionadas de clientes
- * 
- * 
+ *
+ *
  * Este Service NÃO sabe nada sobre HTTP, Apenas processa e lança exceções de
  * negócio.
  */
@@ -46,7 +46,7 @@ public class ClienteService {
 	 * Cadastro de cliente rápido apenas com as informações importante para o pedido
 	 * Usado na tela de pedido quando não tiver o cliente cadastrado e precisar
 	 * realizar um cadastro mais rapido com o minimo de informação possivel
-	 * 
+	 *
 	 */
 	@Transactional
 	public Cliente cadastrarClienteRapido(String nome, String telefonePrincipal, String observacaoCliente,
@@ -98,9 +98,9 @@ public class ClienteService {
 	// =============================================================
 
 	/**
-	 * Cadastro de cliente completo com todas as informações 
+	 * Cadastro de cliente completo com todas as informações
 	 * Usado na tela de cadastros quando o operador não estiver em atendimento
-	 * 
+	 *
 	 */
 	@Transactional
 	public Cliente cadastrarClienteCompleto(String nome, String telefonePrincipal, String telefoneSecundario, TipoDocumento tipoDocumento,
@@ -147,7 +147,7 @@ public class ClienteService {
 		// MONTAR E SALVAR
 
 		// Se não existe, cria um novo
-		Cliente cliente = new Cliente(nomePadronizado, telefonePrincipal, telefoneSecundario, tipoDocumento, 
+		Cliente cliente = new Cliente(nomePadronizado, telefonePrincipal, telefoneSecundario, tipoDocumento,
 				documento, emailPadronizado, observacaoCliente, endereco);
 
 		return clienteRepository.save(cliente);
@@ -208,7 +208,7 @@ public class ClienteService {
 		Cliente clienteStatus = clienteRepository.findById(id).orElseThrow(() -> new ClienteNaoEncontradoException(id));
 
 		// Objects.equals previne NullPointerException se novoStatus ou clienteStatus.isAtivo() forem null
-	    // Só entra no bloco se o status for DIFERENTE do atual 
+	    // Só entra no bloco se o status for DIFERENTE do atual
 		if (!Objects.equals(clienteStatus.isAtivo(), novoStatus)) {
 			clienteStatus.setAtivo(novoStatus);
 		}
@@ -245,67 +245,67 @@ public class ClienteService {
 	public Cliente buscarClientePorId(Integer id) {
 		return clienteRepository.findById(id).orElseThrow(() -> new ClienteNaoEncontradoException(id));
 	}
-	
+
 	// =============================================================
 	//  MÉTODOS DTO (conversão dentro da transação)
 	// =============================================================
 	@Transactional
 	public ClienteResponse cadastrarClienteResponse (ClienteRequest request) {
-		
+
 		// 1. Buscar o Endereço pelo ID
 		Endereco endereco = enderecoService.buscarEnderecoPorId(request.enderecoId());
-		
+
 		// 2. Chamar o método de cadastro completo existente
 		Cliente cliente = cadastrarClienteCompleto(
-				request.nome(), 
-				request.telefonePrincipal(), 
+				request.nome(),
+				request.telefonePrincipal(),
 				request.telefoneSegundario(),
-				request.tipoDocumento(), 
-				request.documento(), 
-				request.email(), 
+				request.tipoDocumento(),
+				request.documento(),
+				request.email(),
 				request.observacaoCliente(), endereco);
-		
+
 		// 3. Converter para DTO e retornar
 		return ClienteResponse.from(cliente);
 	}
-	
+
 	@Transactional
 	public ClienteResponse cadastrarClienteRapidoResponse (ClienteRequest request) {
-		
+
 		Endereco endereco = enderecoService.buscarEnderecoPorId(request.enderecoId());
-		
+
 		Cliente cliente = cadastrarClienteRapido(
-				request.nome(), 
-				request.telefonePrincipal(), 
-				request.observacaoCliente(), 
+				request.nome(),
+				request.telefonePrincipal(),
+				request.observacaoCliente(),
 				endereco);
-		
+
 		return ClienteResponse.from(cliente);
-		
+
 	}
-	
+
 	@Transactional
 	public ClienteResponse editarClienteResponse (Integer id, ClienteRequest request) {
-		
+
 		// 1. Buscar o Endereco
 		Endereco endereco = enderecoService.buscarEnderecoPorId(request.enderecoId());
-		
+
 		// 2. Chamar o método de edição existente
 		Cliente cliente = editarCliente(
-				id, 
-				request.nome(), 
-				request.telefonePrincipal(), 
-				request.telefoneSegundario(), 
-				request.tipoDocumento(), 
-				request.documento(), 
-				request.email(), 
-				request.observacaoCliente(), 
+				id,
+				request.nome(),
+				request.telefonePrincipal(),
+				request.telefoneSegundario(),
+				request.tipoDocumento(),
+				request.documento(),
+				request.email(),
+				request.observacaoCliente(),
 				endereco);
-		
+
 		return ClienteResponse.from(cliente);
-		
+
 	}
-	
+
 	 @Transactional(readOnly = true)
 	    public ClienteResponse buscarClientePorIdResponse(Integer id) {
 	        return ClienteResponse.from(buscarClientePorId(id));

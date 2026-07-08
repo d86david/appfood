@@ -11,10 +11,10 @@ import com.dsys.appfood.domain.model.Tamanho;
 
 @Repository
 public interface PrecoVariavelRepository extends JpaRepository<PrecoVariavel, Integer>{
-	
+
 	// --- VERIFICAR SE EXISTE PRECO VARIAVEL COM O TAMANNHOID ---
 	boolean existsByTamanhoId(Integer id);
-	
+
 	// --- BUSCA COMBINAÇÃO DE PREÇOS COM PRODUTO E TAMANNHO ---
 	Optional<PrecoVariavel> findByProdutoAndTamanho(Produto produto, Tamanho tamanho);
 

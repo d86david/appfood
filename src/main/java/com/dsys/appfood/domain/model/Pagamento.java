@@ -6,13 +6,21 @@ import java.util.Objects;
 
 import com.dsys.appfood.domain.enums.FormaPagamento;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 /**
  * Entidade responsavel por ligar o pedido ao Caixa, e encerrar o clico do
  * pedido
- * 
- * 
+ *
+ *
  */
 @Entity
 @Table(name = "pagamento")
@@ -36,7 +44,7 @@ public class Pagamento {
 	private BigDecimal valor;
 
 	private BigDecimal troco;
-	
+
 	@JoinColumn(name = "pedido_id")
 	LocalDateTime dataHora;
 
@@ -119,7 +127,7 @@ public class Pagamento {
 	public LocalDateTime getDataHora() {
 		return dataHora;
 	}
-	
+
 	// ===========================================
 	// HASHCODE E EQUALS
 	// ===========================================
@@ -131,12 +139,12 @@ public class Pagamento {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if ((obj == null) || (getClass() != obj.getClass())) {
 			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		}
 		Pagamento other = (Pagamento) obj;
 		return Objects.equals(id, other.id);
 	}
@@ -146,8 +154,9 @@ public class Pagamento {
 	 * parciais ou validação final.
 	 */
 	public boolean isPagamentoSuficiente() {
-		if (this.valor == null || this.pedido == null)
+		if (this.valor == null || this.pedido == null) {
 			return false;
+		}
 		return this.valor.compareTo(pedido.getValorLiquido()) >= 0;
 	}
 

@@ -8,25 +8,25 @@ import com.dsys.appfood.domain.enums.TipoPedido;
 import com.dsys.appfood.domain.model.Pedido;
 
 public record PedidoResumoResponse (
-	
+
 	Integer id,
     TipoPedido tipo,
     StatusPedido status,
     LocalDateTime dataHora,
     String cliente,
     BigDecimal total
-    ) {   
-    
+    ) {
+
 	public static PedidoResumoResponse from( Pedido pedido) {
     	return new  PedidoResumoResponse(
-    			
+
     			pedido.getId(),
     			pedido.getTipo(),
     			pedido.getStatusAtual(),
     			pedido.getDtHoraAbertura(),
     			pedido.getCliente() != null ? pedido.getCliente().getNome() : pedido.getNomeBalcao(),
     			pedido.calcularTotal()
-    			
+
     			);
     }
 }

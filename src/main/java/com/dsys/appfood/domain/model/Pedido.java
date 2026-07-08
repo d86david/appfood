@@ -10,10 +10,78 @@ import com.dsys.appfood.domain.enums.StatusPedido;
 import com.dsys.appfood.domain.enums.TipoPedido;
 import com.dsys.appfood.exception.NegocioException;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedSubgraph;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "pedido")
+@NamedEntityGraph(
+	    name = "Pedido.completo",
+	    attributeNodes = {
+	        @NamedAttributeNode(value = "itens", subgraph = "itensCompleto")
+	    },
+	    subgraphs = {
+	        @NamedSubgraph(
+	            name = "itensCompleto",
+	            attributeNodes = {
+	                @NamedAttributeNode("tamanho"),
+	                @NamedAttributeNode(value = "subItens", subgraph = "subItensCompleto"),
+	                @NamedAttributeNode(value = "customizacoesGlobais", subgraph = "customizacoesGlobaisCompleto")
+	            }
+	        ),
+	        @NamedSubgraph(
+	            name = "subItensCompleto",
+	            attributeNodes = {
+	                @NamedAttributeNode(value = "produto", subgraph = "produtoCompleto"),
+	                @NamedAttributeNode(value = "customizacoes", subgraph = "customizacoesCompleto")
+	            }
+	        ),
+	        @NamedSubgraph(
+	            name = "customizacoesCompleto",
+	            attributeNodes = {
+	                @NamedAttributeNode("ingrediente")
+	            }
+	        ),
+	        @NamedSubgraph(
+	            name = "customizacoesGlobaisCompleto",
+	            attributeNodes = {
+	                @NamedAttributeNode("borda")
+	            }
+	        ),
+	        @NamedSubgraph(
+	            name = "produtoCompleto",
+	            attributeNodes = {
+	                @NamedAttributeNode("categoria")
+	            }
+	        )
+	    }
+	)
+	// =============================================================
+	// SEGUNDO ENTITYGRAPH: Para listagens (menos dados)
+	// =============================================================
+	@NamedEntityGraph(
+	    name = "Pedido.resumo",
+	    attributeNodes = {
+	        @NamedAttributeNode("cliente"),
+	        @NamedAttributeNode("operador"),
+	        @NamedAttributeNode("entregador"),
+	        @NamedAttributeNode("pagamentos")
+	    }
+	)
+
 public class Pedido {
 
 	@Id
@@ -83,7 +151,7 @@ public class Pedido {
 
 	@Column(name = "obs_pedido")
 	private String obsPedido;
-	
+
 	@Column(name = "motivo_cancelamento")
 	private String motivoCancelamento;
 
@@ -242,34 +310,99 @@ public class Pedido {
 		this.obsPedido = obsPedido;
 	}
 
+	public BigDecimal getValorTotal() {
+		return valorTotal;
+	}
+
+	public void setValorTotal(BigDecimal valorTotal) {
+		this.valorTotal = valorTotal;
+	}
+
 	/**
-	 * Método que calcula o valor liquido do pedido, esse ainda não é o valor Total
-	 * do pedido se o mesmo for delivery.
-	 * 
-	 * @return o valor Bruto - descontos
+	 * Calcula o valor líquido do pedido (Valor Bruto - Descontos).
+	 *
+	 * O valor líquido é o valor bruto subtraído dos descontos aplicados.
+	 * Este valor ainda NÃO inclui a taxa de entrega.
+	 *
+	 * @return O valor líquido do pedido. Se o valorBruto for null, retorna ZERO.
+	 *
+	 * CONCEITO: Este método é um "getter inteligente" que aplica regras de negócio.
+	 * Em vez de apenas retornar um campo, ele calcula um valor derivado.
 	 */
 	public BigDecimal getValorLiquido() {
+
+		// Defensive programming: Se o valorBruto não foi inicializado,
+	    // retorna ZERO para evitar NullPointerException.
+		if(valorBruto == null) {
+			return BigDecimal.ZERO;
+		}
+
 		BigDecimal desc = desconto == null ? BigDecimal.ZERO : desconto;
 
 		return valorBruto.subtract(desc);
 	}
 
 	/**
-	 * Método responsavel por calcular e armazenas o valor total do pedido.
-	 * 
-	 * @return o valor total do pedido
+	 * Calcula o valor bruto total do pedido a partir dos itens.
+	 *
+	 * Este método percorre todos os itens do pedido (ItemPedido) e soma
+	 * o preço final de cada um (calculado pelo próprio item, que inclui
+	 * sabores, customizações e bordas).
+	 *
+	 * CONCEITOS:
+	 * - Defensive Programming: Utiliza filter para evitar NullPointerException
+	 *   caso algum item retorne null.
+	 * - Stream API: Reduz a lista de valores a um único BigDecimal.
+	 * - Se o pedido não tiver itens, retorna ZERO (não null).
+	 *
+	 * @return O valor bruto total do pedido (soma de todos os itens).
+	 */
+	public BigDecimal calcularValorBruto() {
+
+		return itens.stream()
+				.map(ItemPedido::calcularPrecoFinal)
+				.filter(Objects::nonNull)
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+	}
+
+	/**
+	 * Calcula o valor total do pedido (Valor Bruto - Desconto + Taxa de Entrega).
+	 *
+	 * REGRA DE NEGÓCIO:
+	 *   Valor Total = (Soma dos Itens) - Desconto + Taxa de Entrega
+	 *
+	 * IMPORTANTE:
+	 *   - Este método recalcula o valor bruto SEMPRE a partir dos itens,
+	 *     garantindo que o total nunca fique desatualizado.
+	 *   - NUNCA confie em valores de "valorBruto" que estejam salvos no banco
+	 *     para cálculos, pois eles podem estar desatualizados.
+	 *   - O valorBruto é recalculado e armazenado APENAS para fins de snapshot
+	 *     (histórico) do pedido.
+	 *
+	 * @return O valor total do pedido.
 	 */
 	public BigDecimal calcularTotal() {
+
+		 // 1. Recalcula o valor bruto sempre a partir dos itens
+	    //    Isso garante que o total esteja sempre atualizado.
+		this.valorBruto = calcularValorBruto();
+
+		// 2. Protege contra null
+	    //    Se desconto ou taxaEntrega forem null, substitui por ZERO.
+		BigDecimal desc = desconto == null ? BigDecimal.ZERO : desconto;
 		BigDecimal taxa = taxaEntrega == null ? BigDecimal.ZERO : taxaEntrega;
 
-		valorTotal = getValorLiquido().add(taxa);
+		// 3. Calcula o total final
+
+		this.valorTotal = this.valorBruto.subtract(desc).add(taxa);
 
 		return valorTotal;
 	}
 
 	/**
 	 * Metodo para saber o Status do atual do pedido.
-	 * 
+	 *
 	 * @return o ultimo da lista
 	 */
 	public StatusPedido getStatusAtual() {
@@ -284,7 +417,7 @@ public class Pedido {
 
 	/**
 	 * Método para alterar o Status do Pedido, e gravar o histórico
-	 * 
+	 *
 	 * @param novoStatus
 	 * @param usuario
 	 */
@@ -308,7 +441,7 @@ public class Pedido {
 
 	/**
 	 * Método responsavel por adicionar um item ao pedido.
-	 * 
+	 *
 	 * @param item
 	 */
 	public void adicionarItem(ItemPedido item) {
@@ -319,7 +452,7 @@ public class Pedido {
 
 	/**
 	 * Método responsavel por adicionar um pagamento ao pedido
-	 * 
+	 *
 	 * @param pagamento
 	 */
 	public void registrarPagamento(Pagamento pagamento) {
@@ -342,7 +475,7 @@ public class Pedido {
 
 	/**
 	 * Método responsavel por adicionar um histórico ao hitórico de status do pedido
-	 * 
+	 *
 	 * @param historico
 	 */
 	public void adicionarHistorico(StatusPedidoHistorico historico) {
@@ -355,7 +488,7 @@ public class Pedido {
 	 * Método responsavel por Finalizar um pedido, o pedido pode ser finalizado
 	 * quando ja estiver concludo pela cozinha ou quando o entregador já estiver
 	 * levado para entrega
-	 * 
+	 *
 	 * @param valorPago
 	 */
 	public void finalizarPedido(Usuario usuario) {
@@ -460,14 +593,14 @@ public class Pedido {
 		alteraStatus(StatusPedido.CANCELADO, operador);
 		this.motivoCancelamento = motivo;
 
-		
+
 	}
 
 	/**
-	 * 
+	 *
 	 * Método para reabrir um pedido, útil quando um pedido foi cancelado por
 	 * engano. Requer autorização de gerente.
-	 * 
+	 *
 	 * @param pedido   - pedido que foi cancelado
 	 * @param gerente  - Gerente autorizador
 	 * @param operador - Operador que está reabrindo
@@ -505,7 +638,7 @@ public class Pedido {
 
 	/**
 	 * Método para retornar se o pedido está pago ou não
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean isPago() {
@@ -515,7 +648,7 @@ public class Pedido {
 
 	/**
 	 * Método para somar todos os pagamentos
-	 * 
+	 *
 	 * @return o valor dos pagamentos somados
 	 */
 	public BigDecimal getTotalPago() {
@@ -540,11 +673,11 @@ public class Pedido {
 	/**
 	 * Método para vincular um entregador e um pedido. Necessário para pedidos de
 	 * ENTREGA antes de enviar para entrega.
-	 * 
+	 *
 	 * @param pedidoId     - ID do pedido
 	 * @param entregadorId - ID do entregador
 	 * @param operadorId   - Operador que está vinculando
-	 * 
+	 *
 	 */
 	public void vincularEntregador(Entregador entregador) {
 
@@ -572,7 +705,7 @@ public class Pedido {
 
 	/**
 	 * Método que sabe quanto falta Pagar
-	 * 
+	 *
 	 * @return
 	 */
 	public BigDecimal getValorRestante() {
@@ -597,12 +730,12 @@ public class Pedido {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if ((obj == null) || (getClass() != obj.getClass())) {
 			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		}
 		Pedido other = (Pedido) obj;
 		return Objects.equals(id, other.id);
 	}

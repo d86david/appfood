@@ -2,7 +2,7 @@ package com.dsys.appfood.exception;
 
 /**
  *  EXCEÇÃO ESPECÍFICA - Herda da base (EntidadeNaoEncontradaException)
- *  
+ *
  *  Só chama super() com a mensagem certa
  */
 public class PedidoNaoEncontradoException extends EntidadeNaoEncontradaException{

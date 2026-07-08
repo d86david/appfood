@@ -7,14 +7,14 @@ import com.dsys.appfood.domain.model.ContaCorrente;
 
 public record ContaCorrenteResponse(
 
-		Integer id, 
-		String nome, 
-		TipoConta tipo, 
-		String codBanco, 
-		String banco, 
-		String agencia, 
+		Integer id,
+		String nome,
+		TipoConta tipo,
+		String codBanco,
+		String banco,
+		String agencia,
 		String conta,
-		BigDecimal saldoAtual, 
+		BigDecimal saldoAtual,
 		boolean ativa
 
 ) {

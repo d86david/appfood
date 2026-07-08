@@ -9,9 +9,9 @@ import com.dsys.appfood.domain.model.Pagamento;
 
 @Repository
 public interface PagamentoRepository extends JpaRepository<Pagamento, Integer>{
-	
+
 	// Busca pagamentos de um pedido, ordenados do mais recente para o mais antigo
     List<Pagamento> findByPedidoIdOrderByDataHoraDesc(Integer pedidoId);
-	
+
 
 }

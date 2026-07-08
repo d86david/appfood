@@ -1,11 +1,5 @@
 package com.dsys.appfood.controller;
 
-import com.dsys.appfood.dto.request.ClienteRequest;
-import com.dsys.appfood.dto.response.ClienteResponse;
-import com.dsys.appfood.service.ClienteService;
-
-import jakarta.validation.Valid;
-
 import java.net.URI;
 import java.util.List;
 
@@ -25,17 +19,23 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.dsys.appfood.dto.request.ClienteRequest;
+import com.dsys.appfood.dto.response.ClienteResponse;
+import com.dsys.appfood.service.ClienteService;
+
+import jakarta.validation.Valid;
+
 /**
  * Controlador responsável por expor os endpoints da entidade Cliente
- * 
+ *
  * Responsabilidades: - Receber requisições HTTP. - Validar os dados de entrada
  * com @Valid. - Chamar os métodos do ClienteService. - Retornar respostas HTTP
  * adequadas (201 Created, 200 OK, 204 No Content).
- * 
+ *
  * CAMADAS ENVOLVIDAS: - Controller (esta classe) -> recebe DTOs Request. -
  * Service (ClienteService) -> contém regras de negócio - Repository
  * (ClienteRepository) -> acesso ao banco de dados.
- * 
+ *
  * PADRÃO UTILIZADO: - Records para DTOs (imutáveis e modernos) - Injeção de
  * dependencia via construtor (final) - Métodos de fábrica "from" nos Responses
  * para converter Entidade -> DTO
@@ -75,30 +75,30 @@ public class ClienteController {
 	@PostMapping("/rapido")
 	public ResponseEntity<ClienteResponse> cadastrarRapido(@RequestBody @Valid ClienteRequest request,
 			UriComponentsBuilder uriBuilder){
-		
+
 		// 1. Chamar o Service para executar as regras de negócio e salvar
 		ClienteResponse response = clienteService.cadastrarClienteRapidoResponse(request);
-				
+
 		// 2. Retornar o código 201 (Created) e a URL do novo recurso
 		URI uri = uriBuilder.path("/api/clientes/{id}").buildAndExpand(response.id()).toUri();
-				
+
 		// 3. Devolver o DTO de Saída (Response)
 		return ResponseEntity.created(uri).body(response);
 	}
-	
+
 	// ====================================================================================================
 	// 3. EDITAR CLIENTE
 	// ====================================================================================================
 	@PutMapping("/{id}")
-	public ResponseEntity<ClienteResponse> atualizar (@PathVariable Integer id, 
+	public ResponseEntity<ClienteResponse> atualizar (@PathVariable Integer id,
 			@RequestBody @Valid ClienteRequest request){
-		
+
 		ClienteResponse response = clienteService.editarClienteResponse(id, request);
-		
+
 		return ResponseEntity.ok(response);
-		
+
 	}
-	
+
 	// ====================================================================================================
 	// 4. ATIVAR / INATIVAR CLIENTE
 	// ====================================================================================================
@@ -106,10 +106,10 @@ public class ClienteController {
 	public ResponseEntity<Void> alterarStatus(@PathVariable Integer id,
 			@RequestParam Boolean ativo ){
 		clienteService.alterarStatusCliente(id, ativo);
-		
+
 		return ResponseEntity.noContent().build();
 	}
-	
+
 	// ====================================================================================================
 	// 5. BUSCAR CLIENTE POR ID
 	// ====================================================================================================
@@ -118,7 +118,7 @@ public class ClienteController {
         ClienteResponse response = clienteService.buscarClientePorIdResponse(id);
         return ResponseEntity.ok(response);
     }
-	
+
 	// ====================================================================================================
 	// 6. BUSCAR CLIENTES (COM FILTROS E PAGINAÇÃO)
 	// ====================================================================================================

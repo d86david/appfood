@@ -1,12 +1,5 @@
 package com.dsys.appfood.service;
 
-import com.dsys.appfood.domain.model.MovimentacaoContaCorrente;
-import com.dsys.appfood.dto.response.MovimentacaoContaCorrenteResponse;
-import com.dsys.appfood.dto.response.ResumoContaCorrenteResponse;
-import com.dsys.appfood.exception.ContaNaoEncontradaException;
-import com.dsys.appfood.repository.ContaCorrenteRepository;
-import com.dsys.appfood.repository.MovimentacaoContaCorrenteRepository;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -15,14 +8,21 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.dsys.appfood.domain.model.MovimentacaoContaCorrente;
+import com.dsys.appfood.dto.response.MovimentacaoContaCorrenteResponse;
+import com.dsys.appfood.dto.response.ResumoContaCorrenteResponse;
+import com.dsys.appfood.exception.ContaNaoEncontradaException;
+import com.dsys.appfood.repository.ContaCorrenteRepository;
+import com.dsys.appfood.repository.MovimentacaoContaCorrenteRepository;
+
 /**
  * Serviço responsavel por gerenciar as movimentaçãoes da Conta Corrente
- * 
+ *
  * Responsabilidade ÚNICA: MovimentaçãoContaCorrente é uma entidade de "eventos"
  * ou "históricos" - Não deve ser alterada ou excluída após criada
  * (imutabilidade contábil). - portanto, este serviço NÃO oferece métodos de
  * edição ou exclusão.
- * 
+ *
  * Este Service NÃO sabe nada sobre HTTP, Apenas processa e lança exceções de
  * negócio.
  */
@@ -40,7 +40,7 @@ public class MovimentacaoContaCorrenteService {
 
 	/**
 	 * Consulta o extrato completo de um caixa específico
-	 * 
+	 *
 	 */
 	@Transactional(readOnly = true)
 	public Page<MovimentacaoContaCorrente> extratoPorConta(Integer contaId, Pageable pageable) {
@@ -126,7 +126,7 @@ public class MovimentacaoContaCorrenteService {
 
 	/**
 	 * Gera um resumo financeiro da conta do dia .
-	 * 
+	 *
 	 * Método utilitário para pegar o resumo apenas de hoje (00:00 até agora)
 	 */
 	@Transactional(readOnly = true)
@@ -141,7 +141,7 @@ public class MovimentacaoContaCorrenteService {
 
 	/**
 	 * Gera um resumo financeiro da conta sem especificar um período .
-	 * 
+	 *
 	 * Método utilitário para pegar o resumo
 	 */
 	@Transactional(readOnly = true)

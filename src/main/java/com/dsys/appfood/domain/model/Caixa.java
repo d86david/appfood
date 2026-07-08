@@ -7,7 +7,16 @@ import java.util.Objects;
 import com.dsys.appfood.domain.enums.StatusCaixa;
 import com.dsys.appfood.domain.enums.TipoMovimentacao;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 /**
  * Entidade que representa o Caixa Pizzaria Esta classe é importante para o
@@ -54,7 +63,7 @@ public class Caixa {
 	//===========================================
 	// Construtores
 	//===========================================
-	
+
 	public Caixa() {
 
 	}
@@ -118,11 +127,11 @@ public class Caixa {
 	public void setGerente(Usuario gerente) {
 		this.gerente = gerente;
 	}
-	
+
 	//===========================================
 	// HASHCODE E EQUALS
 	//===========================================
-	
+
 	@Override
 	public int hashCode() {
 		return Objects.hash(id);
@@ -130,12 +139,12 @@ public class Caixa {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if ((obj == null) || (getClass() != obj.getClass())) {
 			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		}
 		Caixa other = (Caixa) obj;
 		return Objects.equals(id, other.id);
 	}
@@ -146,7 +155,7 @@ public class Caixa {
 
 	/**
 	 * Método responsavel por abrir o Caixa quando o mesmo estiver fechado,
-	 * 
+	 *
 	 * @param valorInicial O valor em dinheiro que inicia no fundo de caixa
 	 * @param gerente      O gerente que está autorizando a abertura
 	 */
@@ -169,8 +178,8 @@ public class Caixa {
 	public void fecharCaixa(Usuario gerente) {
 		if (status.equals(StatusCaixa.FECHADO)) {
 			throw new IllegalArgumentException("O Caixa já está fechado");
-		} 
-		
+		}
+
 		this.gerente = gerente;
 		this.valorFechamento = this.saldo;
 		this.saldo = BigDecimal.ZERO;
@@ -178,7 +187,7 @@ public class Caixa {
 		this.dataFechamento = LocalDateTime.now();
 
 	}
-	
+
 	/**
 	 * Atualiza o saldo atual do caixa baseando-se em uma nova movimentação.
 	 * Este método é chamado pela Service após persistir uma movimentação
@@ -187,7 +196,7 @@ public class Caixa {
 		if(this.status.equals(StatusCaixa.FECHADO)) {
 			throw new IllegalStateException("Não é possível atualizar saldo de um caixa fechado.");
 		}
-		
+
 		if(tipo.equals(TipoMovimentacao.ENTRADA)) {
 			this.saldo = this.saldo.add(valorMovimentacao);
 		}else {

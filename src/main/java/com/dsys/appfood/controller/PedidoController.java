@@ -1,5 +1,24 @@
 package com.dsys.appfood.controller;
 
+import java.net.URI;
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
+
 import com.dsys.appfood.domain.enums.StatusPedido;
 import com.dsys.appfood.dto.request.AdicionarItemRequest;
 import com.dsys.appfood.dto.request.AdicionarSaborRequest;
@@ -21,35 +40,16 @@ import com.dsys.appfood.service.StatusPedidoHistoricoService;
 
 import jakarta.validation.Valid;
 
-import java.net.URI;
-import java.util.List;
-
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Page;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.util.UriComponentsBuilder;
-
 /**
  * ======================================================================
  *  PEDIDO CONTROLLER - O CORAÇÃO DO SISTEMA
  * ======================================================================
- * 
+ *
  * Este Controller é responsavel por expor TODAS as operações relacionadas
  * ao ciclo de vida de um pedido, desde a sua criação até a sua finalização.
- * 
+ *
  * FLUXO COMPLETO DE UM PEDIDO
- * 
+ *
  *   1. INICIAR PEDIDO      			-> POST   /api/pedidos
  *   2. ADICIONAR ITEM      			-> POST   /api/pedidos/{id}/itens
  *   3. ADICIONAR SABOR     			-> POST   /api/pedidos/{id}/itens/{itemId}/sabores
@@ -68,13 +68,13 @@ import org.springframework.web.util.UriComponentsBuilder;
  *  16. LISTAR PEDIDOS EM ABERTO        -> GET    /api/pedidos/abertos
  *  17. IMPRIMIR MANUAL BALCAO  		-> POST   /API//{pedidoId}/impressao/balcao
  *  18. IMPRIMIR MANUAL COZINHA  		-> POST   /API//{pedidoId}/impressao/cozinha
- *  
+ *
  *  CONCEITOS RESTful APLICADOS
  *  - Recursos identificados por URIs: /api/pedidos/{id}
  *  - Verbos HTTP corretos: POST (criar), PUT (substituir), PATCH (atualizar parcial)
  *  - Status HTTP adequados: 201 Created, 200 OK, 204 no Content, 404 Not Found
  *  - Sub-recusrsos: /pedidos/{id}/itens, /pedidos/{id}/status
- * 
+ *
  * SEPARAÇÃO DE RESPONSABILIDADES:
  *  - Controller: Recebe requisições, valida, chama Service, monta resposta HTTP.
  *  - Service: Contém TODA a lógica de negócio, transações, regras.
@@ -83,7 +83,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 @RestController
 @RequestMapping("/api/pedidos")
 public class PedidoController {
-	
+
 	private final ImpressaoService impressaoService;
 	private final StatusPedidoHistoricoService historicoService;
 	private final PedidoService pedidoService;
@@ -93,15 +93,15 @@ public class PedidoController {
 		this.historicoService = historicoService;
 		this.impressaoService = impressaoService;
 	}
-	
-	
+
+
 	// ====================================================================================================
     // 1. INICIAR / CRIAR UM PEDIDO
 	// ====================================================================================================
 	/**
 	 * Cria um novo pedido no sistema
-	 * 
-	 * FLUXO: 
+	 *
+	 * FLUXO:
 	 * 1. O operador informa o cliente (ou não, para balcão anônimo)
 	 * 2. Define o tipo: MESA, BALCÃO ou ENTREGA
 	 * 3. Se for MESA, informa o numero da mesa (que será ocupada)
@@ -113,17 +113,17 @@ public class PedidoController {
 			@RequestBody @Valid PedidoRequest request,
 			@RequestParam Integer operadorId,
 			UriComponentsBuilder uriBuilder){
-		
+
 		// 1. Chamar o Service para executar as regras de negócio e salvar
 		PedidoResponse response = pedidoService.iniciarPedidoResponse(request, operadorId);
-		
+
 		// 2. Retornar o código 201 (Created) e a URL do novo recurso
 		URI uri = uriBuilder.path("/api/pedidos/{id}").buildAndExpand(response.id()).toUri();
-		
+
 		// 3. Devolver o DTO de Saída (Response)
 		return ResponseEntity.created(uri).body(response);
 	}
-	
+
 	// ====================================================================================================
     // 2. ADICIONAR ITEM AO PEDIDO
 	// ====================================================================================================
@@ -165,37 +165,37 @@ public class PedidoController {
 			@PathVariable Integer pedidoId,
 			@RequestBody @Valid AdicionarItemRequest request
 			){
-		
-		
+
+
 		PedidoResponse response = pedidoService.adicionarItemAoPedidoResponse(pedidoId, request);
-		
+
 		return ResponseEntity.ok(response);
-		
+
 	}
-	
-	
+
+
 	// ====================================================================================================
     // 3. ADICIONAR SABOR A UM ITEM
 	// ====================================================================================================
 	/**
-	 * Adiciona um sabor a um item específico. 
-	 * 
-	 * IMPORTANTE: 
+	 * Adiciona um sabor a um item específico.
+	 *
+	 * IMPORTANTE:
 	 *  - Um ItemPedido pode ter 1,2 ou mais sabores.
 	 *  - Cada sabor é um SubItemSabor
 	 *  - O preço depende do tamanho da pizza (P, M, G).
 	 */
 	@PostMapping("/{pedidoId}/sabores")
 	public ResponseEntity<PedidoResponse> adicionarSabor(
-						@PathVariable Integer pedidoId, 
+						@PathVariable Integer pedidoId,
 						@RequestBody @Valid AdicionarSaborRequest request){
-		
+
 		PedidoResponse response = pedidoService.adicionarSaborAoItemResponse(pedidoId, request);
-		
+
 		return ResponseEntity.ok(response);
-		
+
 	}
-	
+
 	// ====================================================================================================
     // 4. ADICIONAR CUSTOMIZAÇÃO (INGREDIENTE) A UM SABOR
 	// ====================================================================================================
@@ -212,47 +212,47 @@ public class PedidoController {
      */
 	@PostMapping("/{pedidoId}/customizacoes")
 	public ResponseEntity<PedidoResponse> adicionarCustomizacao(
-			@PathVariable Integer pedidoId, 
+			@PathVariable Integer pedidoId,
 			@RequestBody @Valid CustomizacaoRequest request){
-		
+
 		PedidoResponse response = pedidoService.adicionarCustomizacaoResponse(pedidoId, request);
-		
+
 		return ResponseEntity.ok(response);
-		
+
 	}
-	
+
 	// ====================================================================================================
     // 5. ADICIONAR BORDA A UM ITEM
 	// ====================================================================================================
 	/**
 	 * Adicionar uma borda a um item (Pizza) inteiro
-	 * 
+	 *
 	 *DIFERENÇA DA CUSTOMIZAÇÃO:
      * - A borda é aplicada ao ITEM inteiro, não a um sabor específico.
      * - Exemplo: Pizza Grande com borda de catupiry.
      * - O valor da borda é adicionado ao preço final do item.
-	 * 
+	 *
 	 * CONCEITO: Customizações GLOBAIS (no item) vs LOCAIS (no sabor).
      * - Borda é global: afeta a pizza toda.
      * - Ingrediente extra pode ser local: afeta apenas aquele sabor.
 	 */
 	@PostMapping("/{pedidoId}/bordas")
 	public ResponseEntity<PedidoResponse> adicionarBorda(@PathVariable Integer pedidoId, @RequestBody @Valid BordaItemRequest request){
-		
+
 		PedidoResponse response = pedidoService.adicionarBordaAoItemResponse(pedidoId, request);
-		
+
 		return ResponseEntity.ok(response);
-		
+
 	}
-	
+
 	// ====================================================================================================
     // 6. REMOVER INGREDIENTE DO SABOR
 	// ====================================================================================================
 	/**
 	 * Remove uma customização (ingrediente adicional/remoção) de um sabor.
-	 * 
+	 *
 	 * CONCEITO: DELETE é o verbo correto para operação de remoção.
-	 * A URI identifica exatamente qual customização será removida 
+	 * A URI identifica exatamente qual customização será removida
 	 */
 	@DeleteMapping("/{pedidoId}/customizacoes/{itemId}/{subItemId}/{ingredenteId}")
 	public ResponseEntity<PedidoResponse> removerCustomizacao (
@@ -261,20 +261,20 @@ public class PedidoController {
 			@PathVariable Integer subItemId,
 			@PathVariable Integer ingredienteId
 			){
-		
+
 		// O operadorId pode ser obtido do contexto de segurança,
 	    // mas para simplificar, passamos null ou um ID fixo em desenvolvimento.
 	    // Como o método não usa operadorId, podemos passar null ou buscar do token.
 		PedidoResponse response = pedidoService.removerCustomizacaoResponse(
-				pedidoId, 
-				itemId, 
-				subItemId, 
+				pedidoId,
+				itemId,
+				subItemId,
 				ingredienteId);
-		
+
 		return ResponseEntity.ok(response);
-		
+
 	}
-	
+
 	// ====================================================================================================
     // 7. REMOVER BORDA A UM ITEM
 	// ====================================================================================================
@@ -288,88 +288,88 @@ public class PedidoController {
 			@PathVariable Integer pedidoId,
 	        @PathVariable Integer itemId,
 	        @PathVariable Integer bordaId){
-		
+
 		PedidoResponse response = pedidoService.removerBordaDoItemResponse(pedidoId, itemId, bordaId);
-		
+
 		return ResponseEntity.ok(response);
-		
+
 	}
-	
+
 	// ====================================================================================================
     // 8. VINCULAR ENTREGADOR AO PEDIDO
 	// ====================================================================================================
 	/**
-	 * Vincula um entregador a um pedido do tipo ENTREGA 
-	 * 
-	 * QUANDO USAR: 
-	 *  - Apenas o pedido ficar PRONTO na cozinha. 
+	 * Vincula um entregador a um pedido do tipo ENTREGA
+	 *
+	 * QUANDO USAR:
+	 *  - Apenas o pedido ficar PRONTO na cozinha.
 	 *  - Antes de enviar para entrega (status SAIU_PARA_ENTREGA).
-	 *  
-	 *  REGRAS: 
+	 *
+	 *  REGRAS:
 	 *   - Apenas pedidos do tipo ENTREGA podem ter entregador.
 	 *   - O entregador deve estar ATIVO.
 	 *   - O pedido deve estar com status PRONTO.
-	 *   
+	 *
 	 * CONCEITO: Este é um PUT porque estamos substituindo a relação
      * entregador-pedido (atualizando um campo específico).
-	 * 
+	 *
 	 */
 	@PutMapping("/{pedidoId}/entregador")
 	public ResponseEntity<PedidoResponse> vincularEntregador (
-				@PathVariable Integer pedidoId, 
+				@PathVariable Integer pedidoId,
 				@RequestBody @Valid VincularEntregadorRequest request,
 				@RequestParam Integer operadorId){
 		PedidoResponse response = pedidoService.vincularEntregadorResponse(pedidoId, request, operadorId);
-		
+
 		return ResponseEntity.ok(response);
-		
+
 	}
-	
+
 	// ====================================================================================================
     // 9. MUDAR STATUS DO PEDIDO
 	// ====================================================================================================
 	/**
-	 * Altera o status de um pedido 
-	 * 
-	 * FLUXO DE STATUS (Ordem natural) 
+	 * Altera o status de um pedido
+	 *
+	 * FLUXO DE STATUS (Ordem natural)
 	 * PEDIDO_INICIADO -> PENDENTE -> EM_PREPARACAO -> PRONTO -> SAIU_PARA_ENTREGA -> FINALIZADO
 	 * STATUS ESPECIAIS:
      *  - CANCELADO: Pode ser aplicado em qualquer momento (com autorização).
-     *  
+     *
      * CONCEITO: PATCH é o verbo correto para atualizações parciais.
      * Estamos alterando APENAS o status, não o pedido inteiro.
      * Cada mudança de status gera um registro no histórico (StatusPedidoHistorico).
-	 * 
+	 *
 	 */
 	@PatchMapping("/{pedidoId}/status")
 	public ResponseEntity<PedidoResponse> mudarStatus(
 			@PathVariable Integer pedidoId,
 			@RequestBody @Valid StatusPedidoRequest request,
 			@RequestParam Integer operadorId){
-		
+
 		PedidoResponse response = pedidoService.mudarStatusResponse(pedidoId, request, operadorId);
-		
+
 		return ResponseEntity.ok(response);
-		
+
 	}
-	
+
 	// ====================================================================================================
     // 10. FINALIZAR PEDIDO
 	// ====================================================================================================
 	/**
 	 * Finaliza um pedido (encerra o ciclo).
-	 * 
+	 *
 	 * REGRAS PARA FINALIZAÇÃO:
      * 1. O pedido deve estar totalmente PAGO.
      * 2. O status deve ser PRONTO ou SAIU_PARA_ENTREGA.
      * 3. Se for ENTREGA, deve ter um entregador vinculado.
      * 4. Se for MESA, deve ter número da mesa informado.
-     * 
+     *
      * AÇÕES REALIZADAS:
      * - Define a data/hora de finalização.
      * - Altera o status para FINALIZADO.
      * - Libera a mesa (se for MESA).
-     * 
+     *
      * CONCEITO: A finalização é um evento importante e irreversível.
      * Todas as regras de negócio estão encapsuladas no Service e na Model.
      * O Controller apenas orquestra a chamada.
@@ -379,13 +379,13 @@ public class PedidoController {
 			@PathVariable Integer pedidoId,
             @RequestParam Integer operadorId
 			){
-		
+
 		PedidoResponse response = pedidoService.finalizarPedidoResponse(pedidoId, operadorId);
-		
+
 		return ResponseEntity.ok(response);
-		
+
 	}
-	
+
 	// ====================================================================================================
     // 11. CANCELAR PEDIDO
 	// ====================================================================================================
@@ -410,13 +410,13 @@ public class PedidoController {
 			@RequestBody @Valid CancelarPedidoRequest request,
 			@RequestParam Integer operadorId
 			){
-		
+
 		PedidoResponse response = pedidoService.cancelarPedidoResponse(pedidoId, request, operadorId);
-		
+
 		return ResponseEntity.ok(response);
-		
+
 	}
-	
+
 	// ====================================================================================================
     // 12. REABRIR PEDIDO CANCELADO
 	// ====================================================================================================
@@ -442,13 +442,13 @@ public class PedidoController {
             @RequestBody @Valid ReabrirPedidoRequest request,
             @RequestParam Integer operadorId
 			){
-		
+
 		PedidoResponse response = pedidoService.reabrirPedidoCanceladoResponse(pedidoId, request, operadorId);
-		
+
 		return ResponseEntity.ok(response);
-		
+
 	}
-	
+
 	// ====================================================================================================
     // 13. CONSULTAR PEDIDO POR ID (DETALHADO)
 	// ====================================================================================================
@@ -461,12 +461,12 @@ public class PedidoController {
      */
 	@GetMapping("/{pedidoId}")
 	public ResponseEntity<PedidoResponse> buscarPorId(@PathVariable Integer pedidoId){
-		
+
 		PedidoResponse response = pedidoService.buscarPorIdResponse(pedidoId);
-		
+
 		return ResponseEntity.ok(response);
 	}
-	
+
 	// =============================================================
 	// 14. LISTAR PEDIDOS COM FILTROS (RESUMO)
 	// =============================================================
@@ -491,8 +491,8 @@ public class PedidoController {
         Page<PedidoResumoResponse> paginaResultados = pedidoService.listarPedidosResponse(status, tipo, pageable);
         return ResponseEntity.ok(paginaResultados);
     }
-    
-    
+
+
     // =============================================================
     // 15. CONSULTAR HISTÓRICO DE STATUS DO PEDIDO
     // =============================================================
@@ -510,46 +510,46 @@ public class PedidoController {
      */
     @GetMapping("/{pedidoId}/historico")
     public ResponseEntity<List<StatusPedidoHistoricoResponse>> historicoStatus (@PathVariable Integer pedidoId){
-    	
+
     	List<StatusPedidoHistoricoResponse> historico = historicoService.historicoDoPedidoResponse(pedidoId);
-    	
+
     	return ResponseEntity.ok(historico);
-    	
+
     }
-    
-    
+
+
     // =============================================================
     // 16. LISTAR PEDIDOS EM ABERTO (GRADE DE PEDIDOS)
     // =============================================================
     /**
      * Lista todos os pedidos em aberto (não finalizados e não cancelados).
-     * 
+     *
      * PEDIDOS EM ABERTO INCLUEM:
      * - PEDIDO_INICIADO
      * - PENDENTE
      * - EM_PREPARACAO
      * - PRONTO
      * - SAIU_PARA_ENTREGA
-     * 
+     *
      * EXCLUI:
      * - FINALIZADO
      * - CANCELADO
-     * 
+     *
      * CONCEITO: Esta listagem é a "grade de pedidos" que o atendente vê.
      * Útil para monitorar o que está em andamento na cozinha e no balcão.
      * Ordenação padrão: mais recentes primeiro.
      */
     @GetMapping("/abertos")
     public ResponseEntity<Page<PedidoResumoResponse>> listarPedidosAbertos(
-    		@PageableDefault(size = 20  ) Pageable pageable // sem o argumento sort para ser ecolhido no front a ordenação, 
+    		@PageableDefault(size = 20  ) Pageable pageable // sem o argumento sort para ser ecolhido no front a ordenação,
     		){                                              // o front deverá enviar na URL ?sort=dtHoraAbertura,desc
-    	
+
     	Page<PedidoResumoResponse> paginaResultados = pedidoService.listarPedidosAbertosResponse(pageable);
-    	
+
     	return ResponseEntity.ok(paginaResultados);
-    	
+
     }
-    
+
     // =============================================================
     // 17. IMPRIMIR PEDIDO MANUAL BALCÃO (PARA REIMPRESSÃO)
     // =============================================================
@@ -558,11 +558,11 @@ public class PedidoController {
      */
     @PostMapping("/{pedidoId}/imprimir/balcao")
     public ResponseEntity<ImpressaoBalcaoResponse> imprimirBalcao(@PathVariable Integer pedidoId){
-    	
+
     	ImpressaoBalcaoResponse response = impressaoService.imprimirPedidoBalcao(pedidoId);
     	return ResponseEntity.ok(response);
     }
-    
+
  // =============================================================
     // 17. IMPRIMIR PEDIDO MANUAL COZINHA (PARA REIMPRESSÃO)
     // =============================================================
@@ -571,9 +571,9 @@ public class PedidoController {
      */
     @PostMapping("/{pedidoId}/imprimir/cozinha")
     public ResponseEntity<ImpressaoCozinhaResponse> imprimircozinha(@PathVariable Integer pedidoId){
-    	
+
     	ImpressaoCozinhaResponse response = impressaoService.imprimirPedidoCozinha(pedidoId);
     	return ResponseEntity.ok(response);
     }
-    
+
 }

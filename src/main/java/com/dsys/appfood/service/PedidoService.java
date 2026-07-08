@@ -1,5 +1,14 @@
 package com.dsys.appfood.service;
 
+import java.math.BigDecimal;
+import java.util.List;
+
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.dsys.appfood.domain.enums.StatusPedido;
 import com.dsys.appfood.domain.enums.TipoCustomizacao;
 import com.dsys.appfood.domain.enums.TipoPedido;
@@ -33,21 +42,12 @@ import com.dsys.appfood.exception.PedidoNaoEncontradoException;
 import com.dsys.appfood.repository.ItemPedidoRepository;
 import com.dsys.appfood.repository.PedidoRepository;
 
-import java.math.BigDecimal;
-import java.util.List;
-
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 /**
  * Classe responsável pelo coração do sistema: O Pedido.
- * 
+ *
  * Responsabilidade ÚNICA: gerenciar o ciclo de vida do Pedido (criação, edição
  * de itens, customizações e fluxo de status)
- * 
+ *
  * Este Service NÃO sabe nada sobre HTTP, Apenas processa e lança exceções de
  * negócio.
  */
@@ -69,7 +69,7 @@ public class PedidoService {
 	public PedidoService(ItemPedidoRepository itemPedidoRepository, ClienteService clienteService,
 			UsuarioService usuarioService, ProdutoService produtoService, TamanhoService tamanhoService,
 			PedidoRepository pedidoRepository, IngredienteService ingredienteService, BordaService bordaService,
-			MesaService mesaService, EntregadorService entregadorService, ComposicaoPadraoService composicaoService, 
+			MesaService mesaService, EntregadorService entregadorService, ComposicaoPadraoService composicaoService,
 			ApplicationEventPublisher eventPublisher) {
 
 		this.clienteService = clienteService;
@@ -83,7 +83,7 @@ public class PedidoService {
 		this.entregadorService = entregadorService;
 		this.composicaoService = composicaoService;
 		this.eventPublisher = eventPublisher;
-		
+
 
 	}
 
@@ -138,6 +138,12 @@ public class PedidoService {
 		pedido.setNumeroMesa(numeroMesa);
 		pedido.setObsPedido(obsPedido);
 
+		// Setando valores padrão
+		pedido.setValorBruto(BigDecimal.ZERO);
+	    pedido.setDesconto(BigDecimal.ZERO);
+	    pedido.setTaxaEntrega(BigDecimal.ZERO);
+	    pedido.setValorTotal(BigDecimal.ZERO); // Opcional, mas boa prática
+
 		// 7. Registra o status inicial (Usando seu método da Model que já grava
 		// histórico)
 		pedido.alteraStatus(StatusPedido.PEDIDO_INICIADO, operador);
@@ -166,25 +172,25 @@ public class PedidoService {
 
 		// Instanciar um novo ItemPedido
 		ItemPedido item = new ItemPedido(tamanho);
-		
+
 		// Se for produto Simples (Bebida, Porção, etc.)
 		if (produtoId != null) {
-			
+
 			//Busca o produto (bebida, porção)
 			Produto produto = produtoService.buscarProdutoPorId(produtoId);
-			
+
 			// VALIDAÇÃO: Verifica se a categoria NÃO é personalizavel (ex: Bebidas)
 			// Se for personalizavel (Pizza), não deve entrar aqui, pois precisa de Multiplos sabores.
 			if(produto.getCategoria().isPersonalizavel()) {
 				throw new NegocioException("Produtos personalizáveis devem ser adicionados usando o endpoint específico de sabores.");
 			}
-			
+
 			// Busca o preço do produto para o tamanho informado (Ex: Coca-Cola 600ml)
 			BigDecimal preco = produto.obterPrecoParaTamanho(tamanho);
-			
+
 			// Cria o SubItemSabor (que aqui representa o próprio produto)
 			SubItemSabor subItem = new SubItemSabor(produto, preco);
-			
+
 			// Adiciona o sabor(Produto) ao item
 
 			item.adicionarSabor(subItem);
@@ -218,26 +224,26 @@ public class PedidoService {
 
 		// Buscar o produto que será adicionado como sabor
 		Produto produto = produtoService.buscarProdutoPorId(produtoId);
-		
-		// Verifica se o item possui sabores 
+
+		// Verifica se o item possui sabores
 		if(!itemEncontrado.getSubItens().isEmpty()) {
 			// Pega o primeiro sabor para verificar a categoria
 			SubItemSabor primeiroSabor = itemEncontrado.getSubItens().get(0);
-			
+
 			// Se o primeiro sabor NÃO for personalizável, o item é fixo (bebidas, porções)
 			// → não pode receber sabores adicionais
 			if(!primeiroSabor.getProduto().getCategoria().isPersonalizavel()) {
-				throw new NegocioException("Este item contém um produto fixo (" + primeiroSabor.getProduto().getNome() + 
+				throw new NegocioException("Este item contém um produto fixo (" + primeiroSabor.getProduto().getNome() +
 		                ") e não pode receber sabores adicionais. Para adicionar múltiplos itens, crie um novo item.");
 			}
-			
+
 			// Se o primeiro sabor é personalizável, verifica se o novo produto também é personalizável
 			// → não permite misturar produtos fixos com pizzas no mesmo item
 			if(!produto.getCategoria().isPersonalizavel()) {
 				throw new NegocioException("Produtos fixos (como " + produto.getNome() + ") não "
 						+ "podem ser adicionados como sabores adicionais em uma pizza.");
 			}
-			
+
 			// Se passou pelas verificações, o item já é uma pizza e o novo produto também é personalizável → OK
 		}else {
 			// Se o item está VAZIO (recém-criado), o primeiro sabor DEVE ser personalizável
@@ -247,7 +253,7 @@ public class PedidoService {
 				throw new NegocioException("Itens vazios só podem receber produtos personalizáveis (pizzas). " +
 		                "Para adicionar produtos fixos, utilize o endpoint /itens informando o produtoId.");
 			}
-			
+
 			// Se o produto é personalizável → OK (primeiro sabor de uma pizza)
 		}
 
@@ -302,17 +308,17 @@ public class PedidoService {
 
 		// Buscar o Ingrediente
 		Ingrediente ingrediente = ingredienteService.buscarIngredientePorId(ingredienteId);
-		
-		// O sabor deve pertencer a um produto PERONALIZÁVEL 
+
+		// O sabor deve pertencer a um produto PERONALIZÁVEL
 		// → Não faz sentido adicionar/remover ingredientes de uma Coca-Cola
 		if(!saborEncontrado.getProduto().getCategoria().isPersonalizavel()) {
-			throw new NegocioException( 
-					"O produto '" + saborEncontrado.getProduto().getNome() + 
+			throw new NegocioException(
+					"O produto '" + saborEncontrado.getProduto().getNome() +
 		            "' não é personalizável e não aceita customizações de ingredientes. " +
 		            "Apenas produtos da personalizáveis permitem esta operação."
 		            );
 		}
-		
+
 		// Validar o Tipo de Customização (garantir que é ADICIONAL ou REMOCAO)
 	    // → Se o DTO enviar outro valor, bloqueia (segurança extra)
 		if(tipo != TipoCustomizacao.ADICIONAL && tipo != TipoCustomizacao.REMOCAO) {
@@ -324,11 +330,11 @@ public class PedidoService {
 		if(tipo == TipoCustomizacao.REMOCAO) {
 			ComposicaoPadrao composicao = composicaoService.buscarReceitaDoProduto(saborEncontrado.getProduto().getId());
 			if(!composicao.getIngredientes().contains(ingrediente)) {
-				throw new NegocioException("O ingrediente '" + ingrediente.getNome() + 
+				throw new NegocioException("O ingrediente '" + ingrediente.getNome() +
 		                "' não faz parte da composição padrão deste produto e não pode ser removido.");
 			}
 		}
-		
+
 		// Definir o valor.
 		// Se for REMOCAO, o valor é ZERO (não cobra para remover)
 	    // Se for ADICIONAL, cobra o valor adicional do ingrediente
@@ -355,7 +361,7 @@ public class PedidoService {
 
 		// Buscar Pedido
 		Pedido pedido = buscarPorId(pedidoId);
-		
+
 		// Validar Status (apenas pedidos em andamento)
 	    if (pedido.getStatus() != StatusPedido.PEDIDO_INICIADO && pedido.getStatus() != StatusPedido.PENDENTE) {
 	        throw new NegocioException("O status atual (" + pedido.getStatus() + ") não permite adicionar bordas.");
@@ -369,7 +375,7 @@ public class PedidoService {
 
 		// Buscar a borda
 		Borda borda = bordaService.buscarBordaPorId(bordaId);
-		
+
 		//  O item deve ter pelo menos UM sabor
 	    //   → Não faz sentido adicionar borda a um item vazio
 		if(itemEncontrado.getSubItens().isEmpty()) {
@@ -378,18 +384,18 @@ public class PedidoService {
 		            "Adicione pelo menos um sabor antes de aplicar a borda."
 					);
 		}
-		
+
 		//   O produto do primeiro sabor deve ser PERSONALIZÁVEL (Pizza)
 	    //     → Como validamos no adicionarSaborAoItem que um item não pode misturar
 	    //       produtos fixos e personalizáveis, verificar o primeiro sabor é suficiente.
 		SubItemSabor primeiroSabor = itemEncontrado.getSubItens().get(0);
 		if(!primeiroSabor.getProduto().getCategoria().isPersonalizavel()) {
 			throw new NegocioException(
-					"O item contém o produto '" + primeiroSabor.getProduto().getNome() + 
+					"O item contém o produto '" + primeiroSabor.getProduto().getNome() +
 		            "', que não é personalizável. Borda só pode ser adicionada a produtos do tipo Pizza."
 					);
 		}
-		
+
 		// Verificar se o item já possui esta borda
 	    // → Evita duplicidade de borda no mesmo item
 		boolean bordaJaExiste = itemEncontrado.getCustomizacoesGlobais().stream()
@@ -566,7 +572,7 @@ public class PedidoService {
 
 		Pedido pedido = buscarPorId(pedidoId);
 		Entregador entregador = entregadorService.buscarEntregadorPorId(entregadorId);
-		
+
 	    // VALIDAÇÃO: Apenas pedidos do tipo ENTREGA podem ter entregador
 	    if (pedido.getTipo() != TipoPedido.ENTREGA) {
 	        throw new NegocioException("Apenas pedidos do tipo ENTREGA podem ter entregador vinculado.");
@@ -614,28 +620,28 @@ public class PedidoService {
 	// =============================================================
 	@Transactional
 	public Pedido reabrirPedidoCancelado(Integer pedidoId, Integer gerenteId, Integer operadorId) {
-		
+
 		// Busca entidades
 		Pedido pedido = buscarPorId(pedidoId);
 		Usuario operador = usuarioService.buscaPorId(operadorId);
 		Usuario gerente = usuarioService.buscaPorId(gerenteId);
-		
+
 		// Reabrir pedido, as validações são feitas na model
 		pedido.reabrirPedidoCancelado(gerente, operador);
-		
+
 		// Se for MESA, verifica se a mesa está livre e ocupa novamente
 	    if (pedido.getTipo() == TipoPedido.MESA && pedido.getNumeroMesa() != null) {
 	        Mesa mesa = mesaService.buscarPorNumero(pedido.getNumeroMesa());
 	        if (mesa.isOcupada()) {
 	            throw new NegocioException(
-	                "Não é possível reabrir o pedido. A mesa " + 
+	                "Não é possível reabrir o pedido. A mesa " +
 	                pedido.getNumeroMesa() + " já está ocupada por outro pedido."
 	            );
 	        }
 	        mesaService.ocuparMesa(pedido.getNumeroMesa());
 	    }
-		
-	    // Salva e Retorna 
+
+	    // Salva e Retorna
 		return pedidoRepository.save(pedido);
 	}
 
@@ -646,26 +652,26 @@ public class PedidoService {
 	public Pedido mudarStatus(Integer pedidoId, StatusPedido novoStatus, Integer operadorId) {
 		Pedido pedido = buscarPorId(pedidoId);
 		Usuario operador = usuarioService.buscaPorId(operadorId);
-		
+
 
 		if (pedido.getStatus() == StatusPedido.CANCELADO || pedido.getStatus() == StatusPedido.FINALIZADO) {
 			throw new NegocioException("Não é possível alterar o status de um pedido já encerrado.");
 		}
-		
+
 		StatusPedido statusAnterior = pedido.getStatus();
-		
-		
+
+
 		// VALIDAÇÃO: Pedidos encerrados não podem mudar de status
 		if(statusAnterior == StatusPedido.CANCELADO || statusAnterior == StatusPedido.FINALIZADO) {
 			throw new NegocioException("Não é possivel alterar um pedido já encerrado");
 		}
-		
+
 		// VALIDAÇÃO: Ninguém pode mudar para finalizado via este método
 		if(novoStatus == StatusPedido.FINALIZADO) {
 			throw new NegocioException("Para finalizar um pedido, utilize o endpoint específico POST /pedidos/{id}/finalizar. " +
 		            					"Este método valida pagamento, entregador e outras regras de negócio.");
 		}
-		
+
 	    // VALIDAÇÃO: Para mudar para SAIU_PARA_ENTREGA, precisa ter entregador
 	    if (novoStatus == StatusPedido.SAIU_PARA_ENTREGA) {
 	        if (pedido.getEntregador() == null) {
@@ -681,16 +687,16 @@ public class PedidoService {
 	            );
 	        }
 	    }
-		
+
 		//Altera o status (já registra o histórico)
 		pedido.alteraStatus(novoStatus, operador);
-		
+
 		// Persiste antes de publicar o evento
 		Pedido pedidoSalvo = pedidoRepository.save(pedido);
 
 		// Publica o evento para quem estiver ouvindo
 		eventPublisher.publishEvent(new PedidoStatusChangeEvent(this, pedidoSalvo, statusAnterior, statusAnterior));
-		
+
 		return pedidoSalvo;
 	}
 
@@ -701,7 +707,7 @@ public class PedidoService {
 	public Pedido buscarPorId(Integer id) {
 		return pedidoRepository.findById(id).orElseThrow(() -> new PedidoNaoEncontradoException(id));
 	}
-	
+
 	@Transactional(readOnly = true)
 	public List<Pedido> buscarPedidosAtivosDaMesa(Integer numeroMesa) {
 
@@ -712,193 +718,248 @@ public class PedidoService {
 		// Chamando o repository passando os filtros "fixos" da regra de negócio
 		return pedidoRepository.findByTipoAndNumeroMesaAndStatusNotIn(TipoPedido.MESA, numeroMesa, statusFechados);
 	}
-	
+
 	// =============================================================
 	//  MÉTODOS DTO (conversão dentro da transação)
 	// =============================================================
 	@Transactional
 	public PedidoResponse iniciarPedidoResponse (PedidoRequest request, Integer operadorId) {
-		
+
 		Pedido pedido = iniciarPedido(
-				request.clienteId(), 
-				operadorId, 
-				request.tipo(), 
-				request.nomeBalcao(), 
-				request.numeroMesa(), 
+				request.clienteId(),
+				operadorId,
+				request.tipo(),
+				request.nomeBalcao(),
+				request.numeroMesa(),
 				request.obsPedido());
-		
+
 		return PedidoResponse.from(pedido);
-		
+
 	}
-	
+
 	@Transactional
-	public PedidoResponse adicionarItemAoPedidoResponse(Integer pedidoId, 
+	public PedidoResponse adicionarItemAoPedidoResponse(Integer pedidoId,
 			AdicionarItemRequest request) {
-		
+
 		// Passamos o produtoId (que pode ser null para Pizzas)
 		Pedido pedido = adicionarItemAoPedido(
-				pedidoId, 
-				request.tamanhoId(), 
+				pedidoId,
+				request.tamanhoId(),
 				request.produtoId()); // pode ser null
-		
+
 		return PedidoResponse.from(pedido);
 	}
-	
+
 	@Transactional
 	public PedidoResponse adicionarSaborAoItemResponse(Integer pedidoId, AdicionarSaborRequest request) {
-		
+
 		Pedido pedido = adicionarSaborAoItem(
-				pedidoId, 
-				request.itemId(), 
+				pedidoId,
+				request.itemId(),
 				request.produtoId()
 				);
 		return PedidoResponse.from(pedido);
-		
+
 	}
-	
+
 	@Transactional
 	public PedidoResponse adicionarCustomizacaoResponse (Integer pedidoId, CustomizacaoRequest request) {
-		
+
 		Pedido pedido = adicionarCustomizacao(
-				pedidoId, 
-				request.itemId(), 
-				request.sbItemId(), 
-				request.ingredienteId(), 
+				pedidoId,
+				request.itemId(),
+				request.subItemId(),
+				request.ingredienteId(),
 				request.tipo()
 				);
 		return PedidoResponse.from(pedido);
-		
+
 	}
-	
+
 	@Transactional
 	public PedidoResponse adicionarBordaAoItemResponse(Integer pedidoId, BordaItemRequest request) {
-		
+
 		Pedido pedido = adicionarBordaAoItem(
-				pedidoId, 
-				request.itemId(), 
+				pedidoId,
+				request.itemId(),
 				request.bordaId()
-				); 
+				);
 		return PedidoResponse.from(pedido);
 	}
-	
+
 	@Transactional
 	public PedidoResponse vincularEntregadorResponse (Integer pedidoId, VincularEntregadorRequest request, Integer operadorId ) {
-		
+
 		Pedido pedido = vincularEntregador(
-				pedidoId, 
-				request.entregadorId(), 
+				pedidoId,
+				request.entregadorId(),
 				operadorId
 				);
 		return PedidoResponse.from(pedido);
 	}
-	
+
 	@Transactional
 	public PedidoResponse mudarStatusResponse (
-				Integer pedidoId, 
-				StatusPedidoRequest request, 
+				Integer pedidoId,
+				StatusPedidoRequest request,
 				Integer operadorId) {
-		
+
 		Pedido pedido = mudarStatus(pedidoId, request.status(), operadorId);
-		
+
 		return PedidoResponse.from(pedido);
-		
+
 	}
-	
+
 	@Transactional
 	public PedidoResponse finalizarPedidoResponse(Integer pedidoId, Integer operadorId) {
-		
+
 		Pedido pedido = finalizarPedido(pedidoId, operadorId);
-		
+
 		return PedidoResponse.from(pedido);
-		
+
 	}
-	
+
 	@Transactional
 	public PedidoResponse cancelarPedidoResponse (Integer pedidoId, CancelarPedidoRequest request, Integer operadorId) {
-		
+
 		Pedido pedido = cancelarPedido(pedidoId, request.gerenteId(), request.motivo(), operadorId);
-		
+
 		return PedidoResponse.from(pedido);
-		
+
 	}
-	
+
 	@Transactional
 	public PedidoResponse reabrirPedidoCanceladoResponse (
-			Integer pedidoId, 
-			ReabrirPedidoRequest request, 
+			Integer pedidoId,
+			ReabrirPedidoRequest request,
 			Integer operadorId
 			) {
-		
+
 		Pedido pedido = reabrirPedidoCancelado(pedidoId, request.gerenteId(), operadorId);
-		
+
 		return PedidoResponse.from(pedido);
-		
+
 	}
-	
+
 	@Transactional(readOnly = true)
 	public PedidoResponse buscarPorIdResponse(Integer pedidoId) {
-		
+
 		Pedido pedido = buscarPorId(pedidoId);
-		
+
 		return PedidoResponse.from(pedido);
-		
+
 	}
-	
+
 	@Transactional
-	public PedidoResponse removerCustomizacaoResponse (Integer pedidoId, Integer itemId, 
+	public PedidoResponse removerCustomizacaoResponse (Integer pedidoId, Integer itemId,
 			Integer subItemId, Integer ingredienteId) {
-		
+
 		Pedido pedido = removerCustomizacao(pedidoId, itemId, subItemId, ingredienteId);
-		
-		return PedidoResponse.from(pedido);	
+
+		return PedidoResponse.from(pedido);
 	}
-	
+
 	@Transactional
 	public PedidoResponse removerBordaDoItemResponse (Integer pedidoId, Integer itemId, Integer bordaId) {
-		
+
 		Pedido pedido = removerBordaDoItem(pedidoId, itemId, bordaId);
-		
+
 		return PedidoResponse.from(pedido);
 	}
-	
+
 	@Transactional(readOnly = true)
 	public Page<PedidoResumoResponse> listarPedidosResponse(StatusPedido status, TipoPedido tipo, Pageable pageable){
-		
+
 		Page<Pedido> paginaPedidos;
-		
+
 		// Lógica de decisão: Se ambos os filtros foram informados, aplica os dois.
 	    // Se apenas um foi informado, aplica apenas ele.
 	    // Se nenhum foi informado, lista todos.
 		if(status!= null && tipo != null) {
-			paginaPedidos = pedidoRepository.finByStatusAndTipo(status, tipo, pageable);
+			paginaPedidos = pedidoRepository.findByStatusAndTipo(status, tipo, pageable);
 		}else if (status != null ) {
 			paginaPedidos = pedidoRepository.findByStatus(status, pageable);
 		}else if ( tipo != null ) {
 			paginaPedidos = pedidoRepository.findByTipo(tipo, pageable);
 		}else {
-			paginaPedidos = pedidoRepository.findAll(pageable);
+			paginaPedidos = pedidoRepository.findAllResumido(pageable);
 		}
-		
+
 		// Converte cada Pedido para PedidoResumoResponse usando o método from
 		return paginaPedidos.map(PedidoResumoResponse::from);
 	}
-	
+
 	@Transactional(readOnly = true)
 	public Page<PedidoResumoResponse> listarPedidosAbertosResponse (Pageable pageable){
-		
+
 		//Define os status que ENCERRAM o pedido (não são abertos )
 		List<StatusPedido> statusFechado = List.of(
 				StatusPedido.FINALIZADO,
 				StatusPedido.CANCELADO
 				);
-		
-		// Busca todos os pedido que NÃO estão nesses status 
+
+		// Busca todos os pedido que NÃO estão nesses status
 		Page<Pedido> paginaPedidos = pedidoRepository.findByStatusNotIn(statusFechado, pageable);
-		
+
 		// Converte para DTO de resumo
 		return paginaPedidos.map(PedidoResumoResponse::from);
-		
-		
 	}
+
+
+	 // =============================================================
+    // MÉTODO: BUSCAR PEDIDO COMPLETO (COM ENTITYGRAPH)
+    // =============================================================
+
+    /**
+     * Busca um pedido completo para operações como impressão e finalização.
+     *
+     * ESTRATÉGIA:
+     * - Usa @EntityGraph para carregar relacionamentos complexos (itens, subitens, etc.)
+     * - Evita LazyInitializationException carregando tudo em uma única transação.
+     *
+     * @param id ID do pedido
+     * @return Pedido completo
+     * @throws PedidoNaoEncontradoException se o pedido não existir
+     */
+	@Transactional(readOnly = true)
+	public Pedido buscarPedidoCompleto (Integer id) {
+		return pedidoRepository.findByIdCompleto(id)
+				.orElseThrow(() -> new PedidoNaoEncontradoException(id));
+	}
+
+	// =============================================================
+    // MÉTODO: BUSCAR PEDIDO PARA IMPRESSÃO
+    // =============================================================
+
+    /**
+     * Busca um pedido com todos os dados necessários para impressão.
+     *
+     * Este método é mais leve que o buscarPedidoCompleto, pois carrega
+     * apenas o necessário para a impressão (não carrega pagamentos, etc.)
+     *
+     * @param id ID do pedido
+     * @return Pedido pronto para impressão
+     */
+	@Transactional(readOnly = true)
+	public Pedido buscarPedidoParaImpressao (Integer id) {
+		return pedidoRepository.findByIdCompletoForPrinting(id)
+				.orElseThrow(() -> new PedidoNaoEncontradoException(id));
+	}
+
+	 // =============================================================
+    // MÉTODO: BUSCAR PEDIDO RESUMIDO
+    // =============================================================
+
+    /**
+     * Busca um pedido com dados resumidos (para listagens).
+     *
+     * @param id ID do pedido
+     * @return Pedido com dados resumidos
+     */
+    @Transactional(readOnly = true)
+    public Pedido buscarPedidoResumido(Integer id) {
+        return pedidoRepository.findByIdResumido(id)
+                .orElseThrow(() -> new PedidoNaoEncontradoException(id));
+    }
 
 }

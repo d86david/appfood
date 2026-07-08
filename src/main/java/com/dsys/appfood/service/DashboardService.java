@@ -24,19 +24,19 @@ import com.dsys.appfood.repository.PedidoRepository;
 
 /**
  * Serviço para fornecimento de dados resumidos para dashboards.
- * 
+ *
  * CONCEITOS IMPORTANTES:
- * 
+ *
  * 1. Dashboard é uma visão consolidada e rápida:
  *    - Métodos retornam apenas números ou listas pequenas.
  *    - Deve ser extremamente performático.
- * 
+ *
  * 2. Métricas comuns:
  *    - Vendas do dia (hoje).
  *    - Pedidos em andamento (status abertos).
  *    - Produtos mais vendidos do dia.
  *    - Resumo de caixa do dia.
- * 
+ *
  * 3. Este serviço utiliza consultas específicas dos repositórios.
  *    - Podemos criar métodos de consulta customizados nos repositórios se necessário.
  */
@@ -138,5 +138,5 @@ public class DashboardService {
 			return new CaixaStatusResponse(false, null, BigDecimal.ZERO);
 		}
     }
-    
+
 }

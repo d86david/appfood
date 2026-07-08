@@ -1,5 +1,13 @@
 package com.dsys.appfood.service;
 
+import java.util.List;
+import java.util.Objects;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.dsys.appfood.domain.enums.StatusPedido;
 import com.dsys.appfood.domain.enums.TipoPedido;
 import com.dsys.appfood.domain.model.Mesa;
@@ -11,22 +19,14 @@ import com.dsys.appfood.exception.MesaJaCadastradaException;
 import com.dsys.appfood.exception.MesaNaoEncontradaException;
 import com.dsys.appfood.exception.NegocioException;
 import com.dsys.appfood.repository.MesaRepository;
-
 import com.dsys.appfood.repository.PedidoRepository;
-import java.util.List;
-import java.util.Objects;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Classe responsável por gerenciar o ciclo de vida das mesas do
  * estabelecimento.
- * 
+ *
  * Responsabilidade ÚNICA: gerenciar o ciclo de vida do das mesas
- * 
+ *
  * Este Service NÃO sabe nada sobre HTTP, Apenas processa e lança exceções de
  * negócio.
  */
@@ -165,7 +165,7 @@ public class MesaService {
 
 	/**
 	 * ATIVAR/DESATIVAR MESA (manutenção)
-	 * 
+	 *
 	 * Mesas podem ser desativadas temporariamente (ex: quebrou uma cadeira) sem
 	 * precisar excluir do sistema (mantém histórico).
 	 */
@@ -178,13 +178,13 @@ public class MesaService {
 		// mesaStatus.isAtiva() forem null
 		// Só entra no bloco se o status for DIFERENTE do atual
 		if (!Objects.equals(mesaStatus.isAtiva(), novoStatus)) {
-			
+
 			// Não pode alterar o status de uma mesa ocupada e ativa
 			if (mesaStatus.isOcupada() && mesaStatus.isAtiva()) {
 				throw new NegocioException(
 						"Não é possível alterar o status da mesa " + mesaStatus.getNumero() + " pois está ocupada.");
 			}
-			
+
 			mesaStatus.setAtiva(novoStatus);
 		}
 
@@ -202,77 +202,77 @@ public class MesaService {
 	public boolean existeMesa(Integer numero) {
 		return mesaRepository.existsByNumero(numero);
 	}
-	
+
 	// =============================================================
 	//  MÉTODOS DTO (conversão dentro da transação)
 	// =============================================================
-	
+
 	@Transactional
 	public MesaResponse cadastrarMesaResponse(MesaCadastroRequest request) {
-		
+
 		Mesa mesa = cadastrarMesa(request.numero(), request.capacidade());
-		
+
 		return MesaResponse.from(mesa);
-	}
-	
-	@Transactional
-	public MesaResponse ocuparMesaResponse(Integer numeroMesa) {
-		
-		Mesa mesa = ocuparMesa(numeroMesa);
-		return MesaResponse.from(mesa);
-		
-	}
-	
-	@Transactional
-	public MesaResponse liberarMesaResponse(Integer numeroMesa) {
-		
-		Mesa mesa = liberarMesa(numeroMesa);
-		return MesaResponse.from(mesa);
-		
-	}
-	
-	@Transactional
-	public void alterarStatusMesaResponse(Integer numeroMesa, MesaStatusRequest request ) {
-		
-		alterarStatusMesa(numeroMesa, request.ativa());
-		
 	}
 
-	
+	@Transactional
+	public MesaResponse ocuparMesaResponse(Integer numeroMesa) {
+
+		Mesa mesa = ocuparMesa(numeroMesa);
+		return MesaResponse.from(mesa);
+
+	}
+
+	@Transactional
+	public MesaResponse liberarMesaResponse(Integer numeroMesa) {
+
+		Mesa mesa = liberarMesa(numeroMesa);
+		return MesaResponse.from(mesa);
+
+	}
+
+	@Transactional
+	public void alterarStatusMesaResponse(Integer numeroMesa, MesaStatusRequest request ) {
+
+		alterarStatusMesa(numeroMesa, request.ativa());
+
+	}
+
+
 	@Transactional(readOnly = true)
 	public MesaResponse buscarPorNumeroResponse(Integer numero) {
-		
+
 		return MesaResponse.from(buscarPorNumero(numero));
-		
+
 	}
 
 	@Transactional(readOnly = true)
 	public MesaResponse buscarMesaPorIdResponse(Integer id) {
-		
+
 		return MesaResponse.from(buscarMesaPorId(id));
-		
+
 	}
 
 	@Transactional(readOnly = true)
 	public Page<MesaResponse> listarTodasAsMesaResponse(Pageable pageable){
-		
+
 		return listarTodasAsMesas(pageable).map(MesaResponse::from);
-		
+
 	}
 
 	@Transactional(readOnly = true)
 	public Page<MesaResponse> listarMesasLivresResponse(Pageable pageable) {
-		
+
 		return listarMesasLivres(pageable).map(MesaResponse::from);
-		
+
 	}
 
 	@Transactional(readOnly = true)
 	public Page<MesaResponse> listarMesasOcupadasResponse(Pageable pageable) {
-		
+
 		return listarMesasOcupadas(pageable).map(MesaResponse::from);
-		
+
 	}
-	
-	
+
+
 }

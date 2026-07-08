@@ -13,11 +13,11 @@ public record EnderecoResponse(
 		String uf,
 		String cep,
 		String pontoReferencia
-		
+
 		) {
-	
+
 	public static EnderecoResponse from(Endereco endereco){
-		
+
 		return new EnderecoResponse(
 				endereco.getId(),
 				endereco.getLogradouro(),
@@ -29,7 +29,7 @@ public record EnderecoResponse(
 				endereco.getCep(),
 				endereco.getPontoReferencia()
 				);
-		
+
 	}
 
 }

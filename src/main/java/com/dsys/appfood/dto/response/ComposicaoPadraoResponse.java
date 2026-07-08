@@ -5,7 +5,7 @@ import java.util.List;
 import com.dsys.appfood.domain.model.ComposicaoPadrao;
 
 public record ComposicaoPadraoResponse(
-		
+
 		Integer id,
 		Integer prodtuoId,
 		List<IngredienteResponse> ingredientes

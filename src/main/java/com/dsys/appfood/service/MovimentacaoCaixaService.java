@@ -1,12 +1,5 @@
 package com.dsys.appfood.service;
 
-import com.dsys.appfood.domain.model.MovimentacaoCaixa;
-import com.dsys.appfood.dto.response.MovimentacaoCaixaResponse;
-import com.dsys.appfood.dto.response.ResumoCaixaResponse;
-import com.dsys.appfood.exception.CaixaNaoEncontradoException;
-import com.dsys.appfood.repository.CaixaRepository;
-import com.dsys.appfood.repository.MovimentacaoCaixaRepository;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,14 +8,21 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.dsys.appfood.domain.model.MovimentacaoCaixa;
+import com.dsys.appfood.dto.response.MovimentacaoCaixaResponse;
+import com.dsys.appfood.dto.response.ResumoCaixaResponse;
+import com.dsys.appfood.exception.CaixaNaoEncontradoException;
+import com.dsys.appfood.repository.CaixaRepository;
+import com.dsys.appfood.repository.MovimentacaoCaixaRepository;
+
 /**
  * Serviço responsavel por gerenciar as movimentaçãoes de caixa
- * 
+ *
  * Responsabilidade ÚNICA: MovimentaçãoCaixa é uma entidade de "eventos" ou
  * "históricos" - Não deve ser alterada ou excluída após criada (imutabilidade
  * contábil). - portanto, este serviço NÃO oferece métodos de edição ou
  * exclusão.
- * 
+ *
  * Este Service NÃO sabe nada sobre HTTP, Apenas processa e lança exceções de
  * negócio.
  */
@@ -40,7 +40,7 @@ public class MovimentacaoCaixaService {
 
 	/**
 	 * Consulta o extrato completo de um caixa específico
-	 * 
+	 *
 	 */
 	@Transactional(readOnly = true)
 	public List<MovimentacaoCaixa> extratoPorCaixa(Integer caixaId) {
@@ -108,7 +108,7 @@ public class MovimentacaoCaixaService {
 		return totalEntradas(caixaId).subtract(totalSaidas(caixaId));
 	}
 
-	
+
 	/**
 	 * Gera um resumo financeiro do caixa por período.
 	 */
@@ -127,7 +127,7 @@ public class MovimentacaoCaixaService {
 
 	/**
 	 * Gera um resumo financeiro do caixa do dia .
-	 * 
+	 *
 	 * Método utilitário para pegar o resumo apenas de hoje (00:00 até agora)
 	 */
 	@Transactional(readOnly = true)
@@ -136,46 +136,46 @@ public class MovimentacaoCaixaService {
 	    LocalDateTime fim = LocalDateTime.now();
 	    return gerarResumoCaixaPeriodo(caixaId, inicio, fim);
 	}
-	
+
 	/**
 	 * Gera um resumo financeiro sem especificar um período .
-	 * 
-	 * Método utilitário para pegar o resumo 
+	 *
+	 * Método utilitário para pegar o resumo
 	 */
 	@Transactional(readOnly = true)
 	public ResumoCaixaResponse gerarResumoCaixa (Integer caixaId) {
-		
+
 		if(!caixaRepository.existsById(caixaId)) {
 			throw new CaixaNaoEncontradoException(caixaId);
 		}
-		
+
 		BigDecimal entradas = movimentacaoRepository.totalEntradas(caixaId);
 		BigDecimal saidas = movimentacaoRepository.totalSaidas(caixaId);
 		BigDecimal saldo = entradas.subtract(saidas);
-		
-		return new ResumoCaixaResponse(caixaId, entradas, saidas, saldo); 
+
+		return new ResumoCaixaResponse(caixaId, entradas, saidas, saldo);
 	}
-	
-	
+
+
 	// =============================================================
 	// MÉTODOS DTO (conversão dentro da transação)
 	// =============================================================
 	@Transactional(readOnly = true)
-	public List<MovimentacaoCaixaResponse> listarMovimentacoesResponse(Integer caixaId, 
+	public List<MovimentacaoCaixaResponse> listarMovimentacoesResponse(Integer caixaId,
 			LocalDateTime inicio,LocalDateTime fim){
-		
+
 		List<MovimentacaoCaixa> movs;
-		
+
 		if(inicio != null && fim != null) {
 			movs = extratoPorCaixaPeriodo(caixaId, inicio, fim);
 		}else {
 			movs = extratoPorCaixa(caixaId);
 		}
-		
+
 		return movs.stream()
 				.map(MovimentacaoCaixaResponse::from)
 				.collect(Collectors.toList());
-		
+
 	}
 
 }

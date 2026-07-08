@@ -1,5 +1,13 @@
 package com.dsys.appfood.service;
 
+import java.math.BigDecimal;
+import java.util.Objects;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.dsys.appfood.domain.enums.FormaPagamento;
 import com.dsys.appfood.domain.enums.TipoConta;
 import com.dsys.appfood.domain.enums.TipoMovimentacao;
@@ -17,20 +25,12 @@ import com.dsys.appfood.repository.ConfiguracaoPagamentoRepository;
 import com.dsys.appfood.repository.ContaCorrenteRepository;
 import com.dsys.appfood.repository.MovimentacaoContaCorrenteRepository;
 
-import java.math.BigDecimal;
-import java.util.Objects;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 /**
  * Classe responsavel por orquestar todas as regras de negócio relacionadas a
  * Conta Corrente
- * 
+ *
  * Responsabilidade ÚNICA: gerenciar o ciclo de vida da Conta Corrente
- * 
+ *
  * Este Service NÃO sabe nada sobre HTTP, Apenas processa e lança exceções de
  * negócio.
  */
@@ -148,9 +148,9 @@ public class ContaCorrenteService {
 	@Transactional
 	public MovimentacaoContaCorrente registrarEntrada(Integer contaId, BigDecimal valor, String descricao,
 			Usuario usuario, Pagamento pagamentoRelacionado) {
-		
+
 		ContaCorrente conta = buscarPorId(contaId);
-		
+
 		//Verifica se conta está ativa
 		if (!conta.isAtiva()) {
 			throw new NegocioException("Conta inativa não pode receber movimentações.");
@@ -169,7 +169,7 @@ public class ContaCorrenteService {
 	@Transactional
 	public MovimentacaoContaCorrente registrarSaida(Integer contaId, BigDecimal valor, String descricao,
 			Usuario usuario) {
-		
+
 		ContaCorrente conta = buscarPorId(contaId);
 		conta.debitar(valor);
 		contaRepository.save(conta);
@@ -178,11 +178,11 @@ public class ContaCorrenteService {
 				usuario);
 		return movimentacaoRepository.save(mov);
 	}
-	
+
 	// =============================================================
 	// MÉTODOS UTILITÁRIOS
 	// =============================================================
-	
+
 	/**
 	 * Recupera a conta corrente vinculada a uma forma de pagamento.
 	 * O método utiliza a tabela de configuração para determinar o destino dos fundos.
@@ -218,43 +218,43 @@ public class ContaCorrenteService {
 	public BigDecimal saldo(Integer contaId) {
 		return buscarPorId(contaId).getSaldoAtual();
 	}
-	
+
 
 	// =============================================================
 	//  MÉTODOS DTO (conversão dentro da transação)
 	// =============================================================
 	@Transactional
 	public ContaCorrenteResponse cadastrarResponse(ContaCorrenteRequest request) {
-		
-		ContaCorrente conta = cadastrarConta(request.nome(), request.tipo(), request.banco(), 
+
+		ContaCorrente conta = cadastrarConta(request.nome(), request.tipo(), request.banco(),
 				request.codBanco(), request.agencia(), request.conta());
 		return ContaCorrenteResponse.from(conta);
-		
+
 	}
-	
+
 	@Transactional
 	public ContaCorrenteResponse editarResponse(Integer id, ContaCorrenteRequest request) {
-		
-		ContaCorrente contaAtualizada = editarConta(id, request.nome(), request.banco(), 
+
+		ContaCorrente contaAtualizada = editarConta(id, request.nome(), request.banco(),
 				request.codBanco(), request.agencia(), request.conta());
 		return ContaCorrenteResponse.from(contaAtualizada);
 	}
-	
+
 	@Transactional(readOnly = true)
 	public ContaCorrenteResponse buscarPorIdResponse(Integer id) {
-		
+
 		return ContaCorrenteResponse.from(buscarPorId(id));
-		
+
 	}
-	
+
 	@Transactional(readOnly = true)
 	public Page<ContaCorrenteResponse> listarAtivasResponse(Pageable pageable){
-		
+
 		return listarAtivas(pageable)
 				.map(ContaCorrenteResponse::from);
-		
+
 	}
-	
+
 	@Transactional
 	public MovimentacaoContaCorrente realizarEstornoInterno(Integer movimentacaoId, Integer gerenteId, String motivo) {
 	    MovimentacaoContaCorrente mov = movimentacaoRepository.findById(movimentacaoId)
@@ -283,7 +283,7 @@ public class ContaCorrenteService {
 		    conta.creditar(valor);
 	    }
 
-	    
+
 	    MovimentacaoContaCorrente estorno = new MovimentacaoContaCorrente(
 		        conta, tipoEstorno, valor,
 		        "ESTORNO: " + motivo, gerente

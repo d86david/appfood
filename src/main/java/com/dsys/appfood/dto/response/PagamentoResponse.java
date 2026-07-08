@@ -9,7 +9,7 @@ import com.dsys.appfood.domain.model.Pagamento;
  * DTO para resposta de pagamento
  */
 public record PagamentoResponse(
-		
+
 		Integer id,
 		FormaPagamento formaPagto,
 		BigDecimal valor,

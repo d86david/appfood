@@ -3,7 +3,13 @@ package com.dsys.appfood.domain.model;
 import java.math.BigDecimal;
 import java.util.Objects;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 /**
  * Entidade que representa o valor de um produto baseado em seu tamanho. Esta
@@ -47,7 +53,7 @@ public class PrecoVariavel {
 		if (valor.signum() == -1) {
 			throw new IllegalArgumentException("O valor não pode ser negativo");
 		}
-		
+
 		// Adicione de volta no construtor
 		if (tamanho == null) {
 		    throw new IllegalArgumentException("O tamanho deve ser informado");
@@ -69,7 +75,7 @@ public class PrecoVariavel {
 	public BigDecimal getValor() {
 		return valor;
 	}
-	
+
 	public void setValor(BigDecimal valor) {
 		this.valor = valor;
 	}
@@ -82,7 +88,7 @@ public class PrecoVariavel {
 		return tamanho;
 	}
 
-	
+
 	/**
 	 * Método para Associar um PrecoVariavel ao Produto
 	 */
@@ -101,12 +107,12 @@ public class PrecoVariavel {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if ((obj == null) || (getClass() != obj.getClass())) {
 			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		}
 		PrecoVariavel other = (PrecoVariavel) obj;
 		return Objects.equals(id, other.id);
 	}

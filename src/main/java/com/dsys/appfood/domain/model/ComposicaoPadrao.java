@@ -45,7 +45,7 @@ public class ComposicaoPadrao {
 	//===========================================
 	//CONSTRUTOR
 	//===========================================
-	
+
 	public ComposicaoPadrao() {
 
 	}
@@ -77,10 +77,10 @@ public class ComposicaoPadrao {
      */
 	public void adicionarIngrediente(Ingrediente ingrediente) {
 		Objects.requireNonNull(ingrediente, "O Ingrediente não pode ser nulo");
-		
+
 		ingredientes.add(ingrediente);
 	}
-	
+
 	/**
      * Remove ingrediente da composição padrão.
      */
@@ -92,7 +92,7 @@ public class ComposicaoPadrao {
   //===========================================
   // HASHCODE E EQUALS
   //===========================================
-    
+
 	@Override
 	public int hashCode() {
 		return Objects.hash(id);
@@ -100,12 +100,12 @@ public class ComposicaoPadrao {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if ((obj == null) || (getClass() != obj.getClass())) {
 			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		}
 		ComposicaoPadrao other = (ComposicaoPadrao) obj;
 		return Objects.equals(id, other.id);
 	}

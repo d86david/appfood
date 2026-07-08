@@ -2,11 +2,11 @@ package com.dsys.appfood.exception;
 
 /**
  * EXCEÇÃO BASE - Herdar dela todas "já cadastrado"
- * 
+ *
  * O GlobalHandler pode capturar todas as "já cadastrado" com um
  * único @ExceptionHandler(EntidadeJaCadastradaEncontrada) e retornar HTTP 409
  * para todas elas de uma vez.
- * 
+ *
  */
 public class EntidadeJaCadastradaException extends RuntimeException {
 

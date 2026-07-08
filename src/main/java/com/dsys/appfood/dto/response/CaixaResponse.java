@@ -7,8 +7,8 @@ import com.dsys.appfood.domain.enums.StatusCaixa;
 import com.dsys.appfood.domain.model.Caixa;
 
 public record CaixaResponse(
-		
-		Integer id,	
+
+		Integer id,
 	    StatusCaixa status,
 	    BigDecimal saldo,
 	    BigDecimal valorInicial,
@@ -16,9 +16,9 @@ public record CaixaResponse(
 	    LocalDateTime dataFechamento,
 	    String operadorNome,
 	    String gerenteNome
-		
+
 		) {
-	
+
 	public static CaixaResponse from (Caixa caixa) {
 		return new CaixaResponse(
 				caixa.getId(),

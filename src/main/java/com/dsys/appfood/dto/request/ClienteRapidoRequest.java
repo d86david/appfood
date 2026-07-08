@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record ClienteRapidoRequest(
-		
+
 		@NotBlank(message = "O nome do cliente é obrigatório")
         String nome,
 
@@ -15,7 +15,7 @@ public record ClienteRapidoRequest(
 
         @NotNull(message = "O ID do endereço é obrigatório")
         Integer enderecoId
-		
+
 		) {
 
 }

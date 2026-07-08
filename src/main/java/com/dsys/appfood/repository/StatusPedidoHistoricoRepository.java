@@ -12,9 +12,9 @@ import com.dsys.appfood.domain.model.StatusPedidoHistorico;
 
 @Repository
 public interface StatusPedidoHistoricoRepository extends JpaRepository<StatusPedidoHistorico, Integer>{
-	
-	
+
+
 	Page<StatusPedidoHistorico> findByStatusAndDataHoraBetweenOrderByDataHoraDesc(StatusPedido status,LocalDateTime inicio,LocalDateTime fim, Pageable pageable);
-	
+
 
 }

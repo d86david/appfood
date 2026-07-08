@@ -2,7 +2,10 @@ package com.dsys.appfood.service;
 
 import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -19,8 +22,8 @@ import com.dsys.appfood.dto.response.ImpressaoResponse;
 
 /**
  * Serviço de impressão com roteamento por categoria.
- * 
- * CONCEITO: 
+ *
+ * CONCEITO:
  * - Cada item do pedido é roteado para a impressora configurada na categoria do produto.
  * - A cozinha recebe impressões separadas por categoria (Pizzas, Lanches, etc.)
  * - O balcão recebe uma única impressão com todos os itens e dados do cliente.
@@ -46,12 +49,15 @@ public class ImpressaoService {
      * Gera e envia as impressões do pedido:
      * - Cozinha: roteada por categoria (cada categoria vai para sua impressora).
      * - Balcão: uma única via com todos os dados.
-     * 
+     *
      * @param pedidoId ID do pedido a ser impresso.
      * @return DTO com os conteúdos gerados (para debug/retorno).
      */
     public ImpressaoResponse imprimirPedido(Integer pedidoId) {
-        Pedido pedido = pedidoService.buscarPorId(pedidoId);
+
+    	// Busca o pedido com dados específicos para impressão
+        // (usa @EntityGraph "Pedido.completo" que já carrega itens, subitens, customizações)
+        Pedido pedido = pedidoService.buscarPedidoParaImpressao(pedidoId);
 
         // 1. Imprime a cozinha (roteada por categoria)
         Map<String, String> conteudosCozinha = imprimirCupomCozinha(pedido);
@@ -59,9 +65,11 @@ public class ImpressaoService {
         // 2. Imprime o balcão (via única)
         String conteudoBalcao = imprimirCupomBalcao(pedido);
 
+        enviarParaImpressora(conteudoBalcao, "BALCÃO");
+
         return new ImpressaoResponse(conteudosCozinha, conteudoBalcao);
     }
-    
+
     // =============================================================
     // MÉTODO PÚBLICO: IMPRIMIR PEDIDO BALCÃO
     // =============================================================
@@ -77,14 +85,14 @@ public class ImpressaoService {
 
         return new ImpressaoBalcaoResponse(conteudoBalcao);
     }
-    
+
     // =============================================================
     // MÉTODO PÚBLICO: IMPRIMIR PEDIDO COZINHA
     // =============================================================
 
     /**
      * Gera e envia a impressão do pedido para a cozinha: roteada por categoria (cada categoria vai para sua impressora).
-     * 
+     *
      */
     public ImpressaoCozinhaResponse imprimirPedidoCozinha(Integer pedidoId) {
         Pedido pedido = pedidoService.buscarPorId(pedidoId);
@@ -101,7 +109,7 @@ public class ImpressaoService {
 
     /**
      * Gera e envia a impressão do pedido para a cozinha, separando por categoria/impressora.
-     * 
+     *
      * @param pedido Pedido a ser impresso.
      * @return Mapa com a impressora como chave e o conteúdo como valor (para debug).
      */
@@ -143,7 +151,7 @@ public class ImpressaoService {
 
     /**
      * Gera e envia a impressão do pedido para o balcão (via única).
-     * 
+     *
      * @param pedido Pedido a ser impresso.
      * @return Conteúdo do cupom do balcão (para debug).
      */

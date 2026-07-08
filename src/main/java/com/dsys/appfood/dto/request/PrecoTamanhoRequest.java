@@ -7,8 +7,8 @@ import java.math.BigDecimal;
 // Não vai para o banco, só transporta dados entre métodos
 //=========================================================
 public record PrecoTamanhoRequest (
-	
+
 	Integer tamanhoId,
 	BigDecimal valor
-	
+
 	){}

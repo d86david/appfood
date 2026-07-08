@@ -6,7 +6,7 @@ import java.util.List;
 import com.dsys.appfood.domain.model.SubItemSabor;
 
 public record SubItemSaborResponse(
-		
+
 		Integer id,
 		Integer produtoId,
 		String produtoNome,
@@ -21,9 +21,9 @@ public record SubItemSaborResponse(
 				sub.getPrecoSabor(),
 				sub.getCustomizacoes().stream()
 						.map(c -> new CustomizacaoResponse(
-								c.getId(), 
-								c.getTipoCustomizacao().toString(), 
-								c.getIngrediente() != null ? c.getIngrediente().getNome() : null, 
+								c.getId(),
+								c.getTipoCustomizacao().toString(),
+								c.getIngrediente() != null ? c.getIngrediente().getNome() : null,
 								c.getValorCobrado()
 								))
 						.toList()

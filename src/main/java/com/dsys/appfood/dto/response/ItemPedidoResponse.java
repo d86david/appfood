@@ -6,16 +6,16 @@ import java.util.List;
 import com.dsys.appfood.domain.model.ItemPedido;
 
 public record ItemPedidoResponse(
-		
+
 		Integer id,
 		Integer tamanhoId,
 		String tamanhoNome,
 		BigDecimal precoFinal,
 		List<SubItemSaborResponse> sabores,
 		List<CustomizacaoResponse> customizacoesGlobais
-		
+
 		) {
-	
+
 	public static ItemPedidoResponse from(ItemPedido item) {
 		return new ItemPedidoResponse (
 				item.getId(),
@@ -25,9 +25,9 @@ public record ItemPedidoResponse(
 				item.getSubItens().stream().map(SubItemSaborResponse::from).toList(),
 				item.getCustomizacoesGlobais().stream()
 						.map(c -> new CustomizacaoResponse(
-								c.getId(), 
-								"BORDA", 
-								c.getBorda() != null ? c.getBorda().getNome() : null, 
+								c.getId(),
+								"BORDA",
+								c.getBorda() != null ? c.getBorda().getNome() : null,
 								c.getValorCobrado()
 								))
 				.toList()

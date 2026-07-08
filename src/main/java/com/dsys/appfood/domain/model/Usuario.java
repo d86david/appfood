@@ -4,39 +4,46 @@ import java.util.Objects;
 
 import com.dsys.appfood.domain.enums.TipoUsuario;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "usuario")
 public class Usuario {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
-	
+
 	@Column(nullable = false)
 	private String nome;
-	
+
 	@Column(nullable = false)
 	private String login;
-	
+
 	@Column(nullable = false)
 	private String senha;
-	
+
 	private Boolean ativo = true;
-	
+
 	@Column(nullable = false)
 	private String telefone;
-	
+
 	@Enumerated(EnumType.STRING)
 	private TipoUsuario tipo;
 
 	//=====================================
 	// CONSTRUTORES
 	//=====================================
-	
+
 	public Usuario() {
-		
+
 	}
 
 	public Usuario(Integer id, String nome, String login, String senha, String telefone, TipoUsuario tipo) {
@@ -81,11 +88,11 @@ public class Usuario {
 	public void setSenha(String senha) {
 		this.senha = senha;
 	}
-	
+
 	public Boolean isAtivo() {
 		return this.ativo;
 	}
-	
+
 	public void setAtivo(Boolean ativo) {
 		this.ativo = ativo;
 	}
@@ -105,23 +112,23 @@ public class Usuario {
 	public void setTipo(TipoUsuario tipo) {
 		this.tipo = tipo;
 	}
-	
+
 	/**
 	 * Verifica se este usuário tem perfil de gerência.
 	 * Gerentes e Admins podem autorizar operações restritas.
 	 */
 	public boolean isGerente() {
-		return this.tipo == TipoUsuario.GERENTE 
+		return this.tipo == TipoUsuario.GERENTE
 				|| this.tipo == TipoUsuario.ADM;
 	}
-	
+
 	/**
 	 * Verifica se este usuário é um operador de caixa.
 	 */
 	public boolean isOperador() {
 	    return this.tipo == TipoUsuario.OPERADOR;
 	}
-	
+
 	//=====================================
 	// HASHCODE E EQUALS
 	//=====================================
@@ -133,12 +140,12 @@ public class Usuario {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if ((obj == null) || (getClass() != obj.getClass())) {
 			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		}
 		Usuario other = (Usuario) obj;
 		return Objects.equals(id, other.id);
 	}

@@ -7,7 +7,7 @@ import com.dsys.appfood.domain.enums.TipoMovimentacao;
 import com.dsys.appfood.domain.model.MovimentacaoCaixa;
 
 public record MovimentacaoCaixaResponse(
-		
+
 		Integer id,
 		TipoMovimentacao tipo,
 		BigDecimal valor,
@@ -15,9 +15,9 @@ public record MovimentacaoCaixaResponse(
 		LocalDateTime dataHoraMovimento,
 		String origem,
 		String gerenteNome
-		
+
 		) {
-	
+
 	public static MovimentacaoCaixaResponse from(MovimentacaoCaixa mov) {
 		return new MovimentacaoCaixaResponse(
 				mov.getId(),

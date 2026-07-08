@@ -20,7 +20,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
 	// PESQUISA USUARIOS ATIVOS
 	List<Usuario> findByAtivoTrue();
-	
+
 	//PESQUISA USUARIOS ATIVOS POR NOME
 	List<Usuario> findByNomeContainingIgnoreCaseAndAtivoTrue(String nome);
 
@@ -28,6 +28,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 	List<Usuario> findByAtivoFalse();
 
 	// PESQUISA TODOS USUARIOS (PARA RELATÓRIOS ADMIN)
+	@Override
 	List<Usuario> findAll();
 
 	// LISTAR POR TIPO E ATIVO (PARA SELECIONAR GERENTES DISPONIVEIS)

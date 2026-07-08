@@ -5,37 +5,46 @@ import java.util.Objects;
 
 import com.dsys.appfood.domain.enums.StatusPedido;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "status_pedido_status")
 public class StatusPedidoHistorico {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
-	
+
 	@Enumerated(EnumType.STRING)
 	private StatusPedido status;
-	
+
 	@Column(name = "data_hora")
 	private LocalDateTime dataHora;
-	
+
 	@ManyToOne
 	@JoinColumn(name = "pedido_id")
 	private Pedido pedido;
-	
+
 	@ManyToOne
 	@JoinColumn(name = "usuario_id")
 	private Usuario usuario;
-	
+
 
 	//===============================
-	//CONSTRUTORES 
+	//CONSTRUTORES
 	//===============================
-	
+
 	public StatusPedidoHistorico() {
-		
+
 	}
 
 	public StatusPedidoHistorico(Integer id, StatusPedido status, LocalDateTime dataHora, Pedido pedido,
@@ -47,9 +56,9 @@ public class StatusPedidoHistorico {
 		this.pedido = pedido;
 		this.usuario = usuario;
 	}
-	
+
 	//===============================
-	//GETTERS E SETTERS 
+	//GETTERS E SETTERS
 	//===============================
 
 	public Integer getId() {
@@ -91,7 +100,7 @@ public class StatusPedidoHistorico {
 	public void setUsuario(Usuario usuario) {
 		this.usuario = usuario;
 	}
-	
+
 	//===============================
 	//hashcode e equals
 	//===============================
@@ -103,16 +112,16 @@ public class StatusPedidoHistorico {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if ((obj == null) || (getClass() != obj.getClass())) {
 			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		}
 		StatusPedidoHistorico other = (StatusPedidoHistorico) obj;
 		return Objects.equals(id, other.id);
 	}
-	
-	
+
+
 
 }

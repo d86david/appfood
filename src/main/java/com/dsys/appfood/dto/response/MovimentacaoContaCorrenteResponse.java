@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import com.dsys.appfood.domain.enums.TipoMovimentacao;
 import com.dsys.appfood.domain.model.MovimentacaoContaCorrente;
 
-public record MovimentacaoContaCorrenteResponse(	
+public record MovimentacaoContaCorrenteResponse(
 		Integer id,
 		TipoMovimentacao tipo,
 		BigDecimal valor,

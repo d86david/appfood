@@ -2,7 +2,12 @@ package com.dsys.appfood.domain.model;
 
 import java.util.Objects;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "endereco")
@@ -11,7 +16,7 @@ public class Endereco {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
-	
+
 	@Column(nullable = false)
 	private String logradouro;
 
@@ -25,9 +30,9 @@ public class Endereco {
 	private String cidade;
 
 	private String uf;
-	
+
 	private String cep;
-	
+
 	@Column(name = "ponto_referencia")
 	private String pontoReferencia;
 
@@ -74,11 +79,11 @@ public class Endereco {
 	public void setNumero(String numero) {
 		this.numero = numero;
 	}
-	
+
 	public String getComplemento() {
 		return complemento;
 	}
-	
+
 	public void setComplemento(String complemento) {
 		this.complemento = complemento;
 	}
@@ -106,7 +111,7 @@ public class Endereco {
 	public void setUf(String uf) {
 		this.uf = uf;
 	}
-	
+
 	public String getCep() {
 		return cep;
 	}
@@ -114,7 +119,7 @@ public class Endereco {
 	public void setCep(String cep) {
 		this.cep = cep;
 	}
-	
+
 	public String getPontoReferencia() {
 		return pontoReferencia;
 	}
@@ -134,12 +139,12 @@ public class Endereco {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if ((obj == null) || (getClass() != obj.getClass())) {
 			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		}
 		Endereco other = (Endereco) obj;
 		return Objects.equals(id, other.id);
 	}

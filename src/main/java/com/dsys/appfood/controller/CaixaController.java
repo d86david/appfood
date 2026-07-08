@@ -2,6 +2,20 @@ package com.dsys.appfood.controller;
 
 
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.dsys.appfood.dto.request.CaixaAbrirRequest;
 import com.dsys.appfood.dto.request.CaixaEstornoRequest;
 import com.dsys.appfood.dto.request.CaixaFecharRequest;
@@ -15,98 +29,83 @@ import com.dsys.appfood.service.MovimentacaoCaixaService;
 
 import jakarta.validation.Valid;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
-
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 @RestController
 @RequestMapping("/api/caixas")
 public class CaixaController {
 
-	
+
 	private final MovimentacaoCaixaService movimentacaoCaixaService;
 	private final CaixaService caixaService;
 
 	public CaixaController(CaixaService caixaService, MovimentacaoCaixaService movimentacaoCaixaService) {
-		
+
 		this.caixaService = caixaService;
 		this.movimentacaoCaixaService = movimentacaoCaixaService;
-		
+
 	}
-	
+
 	// =============================================================
     // 1. ABRIR CAIXA
     // =============================================================
 	@PostMapping("/abertura")
 	public ResponseEntity<CaixaResponse> abrirCaixa(@RequestBody @Valid CaixaAbrirRequest request){
-		
+
 		CaixaResponse response = caixaService.abrirCaixaResponse(request);
-		
+
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
-		
+
 	}
-	
+
 
 	// =============================================================
     // 2. BUSCAR CAIXA ABERTO ATUAL
     // =============================================================
 	@GetMapping("/aberto")
 	public ResponseEntity<CaixaStatusResponse> buscarCaixaAbertoAtual(){
-	
+
 			CaixaStatusResponse response = caixaService.buscarCaixaAbertoAtualResponse();
-			
+
 			return ResponseEntity.ok(response);
 	}
-	
+
 
 	// =============================================================
-    // 3. FECHAR CAIXA 
+    // 3. FECHAR CAIXA
     // =============================================================
 	@PostMapping("/{caixaId}/fechamento")
-	public ResponseEntity<CaixaResponse> fecharCaixa(@PathVariable Integer caixaId, 
+	public ResponseEntity<CaixaResponse> fecharCaixa(@PathVariable Integer caixaId,
 														@RequestBody @Valid CaixaFecharRequest request){
-		
+
 		CaixaResponse response = caixaService.fecharCaixaResponse(caixaId, request);
-		
+
 		return ResponseEntity.ok(response);
 	}
-	
+
 
 	// =============================================================
     // 2. REALIZAR SANGRIA
     // =============================================================
 	@PostMapping("/{caixaId}/sangrias")
-	public ResponseEntity<MovimentacaoCaixaResponse> realizarSangria(@PathVariable  Integer caixaId, 
+	public ResponseEntity<MovimentacaoCaixaResponse> realizarSangria(@PathVariable  Integer caixaId,
 																	@RequestBody @Valid CaixaSangriaRequest request){
-		
+
 		MovimentacaoCaixaResponse response = caixaService.realizarSangriaResponse(caixaId, request);
-				
+
 		return ResponseEntity.ok(response);
 	}
-	
+
 	// =============================================================
     // 3. REGISTRAR ESTORNO
     // =============================================================
 	@PostMapping("/movimentacoes/{movimentacaoId}/estorno")
     public ResponseEntity<MovimentacaoCaixaResponse> registrarEstorno(@PathVariable Integer movimentacaoId,
                                                                       @RequestBody @Valid CaixaEstornoRequest request) {
-        
+
     	MovimentacaoCaixaResponse response = caixaService.realizarEstornoResponse(movimentacaoId, request);
-        
+
         return ResponseEntity.ok(response);
     }
-    
+
 	// =============================================================
     // 4. LISTAR MOVIMENTAÇÕES
     // =============================================================
@@ -115,13 +114,13 @@ public class CaixaController {
             @PathVariable Integer caixaId,
             @RequestParam(required = false) @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm") LocalDateTime inicio,
             @RequestParam(required = false) @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm") LocalDateTime fim) {
-        
-           
+
+
         List<MovimentacaoCaixaResponse> response = movimentacaoCaixaService.listarMovimentacoesResponse(caixaId, inicio, fim);
-        		
+
         return ResponseEntity.ok(response);
    }
-    
+
 	// =============================================================
     // 5. OBTER RESUMO DO CAIXA
     // =============================================================
@@ -130,9 +129,9 @@ public class CaixaController {
             @PathVariable Integer caixaId,
             @RequestParam(required = false) @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm") LocalDateTime inicio,
             @RequestParam(required = false) @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm") LocalDateTime fim) {
-    	
+
     	ResumoCaixaResponse resumo;
-    	
+
     	if(inicio != null && fim != null) {
             resumo = movimentacaoCaixaService.gerarResumoCaixaPeriodo(caixaId, inicio, fim);
         } else {
@@ -140,5 +139,5 @@ public class CaixaController {
         }
     	return ResponseEntity.ok(resumo);
     }
-	
+
 }

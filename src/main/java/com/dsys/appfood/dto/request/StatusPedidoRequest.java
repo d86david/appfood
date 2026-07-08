@@ -5,8 +5,8 @@ import com.dsys.appfood.domain.enums.StatusPedido;
 import jakarta.validation.constraints.NotNull;
 
 public record StatusPedidoRequest(
-		
+
 		@NotNull(message = "O novo status é obrigatório")
         StatusPedido status
-		
+
 		) {}

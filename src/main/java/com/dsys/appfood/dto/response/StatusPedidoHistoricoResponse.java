@@ -6,7 +6,7 @@ import com.dsys.appfood.domain.enums.StatusPedido;
 import com.dsys.appfood.domain.model.StatusPedidoHistorico;
 
 public record StatusPedidoHistoricoResponse(
-		
+
 		Integer id,
 		StatusPedido status,
 		LocalDateTime dataHora,

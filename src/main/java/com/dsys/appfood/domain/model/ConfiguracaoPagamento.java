@@ -21,26 +21,26 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "configuracao_pagamento")
 public class ConfiguracaoPagamento {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
-	
+
 	/** Define a forma de pagamento (PIX, Crédito, etc.) */
 	@Enumerated(EnumType.STRING)
 	private FormaPagamento formaPagamento;
-	
+
 	/** Define a conta corrente onde o dinheiro será creditado */
 	@ManyToOne
 	@JoinColumn(name = "conta_corrente_id")
 	private ContaCorrente contaCorrente;
-	
-	
+
+
 	//===========================================
 	// CONSTRUTORES
 	//===========================================
 	public ConfiguracaoPagamento() {
-		
+
 	}
 
 	public ConfiguracaoPagamento(FormaPagamento formaPagamento, ContaCorrente contaCorrente) {
@@ -48,8 +48,8 @@ public class ConfiguracaoPagamento {
 		this.formaPagamento = formaPagamento;
 		this.contaCorrente = contaCorrente;
 	}
-	
-	
+
+
 	//===========================================
 	// GETTERS E SETTERS
 	//===========================================
@@ -77,7 +77,7 @@ public class ConfiguracaoPagamento {
 	//===========================================
 	//HASHCODE E EQUALS
 	//===========================================
-	
+
 	@Override
 	public int hashCode() {
 		return Objects.hash(id);
@@ -85,12 +85,12 @@ public class ConfiguracaoPagamento {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if ((obj == null) || (getClass() != obj.getClass())) {
 			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		}
 		ConfiguracaoPagamento other = (ConfiguracaoPagamento) obj;
 		return Objects.equals(id, other.id);
 	}

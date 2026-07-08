@@ -23,7 +23,7 @@ public interface MovimentacaoContaCorrenteRepository extends JpaRepository<Movim
 	// --- PESQUISAR MOVIMENTAÇÃO DE UMA CONTA ORDENADA POR DATA ---
 	Page<MovimentacaoContaCorrente> findByContaIdAndDataHoraBetweenOrderByDataHoraDesc(Integer contaId,
 			LocalDateTime inicio, LocalDateTime fim, Pageable pageable);
-	
+
 	// --- BUSCAR MOVIMENTAÇÃO ASSOCIADA A UM PAGAMENTO ---
 	Optional<MovimentacaoContaCorrente> findByPagamentoId(Integer pagamentoId);
 
@@ -38,13 +38,13 @@ public interface MovimentacaoContaCorrenteRepository extends JpaRepository<Movim
 	/**
 	 * Realiza uma projeção direta do Banco de Dados para a classe
 	 * ResumoContaCorrenteResponse.
-	 * 
+	 *
 	 * CONCEITOS CHAVE: - 'SELECT new ...': Instancia o objeto Java
 	 * ResumoContaCorrenteResponse diretamente na query. - 'CASE WHEN': Funciona como
 	 * um "if/else" dentro do SQL para separar os valores. - 'COALESCE(..., 0)':
 	 * Garante que se a soma for nula (sem registros), o resultado seja 0. - 'GROUP
 	 * BY': Agrupa os registros por caixa para permitir as funções de soma (SUM).
-	 * 
+	 *
 	 * Este método é o mais "inteligente", pois ele já cria o objeto DTO e calcula
 	 * tudo de uma vez no banco.
 	 */
@@ -58,7 +58,7 @@ public interface MovimentacaoContaCorrenteRepository extends JpaRepository<Movim
 
 /**
  * Calcula a soma de todas as ENTRADAS em um intervalo de tempo específico.
- * 
+ *
  * CONCEITOS CHAVE:
  * - 'BETWEEN': Filtra registros entre duas datas/horas (início e fim).
  * - 'COALESCE': Evita que o Java receba "null" caso não haja entradas no período.
@@ -67,13 +67,13 @@ public interface MovimentacaoContaCorrenteRepository extends JpaRepository<Movim
            "WHERE m.conta.id = :contaId " +
            "AND m.tipo = 'ENTRADA' " +
            "AND m.dataHora BETWEEN :inicio AND :fim")
-    BigDecimal totalEntradasPeriodo(@Param("contaId") Integer contaId, 
-                                    @Param("inicio") LocalDateTime inicio, 
+    BigDecimal totalEntradasPeriodo(@Param("contaId") Integer contaId,
+                                    @Param("inicio") LocalDateTime inicio,
                                     @Param("fim") LocalDateTime fim);
 
 /**
  * Calcula a soma de todas as SAÍDAS em um intervalo de tempo específico.
- * 
+ *
  * CONCEITOS CHAVE:
  * - 'm.tipo = 'SAIDA'': Filtra apenas movimentações que diminuem o valor da conta.
  * - 'BigDecimal': Tipo de retorno ideal para garantir precisão centesimal (centavos).
@@ -82,8 +82,8 @@ public interface MovimentacaoContaCorrenteRepository extends JpaRepository<Movim
            "WHERE m.conta.id = :contaId " +
            "AND m.tipo = 'SAIDA' " +
            "AND m.dataHora BETWEEN :inicio AND :fim")
-    BigDecimal totalSaidasPeriodo(@Param("contaId") Integer contaId, 
-                                  @Param("inicio") LocalDateTime inicio, 
+    BigDecimal totalSaidasPeriodo(@Param("contaId") Integer contaId,
+                                  @Param("inicio") LocalDateTime inicio,
                                   @Param("fim") LocalDateTime fim);
 
 }

@@ -5,37 +5,46 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 /**
  * Representa um sabor dentro de um ItemPedido.
- * 
+ *
  * Um ItemPedido pode representar uma pizza inteira, meira pizza o multiplos sabores
- * 
+ *
  * Cada SubItemSabor representa um sabor específico da pizza escolhida
- * 
+ *
  * Cada sabor pode possuir customizações
- * - adiocnar ingrediente 
- * - remover ingrediente 
- * 
+ * - adiocnar ingrediente
+ * - remover ingrediente
+ *
  * Esta Entidade também armazena um SNAPSHOT do preço do produto no momento da venda
  * Isso garante que alterações futuras no catálogo não alterem pedidos ja realizados.
  */
 @Entity
 @Table(name = "subitem_sabor")
 public class SubItemSabor {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
-	
+
 	/**
 	 * ItemPedido ao qual este sabor pertence.
 	 */
 	@ManyToOne
 	@JoinColumn(name = "item_id")
 	private ItemPedido item;
-	
+
 	/**
 	 * Produto do catálogo.
 	 * Ex:
@@ -45,13 +54,13 @@ public class SubItemSabor {
 	@ManyToOne
 	@JoinColumn(name = "produto_id")
 	private Produto produto;
-	
+
 	/**
 	 * Lista de customizações aplicadas ao sabor.
 	 */
 	@OneToMany(mappedBy = "subItemSabor", cascade = CascadeType.ALL)
 	private List<ItemCustomizacao> customizacoes = new ArrayList<>();
-	
+
 	/**
 	 * SNAPSHOT do preço do sabor no memento da criação do pedido e nunca deve mudar
 	 */
@@ -61,13 +70,13 @@ public class SubItemSabor {
 	//=====================================
 	// CONSTRUTORES
 	//=====================================
-	
+
 	public SubItemSabor() {
-		
+
 	}
-	
+
 	public SubItemSabor(Produto produto, BigDecimal precoSabor) {
-		
+
 		this.produto = Objects.requireNonNull(produto, "O Produto não pode ser nulo");
 		this.precoSabor = Objects.requireNonNull(precoSabor, "O preço não pode ser nulo");
 	}
@@ -92,17 +101,17 @@ public class SubItemSabor {
 	public void setProduto(Produto produto) {
 		this.produto = produto;
 	}
-	
+
 
 	public List<ItemCustomizacao> getCustomizacoes() {
 		return customizacoes;
 	}
-	
+
 	public BigDecimal getPrecoSabor() {
 		return this.precoSabor;
 	}
 
-	
+
 	/**
 	 * Método para Associar um Item ao ItemPedido
 	 * @return
@@ -110,28 +119,28 @@ public class SubItemSabor {
 	void associarItem(ItemPedido item) {
 		this.item = item;
 	}
-	
+
 	/**
 	 * Método reponsavel por por adicionar uma customização
 	 * Este método garante a integridade da relação entre SubItem e ItemCustomizacao
 	 * @return
 	 */
 	public void adicionarCustomizacao(ItemCustomizacao customizacao) {
-		
+
 		Objects.requireNonNull(customizacao, "Customização não pode ser nula");
-		
+
 		customizacao.associarSubItem(this);
-		
+
 		customizacoes.add(customizacao);
 	}
-	
+
 	/**
 	 * Remove uma customização do sabor
 	 */
 	public void removerCustomizacao(ItemCustomizacao customizacao) {
 		customizacoes.remove(customizacao);
 	}
-	
+
 	/**
 	 * Método para somar o valor de todas as customizações
 	 * @return
@@ -143,15 +152,15 @@ public class SubItemSabor {
 				.filter(Objects::nonNull)
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
 	}
-	
+
 	/**
 	 * Calcula o preco final deste sabor
-	 * formula: precoSnapshot + customizações 
-	 * 
+	 * formula: precoSnapshot + customizações
+	 *
 	 * @return o preço final do sabor
 	 */
-	
-	
+
+
 	public BigDecimal calculaPrecoSabor() {
 		return precoSabor.add(calcularTotalCustomizacoes());
 	}
@@ -169,12 +178,12 @@ public class SubItemSabor {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if ((obj == null) || (getClass() != obj.getClass())) {
 			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		}
 		SubItemSabor other = (SubItemSabor) obj;
 		return Objects.equals(id, other.id);
 	}

@@ -5,32 +5,41 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.dsys.appfood.domain.enums.TipoPedido;
-import com.dsys.appfood.domain.model.*;
+import com.dsys.appfood.domain.model.Entregador;
+import com.dsys.appfood.domain.model.ItemPedido;
+import com.dsys.appfood.domain.model.Pedido;
+import com.dsys.appfood.domain.model.Produto;
+import com.dsys.appfood.domain.model.SubItemSabor;
 import com.dsys.appfood.dto.response.DesempenhoEntregadorResponse;
 import com.dsys.appfood.dto.response.ProdutoVendidoResponse;
 import com.dsys.appfood.dto.response.VendasPeriodoResponse;
-import com.dsys.appfood.repository.*;
+import com.dsys.appfood.repository.ItemPedidoRepository;
+import com.dsys.appfood.repository.PedidoRepository;
 
 /**
  * Serviço dedicado à geração de relatórios gerenciais.
- * 
+ *
  * CONCEITOS IMPORTANTES:
- * 
+ *
  * 1. Relatórios são operações de LEITURA intensiva:
  *    - Todos os métodos usam @Transactional(readOnly = true).
  *    - Não há modificação de dados, apenas agregação e sumarização.
- * 
+ *
  * 2. Uso de Stream API e Collectors:
  *    - Agrupamentos, somas, médias, contagens.
  *    - Transformação de listas de entidades em DTOs de relatório.
- * 
+ *
  * 3. Separação de responsabilidades:
  *    - Este serviço NÃO acessa repositórios de outras entidades diretamente?
  *    - Pode acessar, pois é um serviço de "integração" para relatórios.

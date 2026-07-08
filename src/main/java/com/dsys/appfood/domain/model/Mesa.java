@@ -106,10 +106,12 @@ public class Mesa {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null || getClass() != obj.getClass())
+		}
+		if (obj == null || getClass() != obj.getClass()) {
 			return false;
+		}
 		Mesa other = (Mesa) obj;
 		return Objects.equals(id, other.id);
 	}

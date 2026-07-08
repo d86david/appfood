@@ -1,5 +1,12 @@
 package com.dsys.appfood.service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.dsys.appfood.domain.enums.FormaPagamento;
 import com.dsys.appfood.domain.enums.StatusPedido;
 import com.dsys.appfood.domain.enums.TipoMovimentacao;
@@ -19,16 +26,9 @@ import com.dsys.appfood.exception.PagamentoNaoEncontradoException;
 import com.dsys.appfood.repository.MovimentacaoCaixaRepository;
 import com.dsys.appfood.repository.PagamentoRepository;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 /**
  * Serviço responsável pelo processamento de pagamentos.
- * 
+ *
  * Princípio da Responsabilidade Única (SOLID): - Este serviço só processa
  * PAGAMENTOS - Delega para CaixaService o registro de movimentação - Delega
  * para PedidoService a busca do pedido
@@ -151,13 +151,13 @@ public class PagamentoService {
 
 	/**
 	 * REGISTRA MÚLTIPLOS PAGAMENTOS DE UMA VEZ
-	 * 
+	 *
 	 * CONCEITO: Composição de operações
-	 * 
+	 *
 	 * Este método recebe uma lista de valores e formas de pagamento e processa cada
 	 * um individualmente, chamando o método registrarPagamento. - Transação
 	 * atômica: ou todos os pagamentos são registrados, ou nenhum
-	 * 
+	 *
 	 * @param pedidoId   - ID do pedido
 	 * @param caixaId    - ID do caixa
 	 * @param pagamentos - Lista de DTOs com forma e valor
@@ -184,14 +184,14 @@ public class PagamentoService {
 
 	/**
 	 * CALCULA O TROCO PARA PAGAMENTO EM DINHEIRO
-	 * 
+	 *
 	 * O operador informa quanto o cliente deu em dinheiro, e o sistema calcula o
 	 * troco
-	 * 
+	 *
 	 * @param pedidoId      - ID do pedido
 	 * @param valorRecebido - Quanto o cliente entregou
 	 * @return BigDecimal - Valor do troco (pode ser zero)
-	 * 
+	 *
 	 */
 	@Transactional(readOnly = true)
 	public BigDecimal calcularTroco(Integer pedidoId, BigDecimal valorRecebido) {
@@ -223,7 +223,7 @@ public class PagamentoService {
 
 	/**
 	 * Processar pagamento em dinheiro com cálculo extato de troco
-	 * 
+	 *
 	 * @return PagamentoResponse - DTO com pagamento e valor do troco
 	 */
 	@Transactional
@@ -278,11 +278,11 @@ public class PagamentoService {
 		if (pagamento.getFormaPagamento() == FormaPagamento.DINHEIRO) {
 			// Localiza a movimentação de ENTRADA correspondente ao pedido
 			MovimentacaoCaixa entradaOriginal = movimentacaoCaixaRepository.findByCaixaIdAndPedidoIdAndTipo(
-					pagamento.getCaixa().getId(), 
-					pedido.getId(), 
+					pagamento.getCaixa().getId(),
+					pedido.getId(),
 					TipoMovimentacao.ENTRADA)
 					.orElseThrow(() -> new NegocioException("Não foi encontrada a movimentação de entrada para o pedido " + pedido.getId()));
-			
+
 			//executa o estorno (internamente sem senha)
 			caixaService.realizarEstornoInterno(entradaOriginal.getId(), gerenteId, "Estorno de pagamento #" + pagamentoId + ": " + motivo);
 		}
@@ -303,7 +303,7 @@ public class PagamentoService {
 
 	/**
 	 * LISTAR PAGAMENTOS DE UM PEDIDO
-	 * 
+	 *
 	 * @Transactional(readOnly = true) - Otimização
 	 */
 	@Transactional(readOnly = true)
@@ -316,7 +316,7 @@ public class PagamentoService {
 
 	/**
 	 * CALCULAR TOTAL PAGO DE UM PEDIDO
-	 * 
+	 *
 	 * Método de conveniência - encapsula a lógica de soma
 	 */
 	@Transactional(readOnly = true)
@@ -341,70 +341,70 @@ public class PagamentoService {
 	public Pagamento buscarPorId(Integer id) {
 		return pagamentoRepository.findById(id).orElseThrow(() -> new PagamentoNaoEncontradoException(id));
 	}
-	
-	
+
+
 	// =============================================================
 	//  MÉTODOS DTO (conversão dentro da transação)
 	// =============================================================
-	
+
 	@Transactional
 	public PagamentoResponse registrarPagamentoResponse (
-			Integer pedidoId, 
-			Integer caixaId, 
-			Integer operadorId, 
+			Integer pedidoId,
+			Integer caixaId,
+			Integer operadorId,
 			PagamentoRequest request) {
-		
+
 		Pagamento pagamento =registrarPagamento(
-				pedidoId, 
-				caixaId, 
-				request.formaPagamento(), 
-				request.valor(), 
+				pedidoId,
+				caixaId,
+				request.formaPagamento(),
+				request.valor(),
 				operadorId);
-		
+
 		return PagamentoResponse.from(pagamento);
 	}
-	
+
 	@Transactional
-	public List<PagamentoResponse> registrarPagamentoMultiploResponse (Integer pedidoId, Integer caixaId, 
+	public List<PagamentoResponse> registrarPagamentoMultiploResponse (Integer pedidoId, Integer caixaId,
 			PagamentoMultiploRequest request){
-		
+
 		 // Chama o serviço passando a lista de DTO e o operadorId do request
 		List<Pagamento> pagamentos = registrarPagamentoMultiplo(
-				pedidoId, 
-				caixaId, 
+				pedidoId,
+				caixaId,
 				request.pagamentos(),
 				request.operadorId()
 				);
-		
+
 		//Converte o resultado final para o DTO de resposta
 		return pagamentos.stream()
 				.map(PagamentoResponse::from)
 				.toList();
 	}
-	
+
 	@Transactional
-	public PagamentoComTrocoResponse processarPagamentoDinheiroResponse(Integer pedidoId, Integer caixaId, 
+	public PagamentoComTrocoResponse processarPagamentoDinheiroResponse(Integer pedidoId, Integer caixaId,
 			PagamentoDinheiroRequest request) {
-		
+
 		PagamentoComTrocoResponse pagamento = processarPagamentoDinheiro(
-				pedidoId, 
-				caixaId, 
-				request.valorRecebido(), 
+				pedidoId,
+				caixaId,
+				request.valorRecebido(),
 				request.operadorId()
 				);
-		
+
 		return pagamento;
-		
+
 	}
-	
+
 	@Transactional(readOnly = true)
 	public List<PagamentoResponse> listarPagamentosDoPedidoResponse(Integer pedidoId){
-		
+
 		List<Pagamento> pagamentos = listarPagamentosDoPedido(pedidoId);
-		
+
 		return pagamentos.stream()
 				.map(PagamentoResponse :: from)
 				.toList();
 	}
-	
+
 }

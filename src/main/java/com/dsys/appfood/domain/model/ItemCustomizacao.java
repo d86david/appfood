@@ -5,7 +5,15 @@ import java.util.Objects;
 
 import com.dsys.appfood.domain.enums.TipoCustomizacao;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 /**
  * Essa entidade representa uma modificação aplicada a um sabor
  */
@@ -23,14 +31,14 @@ public class ItemCustomizacao {
 	@ManyToOne
 	@JoinColumn(name = "subitem_id")
 	private SubItemSabor subItemSabor;
-	
+
 	/**
      * ItemPedido ao qual esta customização Global pertence.
      */
 	@ManyToOne
 	@JoinColumn(name = "itemPedido_id")
 	private ItemPedido itemPedido;
-	
+
 	/**
      * Borda envolvida na customização.
      */
@@ -95,7 +103,7 @@ public class ItemCustomizacao {
 	public void setIngrediente(Ingrediente ingrediente) {
 		this.ingrediente = ingrediente;
 	}
-	
+
 	public Borda getBorda() {
 		return borda;
 	}
@@ -115,23 +123,23 @@ public class ItemCustomizacao {
 	public BigDecimal getValorCobrado() {
 		return valorCobrado;
 	}
-	
+
 	/*
 	 * Método para associar ItemCustomização ao SubItemSabor
 	 */
 	public void associarSubItem(SubItemSabor subItem) {
 		this.subItemSabor = subItem;
 	}
-	
+
 	/*
 	 * Método para associar ItemCustomização ao ItemPedido
 	 */
 	public void associarItemPedido(ItemPedido itemPedido) {
 		this.itemPedido = itemPedido;
 	}
-	
+
 	/**
-	 * Método para adicionar valor 
+	 * Método para adicionar valor
 	 */
 	public void adicionarValorACustomizacao(BigDecimal valorCobrado) {
 		if(valorCobrado.signum() < 0) {
@@ -139,7 +147,7 @@ public class ItemCustomizacao {
 		}
 		this.valorCobrado = valorCobrado;
 	}
-	
+
 	//===========================================
 	// HASHCODE E EQUALS
 	//===========================================
@@ -151,15 +159,15 @@ public class ItemCustomizacao {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if ((obj == null) || (getClass() != obj.getClass())) {
 			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		}
 		ItemCustomizacao other = (ItemCustomizacao) obj;
 		return Objects.equals(id, other.id);
 	}
-	
+
 
 }

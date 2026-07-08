@@ -5,7 +5,7 @@ import com.dsys.appfood.domain.model.Cliente;
 import com.dsys.appfood.domain.model.Endereco;
 
 public record ClienteResponse(
-		
+
 		Integer id,
 		String nome,
 		String telefonePrincipal,

@@ -13,7 +13,7 @@ public interface ComposicaoPadadraoRepository extends JpaRepository<ComposicaoPa
 
 	// --- VERIFICAR SE EXISTE INGREDIENTE COM ESSA COMPOSIÇÃO
 	boolean existsByIngredientesId(Integer id);
-	
+
 	// --- BUSCA PRODUTO NA COMPOSIÇÃO PADRÃO
 	Optional<ComposicaoPadrao> findByProdutoId(Integer produtoId);
 

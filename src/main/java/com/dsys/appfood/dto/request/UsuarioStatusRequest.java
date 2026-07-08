@@ -3,8 +3,8 @@ package com.dsys.appfood.dto.request;
 import jakarta.validation.constraints.NotNull;
 
 public record UsuarioStatusRequest(
-		
-		 @NotNull 
+
+		 @NotNull
 		 Boolean ativo
-		
+
 		) {}

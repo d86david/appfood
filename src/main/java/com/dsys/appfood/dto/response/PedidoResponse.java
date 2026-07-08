@@ -1,12 +1,12 @@
 package com.dsys.appfood.dto.response;
 
-import com.dsys.appfood.domain.enums.StatusPedido;
-import com.dsys.appfood.domain.enums.TipoPedido;
-import com.dsys.appfood.domain.model.Pedido;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import com.dsys.appfood.domain.enums.StatusPedido;
+import com.dsys.appfood.domain.enums.TipoPedido;
+import com.dsys.appfood.domain.model.Pedido;
 
 public record PedidoResponse(
 

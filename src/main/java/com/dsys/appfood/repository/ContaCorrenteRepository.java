@@ -12,13 +12,13 @@ import com.dsys.appfood.domain.model.ContaCorrente;
 
 @Repository
 public interface ContaCorrenteRepository extends JpaRepository<ContaCorrente, Integer>{
-	
+
 	//--- BUSCAR CONTA POR NOME ---
 	Optional<ContaCorrente> findByNomeIgnoreCase(String nome);
-    
+
 	//--- BUSCAR POR CONTA ATIVA  ---
 	Page<ContaCorrente> findByAtivaTrue(Pageable pageable);
-    
+
 	//--- BUSCAR CONTA POR TIPO ---
     Page<ContaCorrente> findByTipo(TipoConta tipo, Pageable pageable);
 

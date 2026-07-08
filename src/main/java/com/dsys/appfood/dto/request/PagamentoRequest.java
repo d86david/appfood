@@ -9,7 +9,7 @@ import jakarta.validation.constraints.Positive;
 
 /**
  * DTO para receber um pagamento de uma única forma.
- * 
+ *
  * - Objetivo simples, sem lógica de negócio - Apenas transporta dados entre
  * camadas - Evita expor entidades diretamente
  */
@@ -17,7 +17,7 @@ public record PagamentoRequest (
 
 	@NotNull(message = "A forma de pagamento é obrigatória")
 	FormaPagamento formaPagamento,
-	
+
 	@NotNull(message = "O valor é obrigatório")
 	@Positive(message = "O valor não pode ser negativo")
 	BigDecimal valor

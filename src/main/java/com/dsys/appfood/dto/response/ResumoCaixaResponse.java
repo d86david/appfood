@@ -11,5 +11,5 @@ public record ResumoCaixaResponse (
 	BigDecimal totalEntradas,
 	BigDecimal totalSaidas,
 	BigDecimal saldoLiquido
-	
+
 	){}

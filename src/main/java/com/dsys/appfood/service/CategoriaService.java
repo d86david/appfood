@@ -1,7 +1,5 @@
 package com.dsys.appfood.service;
 
-import com.dsys.appfood.repository.ProdutoRepository;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -14,23 +12,24 @@ import com.dsys.appfood.exception.CategoriaJaCadastradaException;
 import com.dsys.appfood.exception.CategoriaNaoEncontradaException;
 import com.dsys.appfood.exception.NegocioException;
 import com.dsys.appfood.repository.CategoriaRepository;
+import com.dsys.appfood.repository.ProdutoRepository;
 
 /**
  * Classe responsavel por gerenciar as Categorias do cardápio.
- * 
+ *
  * Responsabilidade ÚNICA: regras de negócio relacionadas a Categoria
- * 
- * Este Service NÃO sabe nada sobre HTTP, 
+ *
+ * Este Service NÃO sabe nada sobre HTTP,
  * Apenas processa e lança exceções de negócio.
  */
 @Service
 public class CategoriaService {
-	
+
 	private final ProdutoRepository produtoRepository;
 	private final CategoriaRepository categoriaRepository;
-	
+
 	public CategoriaService(CategoriaRepository categoriaRepository, ProdutoRepository produtoRepository) {
-		
+
 		this.categoriaRepository = categoriaRepository;
 		this.produtoRepository = produtoRepository;
 	}
@@ -38,49 +37,49 @@ public class CategoriaService {
 	//=============================================================
 	// CADASTRO
 	//=============================================================
-	
+
 	@Transactional
 	public Categoria cadastrarCategoria(String nome, boolean personalizavel, String impressora ) {
-		
+
 		// Verifica se o nome da Catgoria está em Branco
 		if(nome == null || nome.isBlank()) {
 			throw new IllegalArgumentException("O nome da categoria não pode ser vazio.");
 		}
-		
-		
+
+
 		//Padroniza o nome antes de verificar duplicata e salvar
 		// "   Pizzas   " vira "pizzas"
 		String nomePadronizado = nome.trim();
-		
+
 		// Verifica se a Categoria ja existe no banco
 		if(categoriaRepository.findByNomeIgnoreCase(nomePadronizado).isPresent()) {
 			throw new CategoriaJaCadastradaException(nomePadronizado);
 		}
-		
+
 		// Tudo validado — agora sim cria e salva
 		Categoria categoria = new Categoria(nomePadronizado, personalizavel);
 		categoria.setImpressora(impressora != null ? impressora : "GERAL");
 		return categoriaRepository.save(categoria);
 	}
-	
+
 	//=============================================================
 	// EDIÇÃO
 	//=============================================================
 	@Transactional
 	public Categoria editarCategoria(Integer id, String novoNome, boolean novoPersonalizavel, String novaImpressora) {
-		
+
 		//Validação sem banco
 		if(novoNome == null || novoNome.isBlank()) {
 			throw new IllegalArgumentException(
 					"O nome da categoria não pode ser vazio");
 		}
-		
+
 		String nomePadronizado = novoNome.trim();
-		
-		//Busca a categoria - laça Exeção se não existir 
+
+		//Busca a categoria - laça Exeção se não existir
 		Categoria categoria = categoriaRepository.findById(id)
 				.orElseThrow(() -> new CategoriaNaoEncontradaException(id));
-		
+
 		// Verifica se outro registro ja usa esse nome
 		// (ignora o próprio registro que está sendo editado)
 		categoriaRepository.findByNomeIgnoreCase(nomePadronizado)
@@ -89,25 +88,25 @@ public class CategoriaService {
 					throw new CategoriaJaCadastradaException(nomePadronizado);
 				}
 			});
-		
+
 		categoria.setNome(nomePadronizado);
 		categoria.setPersonalizavel(novoPersonalizavel);
 		categoria.setImpressora(novaImpressora != null ? novaImpressora : "GERAL");
 		return categoriaRepository.save(categoria);
 	}
-	
-	
+
+
 	//=============================================================
 	// EXCLUSÃO
 	//=============================================================
 	@Transactional
 	public void excluirCategoria (Integer id) {
-		// Confirma que existe antes de tentar excluir 
+		// Confirma que existe antes de tentar excluir
 		// Sem isso, deleteById lança exceção generiaca e confusa
 		if(!categoriaRepository.existsById(id)) {
 			throw new CategoriaNaoEncontradaException(id);
 		}
-		
+
 		// Verificar se a categoria tem produtos vinculados antes de excluir.
 		if(produtoRepository.existsByCategoriaId(id)) {
 			throw new NegocioException("Essa categoria não pode ser excluída!"
@@ -116,7 +115,7 @@ public class CategoriaService {
         // Excluir
 		categoriaRepository.deleteById(id);
 	}
-	
+
 	//=============================================================
 	// LISTA - Carregar todas as Cadastradas
 	//=============================================================
@@ -124,60 +123,60 @@ public class CategoriaService {
 	public Page<Categoria> listarTodasCategorias(Pageable pageable){
 		return categoriaRepository.findAll(pageable);
 	}
-	
+
 	@Transactional(readOnly = true)
 	public Page<Categoria> buscarCategoriaPorNome(String nome, Pageable pageable){
-		
+
 		return categoriaRepository.findByNomeContainingIgnoreCase(nome, pageable);
-				
+
 	}
-	
+
 	@Transactional(readOnly = true)
     public Categoria buscarCategoriaPorId(Integer id) {
         return categoriaRepository.findById(id)
             .orElseThrow(() -> new CategoriaNaoEncontradaException(id));
     }
-	
+
 	// =============================================================
 	//  MÉTODOS DTO (conversão dentro da transação)
 	// =============================================================
 	@Transactional
 	public CategoriaResponse cadastrarCategoriaResponse(CategoriaRequest request) {
-		
+
 		Categoria categoria = cadastrarCategoria(request.nome(), request.personalizavel(), request.impressora());
-		
+
 		return CategoriaResponse.from(categoria);
-		
+
 	}
-	
+
 	@Transactional
 	public CategoriaResponse editarCategoriaResponse (Integer id, CategoriaRequest request) {
-		
+
 		Categoria categoriaAtualizada = editarCategoria(id, request.nome(), request.personalizavel(), request.impressora());
-		
+
 		return CategoriaResponse.from(categoriaAtualizada);
-		
+
 	}
-	
+
 	@Transactional(readOnly = true)
 	public CategoriaResponse buscarPorIdResponse(Integer id) {
-		
+
 		return CategoriaResponse.from(buscarCategoriaPorId(id));
 	}
-	
+
 	@Transactional(readOnly = true)
 	public Page<CategoriaResponse> buscarPorNomeResponse(String nome, Pageable pageable){
-		
+
 		return buscarCategoriaPorNome(nome, pageable)
 				.map(CategoriaResponse::from);
 	}
-	
+
 	@Transactional(readOnly = true)
 	public Page<CategoriaResponse> listarTodasCategoriasResponse(Pageable pageable){
-		
+
 		return listarTodasCategorias(pageable)
 				.map(CategoriaResponse::from);
 	}
 
-	
+
 }

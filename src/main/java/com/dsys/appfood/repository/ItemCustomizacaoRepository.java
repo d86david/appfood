@@ -8,5 +8,5 @@ import com.dsys.appfood.domain.model.ItemCustomizacao;
 @Repository
 public interface ItemCustomizacaoRepository extends JpaRepository<ItemCustomizacao, Integer>{
 
-	
+
 }

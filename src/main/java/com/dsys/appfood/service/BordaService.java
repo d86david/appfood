@@ -1,5 +1,12 @@
 package com.dsys.appfood.service;
 
+import java.math.BigDecimal;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.dsys.appfood.domain.model.Borda;
 import com.dsys.appfood.dto.request.BordaRequest;
 import com.dsys.appfood.dto.response.BordaResponse;
@@ -8,18 +15,11 @@ import com.dsys.appfood.exception.BordaNaoEncontradaException;
 import com.dsys.appfood.exception.IngredienteJaCadastradoException;
 import com.dsys.appfood.repository.BordaRepository;
 
-import java.math.BigDecimal;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 /**
  * Classe responsavel pela autenticação e validações relacionadas a Borda
- * 
+ *
  * Responsabilidade ÚNICA: autenticação e validações relacionadas a bordas
- * 
+ *
  * Este Service NÃO sabe nada sobre HTTP, Apenas processa e lança exceções de
  * negócio.
  */
@@ -50,7 +50,7 @@ public class BordaService {
 		}
 
 		String nomePadronizado = nome.trim();
-		
+
 		// Verifica se a Borda ja existe no banco
 		if(bordaRepository.findByNomeIgnoreCase(nomePadronizado).isPresent()) {
 			throw new BordaJaCadastradaException(nomePadronizado);
@@ -124,13 +124,13 @@ public class BordaService {
 	public Page<Borda> listarTodasBordas(Pageable pageable){
 		return bordaRepository.findAll(pageable);
 	}
-	
+
 	@Transactional(readOnly = true)
 	public Borda buscarBordaPorId(Integer id){
 		return bordaRepository.findById(id)
 				.orElseThrow(() -> new BordaNaoEncontradaException(id));
 	}
-	
+
 	@Transactional(readOnly = true)
 	public Page<Borda> buscarBordaPorNome (String nome, Pageable pageable) {
 		if (nome == null || nome.isBlank()) {
@@ -139,43 +139,43 @@ public class BordaService {
 
 		return bordaRepository.findByNomeContainingIgnoreCase(nome, pageable);
 	}
-	
+
 	// =============================================================
 	//  MÉTODOS DTO (conversão dentro da transação)
 	// =============================================================
 	@Transactional
 	public BordaResponse cadastrarBordaResponse(BordaRequest request) {
 		Borda borda = cadastrarBorda(request.nome(), request.valorAdicional());
-		
+
 		return BordaResponse.from(borda);
 	}
-	
+
 	@Transactional
 	public BordaResponse editarBordaResponse( Integer id, BordaRequest request) {
-		
+
 		Borda novaBorda = editarBorda(id, request.nome(), request.valorAdicional());
-		
+
 		return BordaResponse.from(novaBorda);
-		
+
 	}
-	
+
 	@Transactional(readOnly = true)
 	public BordaResponse buscarPorIdResponse(Integer id) {
 		return BordaResponse.from(buscarBordaPorId(id));
-		
+
 	}
-	
+
 	@Transactional(readOnly = true)
 	public Page<BordaResponse> buscarPorNomeResponse(String nome, Pageable pageable) {
 		return buscarBordaPorNome(nome, pageable)
 				.map(BordaResponse::from);
-		
+
 	}
-	
+
 	@Transactional(readOnly = true)
 	public Page<BordaResponse> listarTodasAsBordasResponse(Pageable pageable){
 		return listarTodasBordas(pageable)
 				.map(BordaResponse::from);
 	}
-	
+
 }

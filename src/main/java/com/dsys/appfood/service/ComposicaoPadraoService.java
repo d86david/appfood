@@ -16,10 +16,10 @@ import com.dsys.appfood.repository.ComposicaoPadadraoRepository;
 /**
  * Classe responsavel pelas composições dos produtos, ela é a receita dos
  * produtos
- * 
+ *
  * Responsabilidade ÚNICA: compor os ingredientes padrões nos produtos
- * 
- * 
+ *
+ *
  * Este Service NÃO sabe nada sobre HTTP, Apenas processa e lança exceções de
  * negócio.
  */
@@ -63,10 +63,10 @@ public class ComposicaoPadraoService {
 
 			// REGRA: só adiciona se não tiver na lista (evita duplicatas na criação)
 			if (!composicao.getIngredientes().contains(ingrediente)) {
-				
+
 				composicao.adicionarIngrediente(ingrediente);
 			}
-			
+
 		}
 
 		// Salvar e retornar a composição
@@ -125,55 +125,55 @@ public class ComposicaoPadraoService {
 		return composicaoRepository.findByProdutoId(produtoId)
 				.orElseThrow(() -> new NegocioException("Não existe uma composição para o produto ID: " + produtoId));
 	}
-	
-	
+
+
 	// =============================================================
 	// MÉTODOS DTO (conversão dentro da transação)
 	// =============================================================
-	
+
 	/**
 	 * Define a composição padrão de um produto a partir de uma lista de IDs de ingredientes.
 	 * @return Retorna o DTO da composição criada
 	 */
 	@Transactional
 	public ComposicaoPadraoResponse definirComposicaoResponse(Integer produtoId, ComposicaoRequest request) {
-		
+
 		ComposicaoPadrao composicao = definirComposicao(produtoId, request.ingredientesIds());
 		return ComposicaoPadraoResponse.from(composicao);
-		
+
 	}
-	
+
 	/**
 	 * Adiciona um ingrediente à composição do produto e retorna o DTO atualizado
 	 */
 	@Transactional
 	public ComposicaoPadraoResponse adicionarIngredienteResponse(Integer produtoId, Integer ingredienteId ) {
-		
+
 		ComposicaoPadrao composicao = adicionarIngredienteNaComposicao(produtoId, ingredienteId);
 		return ComposicaoPadraoResponse.from(composicao);
 	}
-	
+
 	/**
 	 * Remove um ingrediente da composição do produto e retorna o DTO atualizado.
 	 */
 	@Transactional
 	public ComposicaoPadraoResponse removerIngredienteResponse(Integer produtoId, Integer ingredienteId) {
-		
+
 		ComposicaoPadrao composicao = removerIngredienteDaComposicao(produtoId, ingredienteId);
 		return ComposicaoPadraoResponse.from(composicao);
-		
+
 	}
-	
+
 	/**
 	 * Busca a composição padrão de um produto e retorna o DTO correspondente.
 	 * Se o produto não tiver composição, uma NegocioException é lançada.
 	 */
 	@Transactional(readOnly = true)
 	public ComposicaoPadraoResponse buscarReceitaResponse(Integer produtoId) {
-		
+
 		ComposicaoPadrao composicao = buscarReceitaDoProduto(produtoId);
 		return ComposicaoPadraoResponse.from(composicao);
-		
+
 	}
 
 }

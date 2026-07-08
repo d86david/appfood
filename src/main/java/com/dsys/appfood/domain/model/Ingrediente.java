@@ -3,14 +3,19 @@ package com.dsys.appfood.domain.model;
 import java.math.BigDecimal;
 import java.util.Objects;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "ingrediente")
 public class Ingrediente {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY) 
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 
 	@Column(nullable = false)
@@ -67,7 +72,7 @@ public class Ingrediente {
 
 		this.valorAdicional = novoValor;
 	}
-	
+
 	//===========================================
 	//HASHCODE E EQUALS
 	//===========================================
@@ -79,12 +84,12 @@ public class Ingrediente {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if ((obj == null) || (getClass() != obj.getClass())) {
 			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		}
 		Ingrediente other = (Ingrediente) obj;
 		return Objects.equals(id, other.id);
 	}

@@ -23,93 +23,93 @@ import com.dsys.appfood.repository.ProdutoRepository;
 
 /**
  * Classe responsavel por gerenciar os Produtos do cardápio.
- * 
+ *
  * Responsabilidade ÚNICA: regras de negócio relacionadas ao produto
- * 
- * Este Service NÃO sabe nada sobre HTTP, 
+ *
+ * Este Service NÃO sabe nada sobre HTTP,
  * Apenas processa e lança exceções de negócio.
  */
 @Service
 public class ProdutoService {
-	
+
 	private final ProdutoRepository produtoRepository;
 	private final CategoriaService categoriaService;
 	private final TamanhoService tamanhoService;
-	
-	
+
+
 	public ProdutoService (ProdutoRepository produtoRepository, CategoriaService categoriaService, TamanhoService tamanhoService) {
 		this.produtoRepository = produtoRepository;
 		this.categoriaService = categoriaService;
 		this.tamanhoService = tamanhoService;
-		
-		
+
+
 	}
-	
+
 	//=============================================================
 	// CADASTRO
 	//=============================================================
-		
+
 		@Transactional
 		public Produto cadastrarProduto(String nome, boolean imprimeCozinha, Integer categoriaId, List<PrecoTamanhoRequest> precos) {
-			
-			//VALIDAÇÕES BARATAS 
+
+			//VALIDAÇÕES BARATAS
 			//1. nome nulo ou vazio
 			if(nome == null || nome.isBlank()) {
 				throw new IllegalArgumentException("O nome do produto deve ser informado");
 			}
-			
+
 			String nomePadronizado = nome.trim();
-			
+
 			//2. lista de preços nula ou vazia
 			if(precos == null || precos.isEmpty()) {
 				throw new IllegalArgumentException("Os preços do produto devem ser informado");
 			}
-			
-			//3. algum valor negativo na lista			
+
+			//3. algum valor negativo na lista
 			if(precos.stream().anyMatch(p ->p.valor().compareTo(BigDecimal.ZERO) < 0 )) {
 				throw new IllegalArgumentException("O preço do produto não pode ser negativo.");
 			}
-			
-			
+
+
 			// VALIDAÇÕES COM BANCO
-			
+
 			//4. buscar categoria pelo id
 			Categoria categoria = categoriaService.buscarCategoriaPorId(categoriaId);
-			
+
 			//5. verificar se já existe produto com esse nome nessa categoria
-			
+
 			boolean temProDutoNaCategoria = produtoRepository.existsByNomeIgnoreCaseAndCategoria(nome, categoria);
-			
+
 			if(temProDutoNaCategoria) {
 				throw new IllegalStateException(
 						"Já existe o produto: " + nome + " na categoria " + categoria.getNome());
 			}
-			
+
 			 // MONTAR E SALVAR
-			
-			//6. criar objeto 
+
+			//6. criar objeto
 			Produto produto = new Produto(nomePadronizado, categoria, imprimeCozinha);
-			
+
 			// 7. Para cada preço recebido, criar PrecoVariavel e adicionar no Produto
 			for(PrecoTamanhoRequest preco : precos) {
 				Tamanho tamanho = tamanhoService.buscarPorId(preco.tamanhoId());
 				PrecoVariavel pv = new PrecoVariavel(produto, tamanho, preco.valor());
 				produto.adicionarPreco(pv);
 			}
-			
-		
+
+
 			// RETORNAR
 			return produtoRepository.save(produto);
 		}
-		
+
 		// =============================================================
 		// CADASTRO SIMPLES - PARA PRODUTOS SEM TAMANHO
 		// =============================================================
-		
+
 		/**
-		 * Cadastra um produto que possui apenas um tamanho fixo (ÚNICO). 
-		 * Exemplos: Coca-Cola em lata, Brownie, Porção de Batata individual 
-		 * 
+		 * Cadastra um produto que possui apenas um tamanho fixo (ÚNICO).
+		 * Exemplos: Coca-Cola em lata, Brownie, Porção de Batata individual
+		 *
 		 * @param nome				Nome do produto
 		 * @param categoriaId 		ID da categoria (ex: Bebidas, Sobremesa)
 		 * @param imprimeCozinha	Se deve imprimir na cozinha
@@ -118,64 +118,64 @@ public class ProdutoService {
 		 */
 		@Transactional
 		public Produto cadastrarProdutoSimples(String nome, Boolean imprimeCozinha, Integer categoriaId, BigDecimal valor) {
-			
+
 			// 1. Busca o tamanho "ÚNICO" pelo nome
 			Tamanho tamanhoUnico = tamanhoService.buscarTamanhoUnico("ÚNICO");
 			if(tamanhoUnico == null) {
 				 throw new NegocioException("Tamanho 'ÚNICO' não encontrado. Execute a inicialização do sistema.");
 			}
-			
+
 			// 2. Busca categoria
 			Categoria categoria = categoriaService.buscarCategoriaPorId(categoriaId);
-			
+
 			// 3. VALIDAÇÃO: A categoria não pode ser personalizável (ex: Pizzas)
 			if(categoria.isPersonalizavel()) {
 				throw new NegocioException("Produtos personalizáveis (ex: Pizzas) não podem ser cadastrados com tamanho único. Use o método padrão.");
 			}
-			
+
 			// 4. Criar o produto
 			Produto produto = new Produto(nome.trim(), categoria, imprimeCozinha);
-			
+
 			// 5. Cria o PrecoVariavel com o tamanho "ÚNICO" e o valor informado
 			PrecoVariavel preco = new PrecoVariavel(produto, tamanhoUnico, valor);
 			produto.adicionarPreco(preco);
-			
+
 			// 6. Salva e retorna
 			return produtoRepository.save(produto);
-			
+
 		}
-		
+
 
 		//=============================================================
 		// EDIÇÃO
 		//=============================================================
 		@Transactional
 		public Produto editarProduto(Integer id, String novoNome, Integer categoriaId, boolean imprimeCozinha, List<PrecoTamanhoRequest> precos) {
-			
+
 			//VALIDAÇÕES SEM BANCO
 			//1. nome nulo ou vazio
 			if(novoNome == null || novoNome.isBlank()) {
 				throw new IllegalArgumentException("O nome do produto deve ser informado");
 			}
-			
+
 			String nomePadronizado = novoNome.trim();
-			
+
 			//2. lista de preços nula ou vazia
 			if(precos == null || precos.isEmpty()) {
 				throw new IllegalArgumentException("Os preços do produto devem ser informado");
 			}
-			
-			//3. algum valor negativo na lista			
+
+			//3. algum valor negativo na lista
 			if(precos.stream().anyMatch(p ->p.valor().compareTo(BigDecimal.ZERO) < 0 )) {
 				throw new IllegalArgumentException("O preço do produto não pode ser negativo.");
 			}
-			
+
 			//4. buscar categoria e produto pelo id
 			Categoria categoria = categoriaService.buscarCategoriaPorId(categoriaId);
-			 
+
 			Produto produto = produtoRepository.findById(id)
 					.orElseThrow(() -> new ProdutoNaoEncontradoException(id));
-			
+
 			//5 Verificar se existe um produto com mesmo nome nessa Categoria
 			// (ignora o próprio registro que está sendo editado)
 			produtoRepository.findByNomeIgnoreCaseAndCategoria(nomePadronizado, categoria)
@@ -186,89 +186,89 @@ public class ProdutoService {
 							+ "' na categoria " + categoria.getNome());
 				}
 			});
-			
+
 			//ATUALIZA OS DADOS
-			
+
 			//6 Atualiza nome, categoria e imprime cozinha
 			produto.setNome(nomePadronizado);
 			produto.setCategoria(categoria);
-			produto.setImprimeCozinha(imprimeCozinha); 
-			
-			//7 limpa a lista de preço antigas e adiciona os novos 
+			produto.setImprimeCozinha(imprimeCozinha);
+
+			//7 limpa a lista de preço antigas e adiciona os novos
 			//remove os antigos
 			produto.getPrecosVariaveis().clear();
-			
+
 			//adiciona os novos
 			for(PrecoTamanhoRequest preco : precos) {
 				Tamanho tamanho = tamanhoService.buscarPorId(preco.tamanhoId());
 				PrecoVariavel pv = new PrecoVariavel(produto, tamanho, preco.valor());
 				produto.adicionarPreco(pv);
 			}
-			
+
 			//SALVAR
-			
+
 			//8 Salvar e retornar
 			return produtoRepository.save(produto);
-			
+
 		}
-		
-		
+
+
 		//=============================================================
 		// EXCLUSÃO
 		//=============================================================
-		
+
 		@Transactional
 		public void excluirProduto(Integer id) {
 			// Confirma que existe antes de tentar excluir
 			if(!produtoRepository.existsById(id)) {
 				throw new ProdutoNaoEncontradoException(id);
 			}
-			
+
 			produtoRepository.deleteById(id);
 		}
-		 
-		
-		
+
+
+
 		//=============================================================
 		// CONSULTAS
 		//=============================================================
-		
+
 		@Transactional(readOnly = true)
 		public Produto buscarProdutoPorId(Integer id) {
 			return produtoRepository.findById(id)
 					.orElseThrow(() -> new ProdutoNaoEncontradoException(id));
 		}
-		
+
 		@Transactional(readOnly = true)
 		public Page<Produto> listarTodosProdutos(Pageable pageable){
 			return produtoRepository.findAll(pageable);
 		}
-		
-		
+
+
 		@Transactional(readOnly = true)
 		public Page<Produto> buscarProdutoPorNome(String nome, Pageable pageable){
-			
+
 			//Validações
 			if(nome == null || nome.isBlank()) {
 				throw new IllegalArgumentException("O nome do produto deve ser informado");
 			}
-			
+
 			return produtoRepository.findByNomeContainingIgnoreCase(nome, pageable);
 		}
-		
+
 		@Transactional(readOnly = true)
 		public Page<Produto> listarProdutoPorCategoria(Integer categoriaId, Pageable pageable){
 			Categoria categoria = categoriaService.buscarCategoriaPorId(categoriaId);
-			
+
 			return produtoRepository.findByCategoria(categoria, pageable);
-			
+
 		}
-		
+
 		@Transactional(readOnly = true)
 		public boolean isProdutoNaCategoria(Integer categoriaId) {
 			return produtoRepository.existsByCategoriaId(categoriaId);
 		}
-	
+
 		// =============================================================
 		// MÉTODOS DTO (conversão dentro da transação)
 		// =============================================================
@@ -276,12 +276,12 @@ public class ProdutoService {
 		public ProdutoResponse buscaProdutoResponsePorId(Integer id) {
 			return ProdutoResponse.from(buscarProdutoPorId(id));
 		}
-		
+
 		@Transactional(readOnly = true)
 		public Page<ProdutoResponse> listarTodosProdutosResponse(Pageable pageable) {
 		    return listarTodosProdutos(pageable).map(ProdutoResponse::from);
 		}
-		
+
 		@Transactional(readOnly = true)
 		public Page<ProdutoResponse> buscarProdutoPorNomeResponse(String nome, Pageable pageable) {
 		    return buscarProdutoPorNome(nome, pageable).map(ProdutoResponse::from);
@@ -302,18 +302,18 @@ public class ProdutoService {
 		    );
 		    return ProdutoResponse.from(produto);
 		}
-		
+
 		@Transactional
 		public ProdutoResponse cadastrarProdutoSimplesResponse(ProdutoSimplesRequest request) {
-			
+
 			Produto produto = cadastrarProdutoSimples(
-					request.nome(), 
-					request.imprimeCozinha(), 
-					request.categoriaId(), 
+					request.nome(),
+					request.imprimeCozinha(),
+					request.categoriaId(),
 					request.valor()
 					);
 			return ProdutoResponse.from(produto);
-			
+
 		}
 
 		@Transactional
@@ -327,6 +327,6 @@ public class ProdutoService {
 		    );
 		    return ProdutoResponse.from(produto);
 		}
-		
+
 
 }

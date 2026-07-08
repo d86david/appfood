@@ -6,7 +6,16 @@ import java.util.Objects;
 
 import com.dsys.appfood.domain.enums.TipoMovimentacao;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 /**
  * Representa cada entrada ou saída individual de valores do Caixa. Esta classe
@@ -122,12 +131,12 @@ public class MovimentacaoCaixa {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if ((obj == null) || (getClass() != obj.getClass())) {
 			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		}
 		MovimentacaoCaixa other = (MovimentacaoCaixa) obj;
 		return Objects.equals(id, other.id);
 	}

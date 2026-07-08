@@ -1,15 +1,5 @@
 package com.dsys.appfood.controller;
 
-import com.dsys.appfood.dto.request.EstornoPagamentoRequest;
-import com.dsys.appfood.dto.request.PagamentoDinheiroRequest;
-import com.dsys.appfood.dto.request.PagamentoMultiploRequest;
-import com.dsys.appfood.dto.request.PagamentoRequest;
-import com.dsys.appfood.dto.response.PagamentoComTrocoResponse;
-import com.dsys.appfood.dto.response.PagamentoResponse;
-import com.dsys.appfood.service.PagamentoService;
-
-import jakarta.validation.Valid;
-
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -22,16 +12,26 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.dsys.appfood.dto.request.EstornoPagamentoRequest;
+import com.dsys.appfood.dto.request.PagamentoDinheiroRequest;
+import com.dsys.appfood.dto.request.PagamentoMultiploRequest;
+import com.dsys.appfood.dto.request.PagamentoRequest;
+import com.dsys.appfood.dto.response.PagamentoComTrocoResponse;
+import com.dsys.appfood.dto.response.PagamentoResponse;
+import com.dsys.appfood.service.PagamentoService;
+
+import jakarta.validation.Valid;
+
 /**
  * ======================================================================
  *  PAGAMENTO CONTROLLER - GERENCIAMENTO FINANCEIRO DO PEDIDO
  * ======================================================================
- * 
+ *
  * Este Controller é responsável por EXPOR todas as operações relacionadas
  * a pagamentos, fechando o ciclo financeiro do pedido.
- * 
+ *
  * FLUXO COMPLETO DE PAGAMENTO:
- * 
+ *
  *   1. REGISTRAR PAGAMENTO ÚNICO   -> POST /api/pagamentos
  *   2. REGISTRAR PAGAMENTO MÚLTIPLO -> POST /api/pagamentos/multiplos
  *   3. PROCESSAR PAGAMENTO DINHEIRO -> POST /api/pagamentos/dinheiro
@@ -39,17 +39,17 @@ import org.springframework.web.bind.annotation.RestController;
  *   5. ESTORNAR PAGAMENTO          -> POST /api/pagamentos/{pagamentoId}/estornar
  *   6. LISTAR PAGAMENTOS DO PEDIDO -> GET  /api/pagamentos/pedido/{pedidoId}
  *   7. VERIFICAR PEDIDO QUITADO    -> GET  /api/pagamentos/pedido/{pedidoId}/quitado
- * 
+ *
  * CONCEITOS RESTful APLICADOS:
  *   - Recursos identificados por URIs: /api/pagamentos/{id}
  *   - Verbos HTTP corretos: POST (criar), GET (consultar)
  *   - Status HTTP adequados: 201 Created, 200 OK, 204 No Content, 404 Not Found
- * 
+ *
  * SEPARAÇÃO DE RESPONSABILIDADES:
  *   - Controller: Recebe requisições, valida, chama Service, monta resposta HTTP.
  *   - Service: Contém TODA a lógica de negócio, transações, regras.
  *   - Repository: Acesso ao banco de dados.
- * 
+ *
  * RELACIONAMENTOS:
  *   - Pagamento -> Pedido (muitos para um)
  *   - Pagamento -> Caixa (muitos para um)
@@ -59,15 +59,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/pagamentos")
 public class PagamentoController {
-	
+
 	private final PagamentoService pagamentoService;
 
 	public PagamentoController (PagamentoService pagamentoService) {
-		
+
 		this.pagamentoService = pagamentoService;
-		
+
 	}
-	
+
 	// ====================================================================================================
 	// 1. REGISTRAR PAGAMENTO ÚNICO
 	// ====================================================================================================
@@ -92,13 +92,13 @@ public class PagamentoController {
 			@RequestParam Integer operadorId,
 			@RequestBody @Valid PagamentoRequest request
 			){
-		
+
 		PagamentoResponse response = pagamentoService.registrarPagamentoResponse(pedidoId, caixaId, operadorId, request);
-		
+
 		return ResponseEntity.status(201).body(response);
-		
+
 	}
-	
+
 	// ====================================================================================================
 	// 2. REGISTRAR PAGAMENTO MÚLTIPLO
 	// ====================================================================================================
@@ -120,17 +120,17 @@ public class PagamentoController {
      */
 	@PostMapping("/multiplos")
 	public ResponseEntity<List<PagamentoResponse>> registrarPagamentoMultiplo (
-			
+
 			@RequestParam Integer pedidoId,
 			@RequestParam Integer caixaId,
 			@RequestBody @Valid PagamentoMultiploRequest request
-			
+
 			){
-		
+
 		List<PagamentoResponse> response = pagamentoService.registrarPagamentoMultiploResponse(pedidoId, caixaId, request);
-		
+
 		return ResponseEntity.status(201).body(response);
-		
+
 	}
 
 	// ====================================================================================================
@@ -155,13 +155,13 @@ public class PagamentoController {
 			@RequestParam Integer caixaId,
 			@RequestBody @Valid PagamentoDinheiroRequest request
 			){
-		
+
 		PagamentoComTrocoResponse response = pagamentoService.processarPagamentoDinheiroResponse(pedidoId, caixaId, request);
-		
+
 		return ResponseEntity.status(201).body(response);
-		
+
 	}
-	
+
 	// ====================================================================================================
 	// 4. CALCULAR TROCO (APENAS CONSULTA)
 	// ====================================================================================================
@@ -181,11 +181,11 @@ public class PagamentoController {
     		@RequestParam BigDecimal valorRecebido
     		){
     	BigDecimal troco = pagamentoService.calcularTroco(pedidoId, valorRecebido);
-    	
+
     	return ResponseEntity.ok(troco);
     }
-    
-	
+
+
 	// ====================================================================================================
 	// 5. ESTORNAR PAGAMENTO
 	// ====================================================================================================
@@ -214,15 +214,15 @@ public class PagamentoController {
     		){
     	// 1. Chama o Service que executa o estorno
     	pagamentoService.estornarPagamento(
-    			pagamentoId, 
-    			request.motivo(), 
+    			pagamentoId,
+    			request.motivo(),
     			request.gerenteId()
     			);
-    	
+
     	// 2. Retorna 204 No Content (operação bem-sucedida, sem conteúdo para retornar)
         return ResponseEntity.noContent().build();
     }
-	
+
 	// ====================================================================================================
 	// 6. LISTAR PAGAMENTOS DE UM PEDIDO
 	// ====================================================================================================
@@ -234,13 +234,13 @@ public class PagamentoController {
      */
     @GetMapping("/pedido/{pedidoId}")
     public ResponseEntity<List<PagamentoResponse>> listarPagamentosDosPedido(@PathVariable Integer pedidoId){
-    	
+
     	List<PagamentoResponse> response = pagamentoService.listarPagamentosDoPedidoResponse(pedidoId);
-    	
+
     	return ResponseEntity.ok(response);
-    	
+
     }
-	
+
 	// ====================================================================================================
 	// 7. VERIFICAR SE PEDIDO ESTÁ QUITADO
 	// ====================================================================================================

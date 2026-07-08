@@ -2,7 +2,12 @@ package com.dsys.appfood.domain.model;
 
 import java.util.Objects;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "categoria")
@@ -14,17 +19,17 @@ public class Categoria {
 
 	@Column(nullable = false)
 	private String nome;
-	
+
 	@Column(name = "personalizavel")
 	private boolean personalizavel;
-	
+
 	@Column(name = "impressora")
 	private String impressora;
 
 	//===========================================
 	// CONTRUTORES
 	//===========================================
-	
+
 	public Categoria() {
 
 	}
@@ -49,7 +54,7 @@ public class Categoria {
 	public void setNome(String nome) {
 		this.nome = nome;
 	}
-	
+
 	public boolean isPersonalizavel() {
 		return personalizavel;
 	}
@@ -57,7 +62,7 @@ public class Categoria {
 	public void setPersonalizavel(boolean personalizavel) {
 		this.personalizavel = personalizavel;
 	}
-	
+
 	 public String getImpressora() {
 	        return impressora;
 	    }
@@ -77,15 +82,15 @@ public class Categoria {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if ((obj == null) || (getClass() != obj.getClass())) {
 			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		}
 		Categoria other = (Categoria) obj;
 		return Objects.equals(id, other.id);
 	}
-	
+
 
 }

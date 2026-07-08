@@ -13,7 +13,7 @@ import com.dsys.appfood.domain.model.Usuario;
 
 @Repository
 public interface CaixaRepository extends JpaRepository<Caixa, Integer>{
-	
+
 	/*  O Spring Data JPA cria automáticamente os métodos:
 	 *  - save()       -> Salvar
 	 *  - findById(  ) -> buscar por ID
@@ -21,22 +21,22 @@ public interface CaixaRepository extends JpaRepository<Caixa, Integer>{
 	 *  - delete()     -> deletar
 	 *  - deleteById() -> deletar por ID
 	 */
-	
+
 	/*  RETORNOS DOS MÉTODOS
 	 *  - List<Entidade> -> Usar quando a consulta pode retornar vários registros
 	 *  - Optional<Entidade> -> Usar quando espera apenas um ou nenhum resultado. O optional é excelente
-	 *      para evitar o erro NullPointerException. 
+	 *      para evitar o erro NullPointerException.
 	 *  - Entidade -> Usar quando tem certeza absoluta que o registro existe (mas o Optional é mais seguro)
 	 *  - Page<Entiade> -> Usar para paginação (quando tem milhares de registros e quer mostrar de 10 em 10).
-	 * 
+	 *
 	 */
-	
+
 	//--- PESQUISAR POR DATA ---
 	List<Caixa> findByDataAberturaBetween(LocalDateTime inicio, LocalDateTime fim);
-	
-	//--- BUSCA O CAIXA ABERTO MAIS RECENTE --- 
+
+	//--- BUSCA O CAIXA ABERTO MAIS RECENTE ---
 	Optional<Caixa> findFirstByStatusOrderByDataAberturaDesc(StatusCaixa status);
-	
+
 	//--- PESQUISA POR OPERADOR ---
 	Optional<Caixa> findByOperadorAndStatus(Usuario operador, StatusCaixa status);
 

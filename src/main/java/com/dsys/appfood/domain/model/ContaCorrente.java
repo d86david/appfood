@@ -116,7 +116,7 @@ public class ContaCorrente {
 	public Boolean isAtiva() {
 		return ativa;
 	}
-	
+
 
 	public void setAtiva(Boolean ativa) {
 		this.ativa = ativa;
@@ -140,32 +140,35 @@ public class ContaCorrente {
 	 */
 	public void creditar(BigDecimal valor) {
 
-		if (valor.signum() <= 0)
+		if (valor.signum() <= 0) {
 			throw new IllegalArgumentException("o valor de crédito deve ser positivo");
+		}
 		this.saldoAtual = this.saldoAtual.add(valor);
 	}
 
 	public void debitar(BigDecimal valor) {
-		if (valor.signum() <= 0)
+		if (valor.signum() <= 0) {
 			throw new IllegalArgumentException("Valor deve ser positivo");
-		if (this.saldoAtual.compareTo(valor) < 0)
+		}
+		if (this.saldoAtual.compareTo(valor) < 0) {
 			throw new IllegalStateException("Saldo insuficiente");
+		}
 		this.saldoAtual = this.saldoAtual.subtract(valor);
 	}
-	
+
 	public void ativarConta() {
 		if(this.ativa) {
 			throw new NegocioException("Esta conta já está ativa");
 		}
-		
+
 		this.ativa = true;
 	}
-	
+
 	public void inativar() {
 		if(!this.ativa) {
 			throw new NegocioException("Esta conta já está inativa");
 		}
-		
+
 		this.ativa = false;
 	}
 
@@ -175,10 +178,12 @@ public class ContaCorrente {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
+		if (this == o) {
 			return true;
-		if (!(o instanceof ContaCorrente))
+		}
+		if (!(o instanceof ContaCorrente)) {
 			return false;
+		}
 		ContaCorrente that = (ContaCorrente) o;
 		return Objects.equals(id, that.id);
 	}

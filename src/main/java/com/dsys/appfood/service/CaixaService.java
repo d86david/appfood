@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.dsys.appfood.domain.enums.StatusCaixa;
 import com.dsys.appfood.domain.model.Caixa;
@@ -24,15 +25,13 @@ import com.dsys.appfood.exception.NenhumCaixaAbertoException;
 import com.dsys.appfood.repository.CaixaRepository;
 import com.dsys.appfood.repository.MovimentacaoCaixaRepository;
 
-import org.springframework.transaction.annotation.Transactional;
-
 /**
  * Classe responsavel por orquestar todas as regras de negócio relacionadas ao
  * Caixa
- * 
+ *
  * Responsabilidade ÚNICA: gerenciar o ciclo de vida do Caixa (abertura ->
  * movimentação -> fechamento)
- * 
+ *
  * Este Service NÃO sabe nada sobre HTTP, Apenas processa e lança exceções de
  * negócio.
  */
@@ -266,11 +265,11 @@ public class CaixaService {
 
 	/**
 	 * Busca o caixa atualmente aberto.
-	 * 
+	 *
 	 * CONCEITOS IMPORTANTES: - Utiliza Optional para representar a possibilidade de
 	 * não existir caixa aberto. - Lança exceção específica de negócio
 	 * (NenhumCaixaAbertoException) para tratamento adequado no controller.
-	 * 
+	 *
 	 * @return Caixa aberto atual
 	 * @throws NenhumCaixaAbertoException se não houver caixa aberto
 	 */
@@ -279,11 +278,11 @@ public class CaixaService {
 		return caixaRepository.findFirstByStatusOrderByDataAberturaDesc(StatusCaixa.ABERTO)
 				.orElseThrow(() -> new NenhumCaixaAbertoException("Não há caixa aberto no momento."));
 	}
-	
+
 	/**
 	 * Método de estorno interno usado por outros serviços
 	 */
-	
+
 	@Transactional
 	public MovimentacaoCaixa realizarEstornoInterno(Integer movimentacaoId, Integer gerenteId, String motivo) {
 	    MovimentacaoCaixa mov = movimentacaoRepository.findById(movimentacaoId)
@@ -314,13 +313,13 @@ public class CaixaService {
 
 		try {
 			Caixa caixa = buscarCaixaAbertoAtual();
-			
+
 			return CaixaStatusResponse.deCaixaAberto(caixa);
-			
+
 		} catch (NenhumCaixaAbertoException e) {
-			
+
 			return CaixaStatusResponse.vazio();
-			
+
 		}
 
 	}
@@ -357,8 +356,8 @@ public class CaixaService {
 	public MovimentacaoCaixaResponse realizarEstornoResponse(Integer movimentacaoId, CaixaEstornoRequest request) {
 
 		MovimentacaoCaixa mov = realizarEstorno(
-				movimentacaoId, 
-				request.loginGerente(), 
+				movimentacaoId,
+				request.loginGerente(),
 				request.senhaGerente(),
 				request.motivo());
 

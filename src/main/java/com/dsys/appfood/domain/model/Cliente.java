@@ -4,7 +4,14 @@ import java.util.Objects;
 
 import com.dsys.appfood.domain.enums.TipoDocumento;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "cliente")
@@ -97,7 +104,7 @@ public class Cliente {
 	public Boolean isAtivo() {
 		return ativo;
 	}
-	
+
 
 	public void setAtivo(Boolean ativo) {
 		this.ativo = ativo;
@@ -159,7 +166,7 @@ public class Cliente {
 			this.telefonePrincipal = telefone;
 		}
 	}
-	
+
 	// ===========================================
 	// HASHCODE E EQUALS
 	// ===========================================
@@ -171,12 +178,12 @@ public class Cliente {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if ((obj == null) || (getClass() != obj.getClass())) {
 			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		}
 		Cliente other = (Cliente) obj;
 		return Objects.equals(id, other.id);
 	}
