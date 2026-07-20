@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import com.dsys.appfood.domain.model.ComposicaoPadrao;
 
 @Repository
-public interface ComposicaoPadadraoRepository extends JpaRepository<ComposicaoPadrao, Integer> {
+public interface ComposicaoPadraoRepository extends JpaRepository<ComposicaoPadrao, Integer> {
 
 	// --- VERIFICAR SE EXISTE INGREDIENTE COM ESSA COMPOSIÇÃO
 	boolean existsByIngredientesId(Integer id);

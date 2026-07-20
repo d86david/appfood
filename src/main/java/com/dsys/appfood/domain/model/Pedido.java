@@ -20,68 +20,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.NamedAttributeNode;
-import jakarta.persistence.NamedEntityGraph;
-import jakarta.persistence.NamedSubgraph;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "pedido")
-@NamedEntityGraph(
-	    name = "Pedido.completo",
-	    attributeNodes = {
-	        @NamedAttributeNode(value = "itens", subgraph = "itensCompleto")
-	    },
-	    subgraphs = {
-	        @NamedSubgraph(
-	            name = "itensCompleto",
-	            attributeNodes = {
-	                @NamedAttributeNode("tamanho"),
-	                @NamedAttributeNode(value = "subItens", subgraph = "subItensCompleto"),
-	                @NamedAttributeNode(value = "customizacoesGlobais", subgraph = "customizacoesGlobaisCompleto")
-	            }
-	        ),
-	        @NamedSubgraph(
-	            name = "subItensCompleto",
-	            attributeNodes = {
-	                @NamedAttributeNode(value = "produto", subgraph = "produtoCompleto"),
-	                @NamedAttributeNode(value = "customizacoes", subgraph = "customizacoesCompleto")
-	            }
-	        ),
-	        @NamedSubgraph(
-	            name = "customizacoesCompleto",
-	            attributeNodes = {
-	                @NamedAttributeNode("ingrediente")
-	            }
-	        ),
-	        @NamedSubgraph(
-	            name = "customizacoesGlobaisCompleto",
-	            attributeNodes = {
-	                @NamedAttributeNode("borda")
-	            }
-	        ),
-	        @NamedSubgraph(
-	            name = "produtoCompleto",
-	            attributeNodes = {
-	                @NamedAttributeNode("categoria")
-	            }
-	        )
-	    }
-	)
-	// =============================================================
-	// SEGUNDO ENTITYGRAPH: Para listagens (menos dados)
-	// =============================================================
-	@NamedEntityGraph(
-	    name = "Pedido.resumo",
-	    attributeNodes = {
-	        @NamedAttributeNode("cliente"),
-	        @NamedAttributeNode("operador"),
-	        @NamedAttributeNode("entregador"),
-	        @NamedAttributeNode("pagamentos")
-	    }
-	)
-
 public class Pedido {
 
 	@Id
@@ -185,15 +128,11 @@ public class Pedido {
 	// ===========================================
 	// GETTERS E SETTERS
 	// ===========================================
-
+	
 	public Integer getId() {
 		return id;
 	}
-
-	public void setId(Integer id) {
-		this.id = id;
-	}
-
+	
 	public Cliente getCliente() {
 		return cliente;
 	}
@@ -210,10 +149,6 @@ public class Pedido {
 		this.tipo = tipo;
 	}
 
-	public StatusPedido getStatus() {
-		return status;
-	}
-
 	public String getNomeBalcao() {
 		return nomeBalcao;
 	}
@@ -226,8 +161,16 @@ public class Pedido {
 		return dtHoraAbertura;
 	}
 
+	public void setDtHoraAbertura(LocalDateTime dtHoraAbertura) {
+		this.dtHoraAbertura = dtHoraAbertura;
+	}
+
 	public LocalDateTime getDtHoraFinalizacao() {
 		return dtHoraFinalizacao;
+	}
+
+	public void setDtHoraFinalizacao(LocalDateTime dtHoraFinalizacao) {
+		this.dtHoraFinalizacao = dtHoraFinalizacao;
 	}
 
 	public BigDecimal getValorBruto() {
@@ -244,6 +187,54 @@ public class Pedido {
 
 	public void setDesconto(BigDecimal desconto) {
 		this.desconto = desconto;
+	}
+
+	public BigDecimal getTaxaEntrega() {
+		return taxaEntrega;
+	}
+
+	public void setTaxaEntrega(BigDecimal taxaEntrega) {
+		this.taxaEntrega = taxaEntrega;
+	}
+
+	public BigDecimal getValorTotal() {
+		return valorTotal;
+	}
+
+	public void setValorTotal(BigDecimal valorTotal) {
+		this.valorTotal = valorTotal;
+	}
+
+	public StatusPedido getStatus() {
+		return status;
+	}
+
+	public void setStatus(StatusPedido status) {
+		this.status = status;
+	}
+
+	public boolean isPedidoPago() {
+		return pedidoPago;
+	}
+
+	public void setPedidoPago(boolean pedidoPago) {
+		this.pedidoPago = pedidoPago;
+	}
+
+	public List<StatusPedidoHistorico> getHistoricoStatus() {
+		return historicoStatus;
+	}
+
+	public void setHistoricoStatus(List<StatusPedidoHistorico> historicoStatus) {
+		this.historicoStatus = historicoStatus;
+	}
+
+	public List<Pagamento> getPagamentos() {
+		return pagamentos;
+	}
+
+	public void setPagamentos(List<Pagamento> pagamentos) {
+		this.pagamentos = pagamentos;
 	}
 
 	public Usuario getOperador() {
@@ -266,32 +257,16 @@ public class Pedido {
 		return entregador;
 	}
 
+	public void setEntregador(Entregador entregador) {
+		this.entregador = entregador;
+	}
+
 	public List<ItemPedido> getItens() {
 		return itens;
 	}
 
-	public List<Pagamento> getPagamentos() {
-		return pagamentos;
-	}
-
-	public BigDecimal getTaxaEntrega() {
-		return taxaEntrega;
-	}
-
-	public void setTaxaEntrega(BigDecimal taxaEntrega) {
-		this.taxaEntrega = taxaEntrega;
-	}
-
-	public List<StatusPedidoHistorico> getHistoricoStatus() {
-		return historicoStatus;
-	}
-
-	public boolean getPedidoPago() {
-		return pedidoPago;
-	}
-
-	public void setPedidoPago(boolean pedidoPago) {
-		this.pedidoPago = pedidoPago;
+	public void setItens(List<ItemPedido> itens) {
+		this.itens = itens;
 	}
 
 	public Integer getNumeroMesa() {
@@ -310,13 +285,14 @@ public class Pedido {
 		this.obsPedido = obsPedido;
 	}
 
-	public BigDecimal getValorTotal() {
-		return valorTotal;
+	public String getMotivoCancelamento() {
+		return motivoCancelamento;
 	}
 
-	public void setValorTotal(BigDecimal valorTotal) {
-		this.valorTotal = valorTotal;
+	public void setMotivoCancelamento(String motivoCancelamento) {
+		this.motivoCancelamento = motivoCancelamento;
 	}
+	
 
 	/**
 	 * Calcula o valor líquido do pedido (Valor Bruto - Descontos).
@@ -341,6 +317,7 @@ public class Pedido {
 
 		return valorBruto.subtract(desc);
 	}
+
 
 	/**
 	 * Calcula o valor bruto total do pedido a partir dos itens.

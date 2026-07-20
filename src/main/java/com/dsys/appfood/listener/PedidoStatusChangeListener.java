@@ -36,6 +36,7 @@ public class PedidoStatusChangeListener {
 				System.out.println(">>> [EVENTO] Impressão automática para pedido #" + event.getPedido().getId());
 			} catch (Exception e) {
 				System.err.println(">>> [EVENTO] Erro ao imprimir pedido #" + event.getPedido().getId() + ": "+ e.getMessage());
+				e.printStackTrace();
 			}
 		}
 	}

@@ -17,7 +17,7 @@ import com.dsys.appfood.dto.response.IngredienteResponse;
 import com.dsys.appfood.exception.IngredienteJaCadastradoException;
 import com.dsys.appfood.exception.IngredienteNaoEncontradoException;
 import com.dsys.appfood.exception.NegocioException;
-import com.dsys.appfood.repository.ComposicaoPadadraoRepository;
+import com.dsys.appfood.repository.ComposicaoPadraoRepository;
 import com.dsys.appfood.repository.IngredienteRepository;
 
 /**
@@ -31,10 +31,10 @@ import com.dsys.appfood.repository.IngredienteRepository;
 @Service
 public class IngredienteService {
 
-	private final ComposicaoPadadraoRepository composicaoPadadraoRepository;
+	private final ComposicaoPadraoRepository composicaoPadadraoRepository;
 	private final IngredienteRepository ingredienteRepository;
 
-	public IngredienteService(IngredienteRepository ingredienteRepository, ComposicaoPadadraoRepository composicaoPadadraoRepository) {
+	public IngredienteService(IngredienteRepository ingredienteRepository, ComposicaoPadraoRepository composicaoPadadraoRepository) {
 
 		this.ingredienteRepository = ingredienteRepository;
 		this.composicaoPadadraoRepository = composicaoPadadraoRepository;

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Objects;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -53,6 +54,9 @@ public class ItemPedido {
 	@ManyToOne
 	@JoinColumn(name = "tamanho_id")
 	private Tamanho tamanho;
+	
+	@Column(name = "quantidade")
+	private Integer quantidade = 1;
 
 	/**
      * Lista de sabores que compõem a pizza.
@@ -105,6 +109,17 @@ public class ItemPedido {
 	public void setTamanho(Tamanho tamanho) {
 		this.tamanho = tamanho;
 	}
+	
+	public Integer getQuantidade() {
+		return quantidade;
+	}
+	
+	public void setQuantidade (Integer quantidade) {
+		if(quantidade == null || quantidade <= 0) {
+			throw new IllegalArgumentException("A quantidade deve ser maior que zero");
+		}
+		this.quantidade = quantidade;
+	}
 
 	public List<SubItemSabor> getSubItens() {
 		return subItens;
@@ -155,6 +170,7 @@ public class ItemPedido {
 		BigDecimal precoMaiorSabor = BigDecimal.ZERO;
 		BigDecimal totalAdicionais = BigDecimal.ZERO;
 
+		// 1. Calcula o maior preço entre os sabores e soma customizações do sabor
 		for (SubItemSabor sabor : subItens) {
 			//1 Pega p preço do sabor para o tamanho desta pizza
 			BigDecimal precoSabor = sabor.getPrecoSabor();
@@ -167,6 +183,13 @@ public class ItemPedido {
 			//3. Soma os adiconaisqcustomizações deste sabor específico
 			totalAdicionais = totalAdicionais.add(sabor.calcularTotalCustomizacoes());
 		}
+		
+		// 2. Soma as bordas (customizações globais do item)
+	    for (ItemCustomizacao borda : customizacoesGlobais) {
+	        if (borda.getValorCobrado() != null) {
+	            totalAdicionais = totalAdicionais.add(borda.getValorCobrado());
+	        }
+	    }
 
 		//retorna o maior valor entre os sabores + a soma de todos os adicionais
 		return precoMaiorSabor.add(totalAdicionais);

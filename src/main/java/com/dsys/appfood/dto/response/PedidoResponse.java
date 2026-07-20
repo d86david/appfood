@@ -47,7 +47,7 @@ public record PedidoResponse(
                 pedido.getTaxaEntrega(),
                 pedido.calcularTotal(),
                 pedido.getStatus(),
-                pedido.getPedidoPago(),
+                pedido.isPedidoPago(),
                 pedido.getOperador() != null ? pedido.getOperador().getId() : null,
                 pedido.getOperador() != null ? pedido.getOperador().getNome() : null,
                 pedido.getEntregador() != null ? pedido.getEntregador().getId() : null,

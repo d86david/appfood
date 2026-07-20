@@ -11,7 +11,7 @@ import com.dsys.appfood.domain.model.Produto;
 import com.dsys.appfood.dto.request.ComposicaoRequest;
 import com.dsys.appfood.dto.response.ComposicaoPadraoResponse;
 import com.dsys.appfood.exception.NegocioException;
-import com.dsys.appfood.repository.ComposicaoPadadraoRepository;
+import com.dsys.appfood.repository.ComposicaoPadraoRepository;
 
 /**
  * Classe responsavel pelas composições dos produtos, ela é a receita dos
@@ -26,12 +26,12 @@ import com.dsys.appfood.repository.ComposicaoPadadraoRepository;
 @Service
 public class ComposicaoPadraoService {
 
-	private final ComposicaoPadadraoRepository composicaoRepository;
+	private final ComposicaoPadraoRepository composicaoRepository;
 	private final ProdutoService produtoService;
 	private final IngredienteService ingredienteService;
 
 	// Injeção de Dependências
-	public ComposicaoPadraoService(ComposicaoPadadraoRepository composicaoRepository, ProdutoService produtoService,
+	public ComposicaoPadraoService(ComposicaoPadraoRepository composicaoRepository, ProdutoService produtoService,
 			IngredienteService ingredienteService) {
 		this.composicaoRepository = composicaoRepository;
 		this.produtoService = produtoService;

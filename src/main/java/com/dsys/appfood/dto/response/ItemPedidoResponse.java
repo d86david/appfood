@@ -10,7 +10,8 @@ public record ItemPedidoResponse(
 		Integer id,
 		Integer tamanhoId,
 		String tamanhoNome,
-		BigDecimal precoFinal,
+		Integer quantidade, 
+		BigDecimal precoUnitario,
 		List<SubItemSaborResponse> sabores,
 		List<CustomizacaoResponse> customizacoesGlobais
 
@@ -21,6 +22,7 @@ public record ItemPedidoResponse(
 				item.getId(),
 				item.getTamanho().getId(),
 				item.getTamanho().getNome(),
+				item.getQuantidade(),
 				item.calcularPrecoFinal(),
 				item.getSubItens().stream().map(SubItemSaborResponse::from).toList(),
 				item.getCustomizacoesGlobais().stream()

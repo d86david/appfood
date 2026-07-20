@@ -1,6 +1,7 @@
 package com.dsys.appfood.service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.context.ApplicationEventPublisher;
@@ -143,6 +144,7 @@ public class PedidoService {
 	    pedido.setDesconto(BigDecimal.ZERO);
 	    pedido.setTaxaEntrega(BigDecimal.ZERO);
 	    pedido.setValorTotal(BigDecimal.ZERO); // Opcional, mas boa prática
+	    pedido.setDtHoraAbertura(LocalDateTime.now());
 
 		// 7. Registra o status inicial (Usando seu método da Model que já grava
 		// histórico)
@@ -157,8 +159,14 @@ public class PedidoService {
 	// =============================================================
 
 	@Transactional
-	public Pedido adicionarItemAoPedido(Integer pedidoId, Integer tamanhoId, Integer produtoId) {
+	public Pedido adicionarItemAoPedido(Integer pedidoId, Integer tamanhoId, Integer produtoId, Integer quantidade) {
 
+		 // Validação de Quantidade
+	    // Se for nula ou menor que 1, usa o padrão (1)
+	    if (quantidade == null || quantidade < 1) {
+	        quantidade = 1;
+	    }
+		
 		// Buscar o Pedido pelo ID.
 		Pedido pedido = buscarPorId(pedidoId);
 
@@ -172,6 +180,7 @@ public class PedidoService {
 
 		// Instanciar um novo ItemPedido
 		ItemPedido item = new ItemPedido(tamanho);
+		item.setQuantidade(quantidade);
 
 		// Se for produto Simples (Bebida, Porção, etc.)
 		if (produtoId != null) {
@@ -203,6 +212,13 @@ public class PedidoService {
 
 		// Salvar o Pedido. O CascadeType.ALL da Model vai salvar o ItemPedido automaticamente!
 		return pedidoRepository.save(pedido);
+	}
+	
+	// CONCEITO: Sobrecarga de Método (Overloading)
+	// Mantém o método antigo para compatibilidade (chama o novo com quantidade = 1)
+	@Transactional
+	public Pedido adicionarItemAoPedido(Integer pedidoId, Integer tamanhoId, Integer produtoId) {
+	    return adicionarItemAoPedido(pedidoId, tamanhoId, produtoId, 1);
 	}
 
 	@Transactional
@@ -745,7 +761,9 @@ public class PedidoService {
 		Pedido pedido = adicionarItemAoPedido(
 				pedidoId,
 				request.tamanhoId(),
-				request.produtoId()); // pode ser null
+				request.produtoId(), // pode ser null
+				request.getQuantidadeOrDefault()); 
+		
 
 		return PedidoResponse.from(pedido);
 	}
@@ -882,7 +900,7 @@ public class PedidoService {
 		}else if ( tipo != null ) {
 			paginaPedidos = pedidoRepository.findByTipo(tipo, pageable);
 		}else {
-			paginaPedidos = pedidoRepository.findAllResumido(pageable);
+			paginaPedidos = pedidoRepository.findAll(pageable);
 		}
 
 		// Converte cada Pedido para PedidoResumoResponse usando o método from
@@ -904,62 +922,25 @@ public class PedidoService {
 		// Converte para DTO de resumo
 		return paginaPedidos.map(PedidoResumoResponse::from);
 	}
-
-
-	 // =============================================================
-    // MÉTODO: BUSCAR PEDIDO COMPLETO (COM ENTITYGRAPH)
-    // =============================================================
-
-    /**
-     * Busca um pedido completo para operações como impressão e finalização.
-     *
-     * ESTRATÉGIA:
-     * - Usa @EntityGraph para carregar relacionamentos complexos (itens, subitens, etc.)
-     * - Evita LazyInitializationException carregando tudo em uma única transação.
-     *
-     * @param id ID do pedido
-     * @return Pedido completo
-     * @throws PedidoNaoEncontradoException se o pedido não existir
-     */
-	@Transactional(readOnly = true)
-	public Pedido buscarPedidoCompleto (Integer id) {
-		return pedidoRepository.findByIdCompleto(id)
-				.orElseThrow(() -> new PedidoNaoEncontradoException(id));
-	}
-
+	
 	// =============================================================
-    // MÉTODO: BUSCAR PEDIDO PARA IMPRESSÃO
-    // =============================================================
+	// NOVO MÉTODO NO PedidoService - BUSCAR PEDIDO COMPLETO
+	// =============================================================
 
-    /**
-     * Busca um pedido com todos os dados necessários para impressão.
-     *
-     * Este método é mais leve que o buscarPedidoCompleto, pois carrega
-     * apenas o necessário para a impressão (não carrega pagamentos, etc.)
-     *
-     * @param id ID do pedido
-     * @return Pedido pronto para impressão
-     */
+	/**
+	 * Busca um pedido pelo ID com todos os dados carregados.
+	 * 
+	 * Este método é usado para operações que precisam acessar coleções
+	 * como itens, sabores, customizações, pagamentos, etc.
+	 * 
+	 * @param id ID do pedido
+	 * @return Pedido completo (com todos os relacionamentos carregados)
+	 * @throws PedidoNaoEncontradoException se o pedido não existir
+	 */
 	@Transactional(readOnly = true)
-	public Pedido buscarPedidoParaImpressao (Integer id) {
-		return pedidoRepository.findByIdCompletoForPrinting(id)
-				.orElseThrow(() -> new PedidoNaoEncontradoException(id));
+	public Pedido buscarPedidoCompleto(Integer id) {
+	    return pedidoRepository.findByIdCompleto(id)
+	            .orElseThrow(() -> new PedidoNaoEncontradoException(id));
 	}
-
-	 // =============================================================
-    // MÉTODO: BUSCAR PEDIDO RESUMIDO
-    // =============================================================
-
-    /**
-     * Busca um pedido com dados resumidos (para listagens).
-     *
-     * @param id ID do pedido
-     * @return Pedido com dados resumidos
-     */
-    @Transactional(readOnly = true)
-    public Pedido buscarPedidoResumido(Integer id) {
-        return pedidoRepository.findByIdResumido(id)
-                .orElseThrow(() -> new PedidoNaoEncontradoException(id));
-    }
 
 }
