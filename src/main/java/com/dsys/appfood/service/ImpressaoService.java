@@ -44,9 +44,7 @@ import com.dsys.appfood.dto.response.ImpressaoResponse;
 public class ImpressaoService {
 
 	private final ImpressoraCanalService impressoraCanalService;
-	private static final DateTimeFormatter FORMATTER_DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-	private static final String LINHA = "------------------------------------------------\n";
-	private static final String LINHA_DUPLA = "================================================\n";
+	private static final DateTimeFormatter FORMATTER_DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
 	private final PedidoService pedidoService;
 
@@ -300,7 +298,7 @@ public class ImpressaoService {
 			
 			// ---OBSERVAÇÃO DO PEDIDO (se houver) ---
 			if(obsPedido != null && !obsPedido.isBlank()) {
-				sb.append(LINHA);
+				sb.append(gerarLinhaSimples(largura));
 				// Usa o método auxiliar para quebrar a linha
 				sb.append(FormatadorCupomUtil.centralizar("OBSERVAÇÂO:", largura)).append("\n");
 				String obsFormatada = FormatadorCupomUtil.quebrarLinha(obsPedido, largura);
@@ -310,9 +308,9 @@ public class ImpressaoService {
 		}
 		// --- RODAPÉ ---
 		// sb.append("TOTAL: R$ ").append(pedido.calcularTotal()).append("\n");
-		sb.append(LINHA_DUPLA);
+		sb.append(gerarLinhaDupla(largura));
 		sb.append("    *** ENVIAR PARA ").append(impressora.toUpperCase()).append(" ***    \n");
-		sb.append(LINHA_DUPLA);
+		sb.append(gerarLinhaDupla(largura));
 
 		return sb.toString();
 	}
@@ -345,9 +343,24 @@ public class ImpressaoService {
 		for (ItemPedido item : pedido.getItens()) {
 
 			int qtd = item.getQuantidade();
-			String nomeCategoria = item.getSubItens().get(0).getProduto().getCategoria().getNome();
-			String tamanho = item.getTamanho().getNome().toUpperCase();
-
+			
+			String tamanho;
+			
+			// CONCEITO:  Se o pedido for de Tamanho "UNICO" no recibo será impresso o nome do produto sem o tamanho 
+			// Se o produto tiver tamanho no recibo será impresso a Categoria com o tamanho e o nome do produto abaixo
+			String nomeTamanho = item.getTamanho().getNome().trim().toUpperCase();
+			boolean tamanhoUnico = nomeTamanho.equals("UNICO") || nomeTamanho.equals("ÚNICO");
+			boolean imprimeLinhadetalhe = !tamanhoUnico;
+			
+			if(tamanhoUnico) {
+				nomeTamanho = item.getSubItens().get(0).getProduto().getNome();
+				tamanho = " ";
+			}else {
+				nomeTamanho = item.getSubItens().get(0).getProduto().getCategoria().getNome();
+				String tamanhoFormato = item.getTamanho().getNome().toUpperCase();
+				tamanho = " (" + tamanhoFormato + ")";
+			}
+			
 			// CONCEITO: Preço Base vs Preço Final
 			// - precoBase: apenas o maior sabor (sem adicionais)
 			BigDecimal precoBase = calcularPrecoBase(item);
@@ -358,7 +371,7 @@ public class ImpressaoService {
 			// %6.2f = Número com 6 espaços totais e 2 casas decimais
 			//String categoriaFormato = String.format("%-20s", nomeCategoria + " (" + tamanho + ")");
 			
-			sb.append(formatarLinhaProduto(nomeCategoria,tamanho ,qtd, precoBase, totalItem));
+			sb.append(formatarLinhaProduto(nomeTamanho,tamanho ,qtd, precoBase, totalItem, largura));
 
 			List<SubItemSabor> sabores = item.getSubItens();
 			boolean multiplosSabores = sabores.size() > 1;
@@ -368,11 +381,17 @@ public class ImpressaoService {
 				sb.append("  ");
 				if (multiplosSabores) {
 					sb.append("1/").append(sabores.size()).append(" ");
+				} 
+				String nomeProduto ;
+				
+				// Se imprimeLinhadetalhe for true então o produto tem tamanho, será impresso o detalhe 
+				// Se for false o produto é de tamanho UNICO não imprime a linha de detalhe
+				if(imprimeLinhadetalhe) {
+					nomeProduto = sub.getProduto().getNome();
+					sb.append("  " + nomeProduto).append("\n");
 				}
-
-				String nomeProduto = sub.getProduto().getNome();
-				String nomeFormato = String.format("%-20s", nomeProduto);
-				sb.append("  " + nomeFormato).append("\n");
+				
+				
 
 				// Customizações do sabor (adicionados/removidos)
 				for (var c : sub.getCustomizacoes()) {
@@ -396,7 +415,7 @@ public class ImpressaoService {
 			}
 			sb.append("\n");
 		}
-		sb.append(LINHA);
+		sb.append(gerarLinhaSimples(largura));
 		// ---OBSERVAÇÃO DO PEDIDO (se houver) ---
 		if(obsPedido != null && !obsPedido.isBlank()) {
 		
@@ -405,12 +424,12 @@ public class ImpressaoService {
 			String obsFormatada = FormatadorCupomUtil.quebrarLinha(obsPedido, largura);
 			sb.append(obsFormatada).append("\n");
 			
-			sb.append(LINHA);
+			sb.append(gerarLinhaSimples(largura));
 		}
 
 
 		// Rodapé (usando método auxiliar)
-		sb.append(formatarRodape(pedido));
+		sb.append(formatarRodape(pedido, largura));
 
 		return sb.toString();
 	}
@@ -507,32 +526,46 @@ public class ImpressaoService {
 	 * @param precoTotal   Preço total (unitário × quantidade)
 	 * @return Linha formatada com quebra de linha
 	 */
-	private String formatarLinhaProduto(String nomeProduto,String tamanho ,int quantidade, BigDecimal precoUnitario, BigDecimal precoTotal) {
+	private String formatarLinhaProduto(String nomeProduto,String tamanho ,int quantidade, BigDecimal precoUnitario, BigDecimal precoTotal, int largura) {
 		StringBuilder sb = new StringBuilder();
+		
+		// Larguras fixas das colunas numericas
+		int larguraQtd = 5; // "  QTD"
+		int larguraValor = 12; //"     R$ 0,00"
+		int larguraTotal = 12; //"     R$ 0,00"
+		int espacosSeparadores = 4;// Espaços entre colunas
+				
+		// Calcula a largura da coluna ITEM (o que sobrar) 
+		int larguraItem = largura - larguraQtd - larguraValor - larguraTotal - espacosSeparadores;
 	    
 	    // %-20s = String alinhada à esquerda, ocupando exatamente 20 caracteres
 	    // Se o nome for menor que 20, preenche com espaços à direita
 	    // Se for maior, não trunca (mas pode quebrar a formatação)
-	    sb.append(nomeProduto);
+		
+		
+	    String nomeFormato = nomeProduto + tamanho ;
 	    
-	    sb.append("   (" + tamanho + ")");
+	    sb.append(String.format("%-" + larguraItem + "s",nomeFormato));
+	    sb.append(" ");	 // Espaço 1
 	    
-	    // %3d = Número inteiro ocupando 3 caracteres, alinhado à direita
-	    // Ex: "  1" (com 2 espaços antes) ou " 10" (com 1 espaço antes)
-	    sb.append(String.format("%3d", quantidade));
+	    // Coluna QTD (Alinhada a direita )
+	    String qntd = String.format("%3d", quantidade);
+	 	sb.append(String.format("%" + larguraQtd + "s", qntd));
+	 	sb.append(" ");	 // Espaço 2
 	    
-	    // Espaço fixo entre quantidade e valor
-	    sb.append("     ");
 	    
+	 	// COLUNA VALOR (alinhada à direita)
 	    // R$%6.2f = Valor monetário com 6 caracteres totais e 2 casas decimais
 	    // Ex: "R$ 40,00" (com 1 espaço após R$) ou "R$  8,00" (com 2 espaços)
-	    sb.append(String.format("R$%6.2f", precoUnitario));
+	 	String vlUnitario = String.format("R$%6.2f", precoUnitario);
+	    sb.append(String.format("%" + larguraValor + "s",vlUnitario));
 	    
 	    // Espaço fixo entre valor unitário e total
 	    sb.append(" ");
 	    
 	    // Mesmo formato para o total
-	    sb.append(String.format("R$%6.2f", precoTotal));
+	    String vlTotal = String.format("R$%6.2f", precoTotal);
+	    sb.append(String.format("%" + larguraTotal + "s", vlTotal));
 	    sb.append("\n");
 	    
 	    return sb.toString();
@@ -560,7 +593,7 @@ public class ImpressaoService {
 		sb.append(FormatadorCupomUtil.centralizar(titulo, largura)).append("\n");
 		
 		// Linha dupla separada (constante LINHA_DUPLA)
-		sb.append(LINHA_DUPLA);
+		sb.append(gerarLinhaDupla(largura));
 		
 		// Numero do Pedido
 		sb.append("PEDIDO #").append(pedido.getId()).append("\n");
@@ -573,7 +606,7 @@ public class ImpressaoService {
 		.append("\n");
 		
 		//Linha simples separadora
-		sb.append("LINHA");
+		sb.append(gerarLinhaSimples(largura));
 		
 		// Nome do Cliente 
 		sb.append("CLIENTE: ").append(obterNomeCliente(pedido)).append("\n");
@@ -602,7 +635,7 @@ public class ImpressaoService {
 		}
 		
 		// Linha simples separada
-		sb.append(LINHA);
+		sb.append(gerarLinhaSimples(largura));
 		
 		return sb.toString();
 	}
@@ -617,7 +650,7 @@ public class ImpressaoService {
 	 * @param pedido O pedido completo
 	 * @return String com o rodapé formatado
 	 */
-	private String formatarRodape(Pedido pedido) {
+	private String formatarRodape(Pedido pedido, int largura) {
 		StringBuilder sb = new StringBuilder();
 		
 		// CONCEITO: Recálculo obrigatório
@@ -633,7 +666,7 @@ public class ImpressaoService {
 		}
 		
 		// Linha dupla antes do total
-		sb.append(LINHA_DUPLA);
+		sb.append(gerarLinhaDupla(largura));
 		
 		// Forma de Pagamento
 		sb.append("FORMA DE PAGAMENTO:\n");
@@ -655,10 +688,10 @@ public class ImpressaoService {
 	    }
 	    
 	    // Mensagem final
-	    sb.append(LINHA_DUPLA);
+	    sb.append(gerarLinhaDupla(largura));
 	    sb.append("======= ESTE CUPOM NÃO TEM VALOR FISCAL ========\n");
 	    sb.append("*** OBRIGADO PELA PREFERÊNCIA ***\n");
-	    sb.append(LINHA_DUPLA);
+	    sb.append(gerarLinhaDupla(largura));
 	    
 	    return sb.toString();
 	}
@@ -682,7 +715,7 @@ public class ImpressaoService {
 		int larguraQtd = 5; // "  QTD"
 		int larguraValor = 12; //"     R$ 0,00"
 		int larguraTotal = 12; //"     R$ 0,00"
-		int espacosSeparadores = 3;// Espaços entre colunas
+		int espacosSeparadores = 4;// Espaços entre colunas
 		
 		// Calcula a largura da coluna ITEM (o que sobrar) 
 		int larguraItem = largura - larguraQtd - larguraValor - larguraTotal - espacosSeparadores;
@@ -692,12 +725,15 @@ public class ImpressaoService {
 		
 		// Coluna ITEM (alinhada à esquerda)
 		sb.append(String.format("%-" + larguraItem + "s", "ITEM"));
+		sb.append(" "); // Espaço 1
 		
-		// Espaço separador
-		sb.append("   ");
-		
-		// Coluna QTD (centralizada)
+		// Coluna QTD (Alinhada a direita)
 		sb.append(String.format("%" + larguraQtd + "s", "QTD"));
+		sb.append(" "); // Espaço 2
+		
+		// COLUNA VALOR (alinhada à direita)
+	    sb.append(String.format("%" + larguraValor + "s", "VALOR"));
+	    sb.append(" "); // Espaço 3
 		
 		// Coluna TOTAL (Alinhada a direita) 
 		sb.append(String.format("%" + larguraTotal + "s", "TOTAL"));
@@ -706,6 +742,32 @@ public class ImpressaoService {
 		
 		return sb.toString();
 		
+	}
+	
+	
+	// MÉTODOS AUXILIARES: LINHAS DINÂMICAS
+	/**
+	 * Gera uma linha simples separadora com a largura especificada.
+	 * 
+	 * CONCEITO: Formatação Dinâmica
+	 * - Em vez de usar uma constante fixa, gera a linha baseada na largura
+	 * - Garante que o cupom seja consistente com a impressora configurada
+	 * 
+	 * @param largura Número de colunas da impressora
+	 * @return Linha simples com quebra de linha
+	 */
+	private String gerarLinhaSimples(int largura) {
+	    return "-".repeat(largura) + "\n";
+	}
+	
+	/**
+	 * Gera uma linha dupla separadora com a largura especificada.
+	 * 
+	 * @param largura Número de colunas da impressora
+	 * @return Linha dupla com quebra de linha
+	 */
+	private String gerarLinhaDupla(int largura) {
+	    return "=".repeat(largura) + "\n";
 	}
 	
 	

@@ -22,7 +22,7 @@ public interface ImpressoraCanalRepository extends JpaRepository<ImpressoraCanal
      * @return Optional com o mapeamento, ou vazio se não houver
      */
 	@Query("SELECT ic FROM ImpressoraCanal ic "+
-			"JOIN FETCH ic.impressora" +
+			"JOIN FETCH ic.impressora " +
 			"WHERE ic.canal.nome = :nomeCanal AND ic.ativo = true AND ic.impressora.ativa = true")
 	Optional<ImpressoraCanal> findByCanalNomeAtivo(@Param("nomeCanal") String nomeCanal);
 	
