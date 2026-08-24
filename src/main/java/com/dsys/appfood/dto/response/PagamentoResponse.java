@@ -22,7 +22,7 @@ public record PagamentoResponse(
 				p.getFormaPagamento(),
 				p.getValor(),
 				p.getOperador() != null ?  p.getOperador().getNome() : null,
-				p.getCaixa() != null ? p.getCaixa().getStatus().toString() : null
+				p.getSessaoCaixa() != null ? p.getSessaoCaixa().getStatus().toString() : null
 				);
 	}
 }

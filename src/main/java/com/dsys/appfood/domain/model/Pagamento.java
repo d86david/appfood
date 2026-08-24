@@ -5,7 +5,9 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 import com.dsys.appfood.domain.enums.FormaPagamento;
+import com.dsys.appfood.exception.NegocioException;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -17,7 +19,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 /**
- * Entidade responsavel por ligar o pedido ao Caixa, e encerrar o clico do
+ * Entidade responsavel por ligar o pedido a do Sessao do Caixa, e encerrar o clico do
  * pedido
  *
  *
@@ -35,8 +37,8 @@ public class Pagamento {
 	private Pedido pedido;
 
 	@ManyToOne
-	@JoinColumn(name = "caixa_id")
-	private Caixa caixa;
+	@JoinColumn(name = "sessao_caixa_id")
+	private SessaoCaixa sessaoCaixa;
 
 	@Enumerated(EnumType.STRING)
 	private FormaPagamento formaPagamento;
@@ -45,8 +47,16 @@ public class Pagamento {
 
 	private BigDecimal troco;
 
-	@JoinColumn(name = "pedido_id")
+	@Column(name = "data_hora")
 	LocalDateTime dataHora;
+	
+	private Boolean estornado = false;
+	
+	@Column(name = "data_estorno")
+	LocalDateTime dataEstorno;
+	
+	@Column(name = "motivo_estorno")
+	private String motivoEstorno;
 
 	@ManyToOne
 	@JoinColumn(name = "operador_id")
@@ -57,17 +67,6 @@ public class Pagamento {
 	// ===========================================
 
 	public Pagamento() {
-
-	}
-
-	public Pagamento(Pedido pedido, Caixa caixa, FormaPagamento formaPagamento, BigDecimal valor) {
-		if (valor == null || valor.signum() == -1) {
-			throw new IllegalArgumentException("O Valor não pode ser nulo ou negativo");
-		}
-		this.caixa = caixa;
-		this.formaPagamento = formaPagamento;
-		this.valor = valor;
-		dataHora = LocalDateTime.now();
 
 	}
 
@@ -83,12 +82,12 @@ public class Pagamento {
 		return pedido;
 	}
 
-	public Caixa getCaixa() {
-		return caixa;
+	public SessaoCaixa getSessaoCaixa() {
+		return sessaoCaixa;
 	}
 
-	public void setCaixa(Caixa caixa) {
-		this.caixa = caixa;
+	public void setSessaoCaixa(SessaoCaixa sessaoCaixa) {
+		this.sessaoCaixa = sessaoCaixa;
 	}
 
 	public FormaPagamento getFormaPagamento() {
@@ -122,7 +121,23 @@ public class Pagamento {
 	public void setOperador(Usuario operador) {
 		this.operador = operador;
 	}
+	
+	
+	public Boolean getEstornado() {
+		return estornado;
+	}
 
+	public LocalDateTime getDataEstorno() {
+		return dataEstorno;
+	}
+
+	public String getMotivoEstorno() {
+		return motivoEstorno;
+	}
+
+	public Boolean isEstornado() {
+		return estornado;
+	}
 
 	public LocalDateTime getDataHora() {
 		return dataHora;
@@ -158,6 +173,27 @@ public class Pagamento {
 			return false;
 		}
 		return this.valor.compareTo(pedido.getValorLiquido()) >= 0;
+	}
+	
+	/**
+	 * Marca este pagamento como estornado, sem apagá-lo.
+	 *
+	 */
+	public void estornar(String motivo) {
+	    
+		// Valida se o pagamento ja está estornado
+		if(estornado) {
+	    	throw new NegocioException("Não é possivel estornar mais de uma vez o mesmo lançamento!");
+	    }
+		
+		// Valida se tem motivo 
+		if(motivo.isBlank()) {
+			throw new NegocioException("É necessario informar um motivo para o estorno");
+		}
+		
+	    this.estornado = true;
+	    this.dataEstorno = LocalDateTime.now();
+	    this.motivoEstorno = motivo;
 	}
 
 }

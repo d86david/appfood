@@ -52,7 +52,7 @@ import jakarta.validation.Valid;
  *
  * RELACIONAMENTOS:
  *   - Pagamento -> Pedido (muitos para um)
- *   - Pagamento -> Caixa (muitos para um)
+ *   - Pagamento -> SessaoCaixa (muitos para um)
  *   - Pagamento -> Usuario (operador)
  *   - Pagamento -> ContaCorrente (via ConfiguracaoPagamento)
  */
@@ -161,29 +161,6 @@ public class PagamentoController {
 		return ResponseEntity.status(201).body(response);
 
 	}
-
-	// ====================================================================================================
-	// 4. CALCULAR TROCO (APENAS CONSULTA)
-	// ====================================================================================================
-    /**
-     * Calcula o troco para um pagamento em dinheiro SEM registrar o pagamento.
-     *
-     * QUANDO USAR:
-     * - O operador quer saber antecipadamente quanto será o troco.
-     * - Útil para preparar o troco antes de finalizar a venda.
-     *
-     * CONCEITO: Operação de LEITURA (readOnly). Não modifica o estado do sistema.
-     * É uma consulta conveniente para o frontend.
-     */
-    @GetMapping("/troco/{pedidoId}")
-    public ResponseEntity<BigDecimal> calcularTroco(
-    		@PathVariable Integer pedidoId,
-    		@RequestParam BigDecimal valorRecebido
-    		){
-    	BigDecimal troco = pagamentoService.calcularTroco(pedidoId, valorRecebido);
-
-    	return ResponseEntity.ok(troco);
-    }
 
 
 	// ====================================================================================================

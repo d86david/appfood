@@ -6,17 +6,21 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 
-public record CaixaAbrirRequest (
-		@NotNull(message = "O operador é obrigatório para abrir o caixa")
-		Integer operadorId,
+public record SessaoCaixaSangriaRequest(
 
+		@NotNull(message = "O ID da sessão de caixa é obrigatório")
+		Integer sessaoCaixaId,
+		
 		@NotBlank(message = "O login do gerente é obrigatório")
 		String loginGerente,
 
 		@NotBlank(message = "A senha do gerente é obrigatória")
 		String senhaGerente,
 
-		@PositiveOrZero(message = "O valor inicial não pode ser negativo")
-		BigDecimal valorInicial
+		@PositiveOrZero(message = "O valor da sangria não pode ser negativo")
+		BigDecimal valor,
 
-		){}
+		@NotBlank(message = "O motivo da sangria é obrigatório")
+		String motivo
+
+		) {}

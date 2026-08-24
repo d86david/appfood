@@ -7,10 +7,11 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.dsys.appfood.config.AutorizacaoUtil;
 import com.dsys.appfood.domain.enums.FormaPagamento;
 import com.dsys.appfood.domain.enums.StatusPedido;
 import com.dsys.appfood.domain.enums.TipoMovimentacao;
-import com.dsys.appfood.domain.model.Caixa;
+import com.dsys.appfood.domain.model.SessaoCaixa;
 import com.dsys.appfood.domain.model.ContaCorrente;
 import com.dsys.appfood.domain.model.MovimentacaoCaixa;
 import com.dsys.appfood.domain.model.Pagamento;
@@ -30,7 +31,7 @@ import com.dsys.appfood.repository.PagamentoRepository;
  * Serviço responsável pelo processamento de pagamentos.
  *
  * Princípio da Responsabilidade Única (SOLID): - Este serviço só processa
- * PAGAMENTOS - Delega para CaixaService o registro de movimentação - Delega
+ * PAGAMENTOS - Delega para SessaoCaixaService o registro de movimentação - Delega
  * para PedidoService a busca do pedido
  */
 @Service
@@ -39,16 +40,16 @@ public class PagamentoService {
 	private final MovimentacaoCaixaRepository movimentacaoCaixaRepository;
 	private final ContaCorrenteService contaCorrenteService;
 	private final UsuarioService usuarioService;
-	private final CaixaService caixaService;
+	private final SessaoCaixaService sessaoCaixaService;
 	private final PedidoService pedidoService;
 	private final PagamentoRepository pagamentoRepository;
 
 	public PagamentoService(PagamentoRepository pagamentoRepository, PedidoService pedidoService,
-			CaixaService caixaService, UsuarioService usuarioService, ContaCorrenteService contaCorrenteService, MovimentacaoCaixaRepository movimentacaoCaixaRepository) {
+			SessaoCaixaService sessaoCaixaService, UsuarioService usuarioService, ContaCorrenteService contaCorrenteService, MovimentacaoCaixaRepository movimentacaoCaixaRepository) {
 
 		this.pagamentoRepository = pagamentoRepository;
 		this.pedidoService = pedidoService;
-		this.caixaService = caixaService;
+		this.sessaoCaixaService = sessaoCaixaService;
 		this.usuarioService = usuarioService;
 		this.contaCorrenteService = contaCorrenteService;
 		this.movimentacaoCaixaRepository = movimentacaoCaixaRepository;
@@ -58,7 +59,7 @@ public class PagamentoService {
 	// REGISTRAR PAGAMENTO (método principal)
 	// ============================================================
 	@Transactional
-	public Pagamento registrarPagamento(Integer pedidoId, Integer caixaId, FormaPagamento forma, BigDecimal valor,
+	public Pagamento registrarPagamento(Integer pedidoId, Integer sessaoCaixaId, FormaPagamento forma, BigDecimal valor,
 			Integer operadorId) {
 
 		// 1. VALIDAÇÕES SEM BANCO
@@ -78,8 +79,8 @@ public class PagamentoService {
 		// Busca o pedido (precisa estar aberto)
 		Pedido pedido = pedidoService.buscarPorId(pedidoId);
 
-		// Busca o Caixa
-		Caixa caixa = caixaService.buscaCaixaAberto(caixaId);
+		// Busca o SessaoCaixa
+		SessaoCaixa sessaoCaixa = sessaoCaixaService.buscaSessaoAberta(sessaoCaixaId);
 
 		// Buscar o operador (para registro de quem fez)
 		Usuario operador = usuarioService.buscaPorId(operadorId);
@@ -104,7 +105,7 @@ public class PagamentoService {
 		// construindo o objeto passo a passo
 		Pagamento pagamento = new Pagamento();
 		pagamento.associarPedido(pedido);
-		pagamento.setCaixa(caixa);
+		pagamento.setSessaoCaixa(sessaoCaixa);
 		pagamento.setFormaPagamento(forma);
 		pagamento.setValor(valor);
 		pagamento.setOperador(operador);
@@ -122,11 +123,11 @@ public class PagamentoService {
 
 		// 5.1 Se for dinheiro, registra entrada no caixa
 
-		// PagamentoService delega para CaixaService a responsabilidade de registrar a
+		// PagamentoService delega para SessaoCaixaService a responsabilidade de registrar a
 		// movimentação financeira
 		if (forma == FormaPagamento.DINHEIRO) {
 			// Registra a entrada física no caixa
-			caixaService.registrarVenda(caixaId, pedidoId, valor);
+			sessaoCaixaService.registrarVenda(sessaoCaixaId, pedidoId, valor);
 		} else {
 			// Para todas as outras formas (PIX, CREDITO, DEBITO, VOUCHER)
 			ContaCorrente conta = contaCorrenteService.getContaPadraoParaformaPagamento(forma);
@@ -164,7 +165,7 @@ public class PagamentoService {
 	 * @param operadorId - Quem está operando
 	 */
 	@Transactional
-	public List<Pagamento> registrarPagamentoMultiplo(Integer pedidoId, Integer caixaId, List<PagamentoRequest> pagamentosRequest,
+	public List<Pagamento> registrarPagamentoMultiplo(Integer pedidoId, Integer sessaoCaixaId, List<PagamentoRequest> pagamentosRequest,
 			Integer operadorId) {
 
 		// Validação: Precisa ter pelo menos um pagamento
@@ -174,47 +175,8 @@ public class PagamentoService {
 
 		// Mapeia os DTOs diretamente para a execução do registro
 		return pagamentosRequest.stream()
-				.map(p -> registrarPagamento(pedidoId, caixaId, p.formaPagamento(), p.valor(), operadorId))
+				.map(p -> registrarPagamento(pedidoId, sessaoCaixaId, p.formaPagamento(), p.valor(), operadorId))
 				.toList();
-	}
-
-	// ============================================================
-	// CÁLCULO DE TROCO
-	// ============================================================
-
-	/**
-	 * CALCULA O TROCO PARA PAGAMENTO EM DINHEIRO
-	 *
-	 * O operador informa quanto o cliente deu em dinheiro, e o sistema calcula o
-	 * troco
-	 *
-	 * @param pedidoId      - ID do pedido
-	 * @param valorRecebido - Quanto o cliente entregou
-	 * @return BigDecimal - Valor do troco (pode ser zero)
-	 *
-	 */
-	@Transactional(readOnly = true)
-	public BigDecimal calcularTroco(Integer pedidoId, BigDecimal valorRecebido) {
-
-		// Validação
-		if (valorRecebido == null || valorRecebido.signum() < 0) {
-
-			throw new IllegalArgumentException("Valor recebido deve ser maior ou igual a zero.");
-		}
-
-		Pedido pedido = pedidoService.buscarPorId(pedidoId);
-
-		// Quanto falta pagar (considerando pagamentos já efetuados)
-		BigDecimal valorRestante = pedido.getValorRestante();
-
-		// Se valor recebido é menor que o restante, não é troco, é pagamento parcial
-		if (valorRecebido.compareTo(valorRecebido) < 0) {
-			return BigDecimal.ZERO; // ainda não tem troco
-		}
-
-		// - BigDecimal.setScale(): Calcula o troco com 2 casas decimais
-		// - RoundingMode.HALF_UP: arredondamento padrão (>= 0.5 arredonda para cima)
-		return valorRecebido.subtract(valorRestante).setScale(2, RoundingMode.HALF_UP);
 	}
 
 	// ============================================================
@@ -227,7 +189,7 @@ public class PagamentoService {
 	 * @return PagamentoResponse - DTO com pagamento e valor do troco
 	 */
 	@Transactional
-	public PagamentoComTrocoResponse processarPagamentoDinheiro(Integer pedidoId, Integer caixaId,
+	public PagamentoComTrocoResponse processarPagamentoDinheiro(Integer pedidoId, Integer sessaoCaixaId,
 			BigDecimal valorRecebido, Integer operadorId) {
 
 		Pedido pedido = pedidoService.buscarPorId(pedidoId);
@@ -246,7 +208,7 @@ public class PagamentoService {
 		}
 
 		// Registra o pagamento
-		Pagamento pagamento = registrarPagamento(pedidoId, caixaId, FormaPagamento.DINHEIRO, valorARegistrar,
+		Pagamento pagamento = registrarPagamento(pedidoId, sessaoCaixaId, FormaPagamento.DINHEIRO, valorARegistrar,
 				operadorId);
 
 		// Monta reposta e retorna
@@ -263,28 +225,26 @@ public class PagamentoService {
 		Pagamento pagamento = buscarPorId(pagamentoId);
 		Pedido pedido = pagamento.getPedido();
 
+		// Busca o gerente e verifica se ele tem autorização
+		Usuario gerente = usuarioService.buscaPorId(gerenteId);
+		AutorizacaoUtil.exigirPapelGerente(gerente);
+		
 		// REGRA: Não pode estornar pagamento de pedido finalizado
 		if (pedido.getStatus() == StatusPedido.FINALIZADO) {
 			throw new NegocioException("Não é possível estornar pagamento de um pedido já finalizado.");
 		}
 
-		// Verifica se o gerente tem autorização
-		Usuario gerente = usuarioService.buscaPorId(gerenteId);
-		if (!gerente.isGerente()) {
-			throw new NegocioException("Apenas gerentes podem estornar pagamentos.");
-		}
-
 		// Se for DINHEIRO, precisa registrar a SAÍDA no caixa
 		if (pagamento.getFormaPagamento() == FormaPagamento.DINHEIRO) {
 			// Localiza a movimentação de ENTRADA correspondente ao pedido
-			MovimentacaoCaixa entradaOriginal = movimentacaoCaixaRepository.findByCaixaIdAndPedidoIdAndTipo(
-					pagamento.getCaixa().getId(),
+			MovimentacaoCaixa entradaOriginal = movimentacaoCaixaRepository.findBySessaoCaixaAndPedidoIdAndTipo(
+					pagamento.getSessaoCaixa(),
 					pedido.getId(),
 					TipoMovimentacao.ENTRADA)
 					.orElseThrow(() -> new NegocioException("Não foi encontrada a movimentação de entrada para o pedido " + pedido.getId()));
 
 			//executa o estorno (internamente sem senha)
-			caixaService.realizarEstornoInterno(entradaOriginal.getId(), gerenteId, "Estorno de pagamento #" + pagamentoId + ": " + motivo);
+			sessaoCaixaService.realizarEstornoInterno(entradaOriginal.getId(), gerente, "Estorno de pagamento #" + pagamentoId + ": " + motivo);
 		}
 
 		// Remove o pagamento da lista do pedido
@@ -294,7 +254,46 @@ public class PagamentoService {
 		pagamentoRepository.delete(pagamento);
 
 		// Recalcula status de pagamento do pedido
-		pedido.setPedidoPago(pedido.isPago());
+		pedido.isPago();
+	}
+	
+	// ============================================================
+	// MÉTODOS PRIVADOS
+	// ============================================================
+
+	/**
+	 * CALCULA O TROCO PARA PAGAMENTO EM DINHEIRO
+	 *
+	 * O operador informa quanto o cliente deu em dinheiro, e o sistema calcula o
+	 * troco
+	 *
+	 * @param pedidoId      - ID do pedido
+	 * @param valorRecebido - Quanto o cliente entregou
+	 * @return BigDecimal - Valor do troco (pode ser zero)
+	 *
+	 */
+	
+	private BigDecimal calcularTroco(Integer pedidoId, BigDecimal valorRecebido) {
+
+		// Validação
+		if (valorRecebido == null || valorRecebido.signum() < 0) {
+
+			throw new IllegalArgumentException("Valor recebido deve ser maior ou igual a zero.");
+		}
+
+		Pedido pedido = pedidoService.buscarPorId(pedidoId);
+
+		// Quanto falta pagar (considerando pagamentos já efetuados)
+		BigDecimal valorRestante = pedido.getValorRestante();
+
+		// Se valor recebido é menor que o restante, não é troco, é pagamento parcial
+		if (valorRecebido.compareTo(valorRestante) < 0) {
+			return BigDecimal.ZERO; // ainda não tem troco
+		}
+
+		// - BigDecimal.setScale(): Calcula o troco com 2 casas decimais
+		// - RoundingMode.HALF_UP: arredondamento padrão (>= 0.5 arredonda para cima)
+		return valorRecebido.subtract(valorRestante).setScale(2, RoundingMode.HALF_UP);
 	}
 
 	// ============================================================
@@ -350,13 +349,13 @@ public class PagamentoService {
 	@Transactional
 	public PagamentoResponse registrarPagamentoResponse (
 			Integer pedidoId,
-			Integer caixaId,
+			Integer sessaoCaixaId,
 			Integer operadorId,
 			PagamentoRequest request) {
 
 		Pagamento pagamento =registrarPagamento(
 				pedidoId,
-				caixaId,
+				sessaoCaixaId,
 				request.formaPagamento(),
 				request.valor(),
 				operadorId);
@@ -365,13 +364,13 @@ public class PagamentoService {
 	}
 
 	@Transactional
-	public List<PagamentoResponse> registrarPagamentoMultiploResponse (Integer pedidoId, Integer caixaId,
+	public List<PagamentoResponse> registrarPagamentoMultiploResponse (Integer pedidoId, Integer sessaoCaixaId,
 			PagamentoMultiploRequest request){
 
 		 // Chama o serviço passando a lista de DTO e o operadorId do request
 		List<Pagamento> pagamentos = registrarPagamentoMultiplo(
 				pedidoId,
-				caixaId,
+				sessaoCaixaId,
 				request.pagamentos(),
 				request.operadorId()
 				);
@@ -383,12 +382,12 @@ public class PagamentoService {
 	}
 
 	@Transactional
-	public PagamentoComTrocoResponse processarPagamentoDinheiroResponse(Integer pedidoId, Integer caixaId,
+	public PagamentoComTrocoResponse processarPagamentoDinheiroResponse(Integer pedidoId, Integer sessaoCaixaId,
 			PagamentoDinheiroRequest request) {
 
 		PagamentoComTrocoResponse pagamento = processarPagamentoDinheiro(
 				pedidoId,
-				caixaId,
+				sessaoCaixaId,
 				request.valorRecebido(),
 				request.operadorId()
 				);

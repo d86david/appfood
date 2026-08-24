@@ -9,11 +9,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /**
- * Captura exceções lançadas pelos Service e Controller
- * e traduz para respostas HTTP com formato padronizado
+ * Captura exceções lançadas pelos Service e Controller e traduz para respostas
+ * HTTP com formato padronizado
  *
- * @RestControllerAdvice = @ControllerAdvice + @ResponseBody
- * Intercepta exceções de TODOS os Controllers automaticamente.
+ * @RestControllerAdvice = @ControllerAdvice + @ResponseBody Intercepta exceções
+ *                       de TODOS os Controllers automaticamente.
  *
  */
 @RestControllerAdvice
@@ -25,15 +25,16 @@ public class GlobalExcepetionHandler {
 	public ErroResponse handlerNaoEncontrado(EntidadeNaoEncontradaException ex) {
 		return new ErroResponse("NÃO_ENCONTRADO", ex.getMessage());
 
-	// ↑ Um único handler captura: EntregadorNaoEncontrado, ClienteNaoEncontrado, ProdutoNaoEncontrado — todos!
+		// ↑ Um único handler captura: EntregadorNaoEncontrado, ClienteNaoEncontrado,
+		// ProdutoNaoEncontrado — todos!
 	}
 
 	// --- Endidade jpa cadastrada → HTTP 409 Conflict ---
-    @ExceptionHandler(EntidadeJaCadastradaException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ErroResponse handleEstado(EntidadeJaCadastradaException ex) {
-        return new ErroResponse("CONFLITO", ex.getMessage());
-    }
+	@ExceptionHandler(EntidadeJaCadastradaException.class)
+	@ResponseStatus(HttpStatus.CONFLICT)
+	public ErroResponse handleEstado(EntidadeJaCadastradaException ex) {
+		return new ErroResponse("CONFLITO", ex.getMessage());
+	}
 
 	// --- Regra de negócio violada -> HTTP 422 ---
 	@ExceptionHandler(NegocioException.class)
@@ -50,34 +51,37 @@ public class GlobalExcepetionHandler {
 	}
 
 	// --- Argumento Inválido -> HTTP 400 ---
-		@ExceptionHandler(MethodArgumentNotValidException.class)
-		@ResponseStatus(HttpStatus.BAD_REQUEST)
-		public ErroResponse handleValidacao(MethodArgumentNotValidException ex) {
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public ErroResponse handleValidacao(MethodArgumentNotValidException ex) {
 
-			//Pega todos os erros de todos os campos
-			String mensagem = ex.getBindingResult()
-					.getFieldErrors()
-					.stream()
-					.map(erro -> erro.getField() + ": " + erro.getDefaultMessage())
-					.collect(Collectors.joining(", "));
+		// Pega todos os erros de todos os campos
+		String mensagem = ex.getBindingResult().getFieldErrors().stream()
+				.map(erro -> erro.getField() + ": " + erro.getDefaultMessage()).collect(Collectors.joining(", "));
 
-			return new ErroResponse("VALIDAÇÃO", mensagem);
-		}
+		return new ErroResponse("VALIDAÇÃO", mensagem);
+	}
+
+	// --- Acesso Negado -> HTTP 403 ---
+	@ExceptionHandler(AcessoNegadoException.class)
+	@ResponseStatus(HttpStatus.FORBIDDEN)
+	public ErroResponse handleAcessoNegado(AcessoNegadoException ex) {
+		return new ErroResponse("ACESSO_NEGADO", ex.getMessage());
+	}
 
 	// --- Estado inválido → HTTP 409 Conflict ---
-    @ExceptionHandler(IllegalStateException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ErroResponse handleEstado(IllegalStateException ex) {
-        return new ErroResponse("CONFLITO", ex.getMessage());
-    }
+	@ExceptionHandler(IllegalStateException.class)
+	@ResponseStatus(HttpStatus.CONFLICT)
+	public ErroResponse handleEstado(IllegalStateException ex) {
+		return new ErroResponse("CONFLITO", ex.getMessage());
+	}
 
-    // --- Qualquer outra exceção não tratada → HTTP 500 ---
-    @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErroResponse handleGenerico(Exception ex) {
-        return new ErroResponse("ERRO_INTERNO", "Ocorreu um erro inesperado.");
-        // Não exponha ex.getMessage() aqui — pode vazar detalhes internos
-    }
-
+	// --- Qualquer outra exceção não tratada → HTTP 500 ---
+	@ExceptionHandler(Exception.class)
+	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+	public ErroResponse handleGenerico(Exception ex) {
+		return new ErroResponse("ERRO_INTERNO", "Ocorreu um erro inesperado.");
+		// Não exponha ex.getMessage() aqui — pode vazar detalhes internos
+	}
 
 }

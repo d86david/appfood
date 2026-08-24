@@ -13,6 +13,8 @@ import com.dsys.appfood.exception.NegocioException;
 import com.dsys.appfood.exception.UsuarioNaoEncontradoException;
 import com.dsys.appfood.repository.UsuarioRepository;
 
+import jakarta.annotation.PostConstruct;
+
 /**
  * Classe responsavel pela autenticação e validações relacionadas a usuário
  *
@@ -31,6 +33,36 @@ public class UsuarioService {
 	public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
 		this.usuarioRepository = usuarioRepository;
 		this.passwordEncoder = passwordEncoder;
+	}
+	
+	// ======================================================================
+    // MÉTODO DE INICIALIZAÇÃO - Executado UMA VEZ na inicialização do Spring
+    // ======================================================================
+	/**
+	 * Esse método garante que o usuário "Administrador" exista no banco de dados
+	 * para ser usado no primeiro login
+	 *
+	 * O @PostConstruct é executado automaticamente pelo Spring após a injeção
+	 * de dependencias e ANTES da aplicação começar receber requisições
+	 *
+	 * CONCEITO: Inicialização de dados mestres (Master Data).
+	 * Útil para cadastros fixos que o sistema sempre vai precisar
+	 */
+	@PostConstruct
+	@Transactional
+	public void initUsuarioAdmin() {
+
+		//Verifica se já existe um tamanho com o nome "ÚNICO" (case insensitive)
+		boolean existe = usuarioRepository.findByLoginAndAtivoTrue("admin").isPresent();
+
+		if (!existe) {
+			//chama o método cadastrar para cria a senha com hash
+			cadastrar("Administrador", "admin", "admin1", "99999999999", TipoUsuario.ADM);
+			System.out.println(">>> Usuario 'Adminnistrador' criado com sucesso no banco de dados");
+		}else {
+			System.out.println(">>> Usuario 'Adminnistrador' ja existe.");
+		}
+
 	}
 
 	// =============================================================

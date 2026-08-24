@@ -13,13 +13,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.dsys.appfood.domain.enums.StatusPedido;
 import com.dsys.appfood.domain.enums.TipoPedido;
-import com.dsys.appfood.domain.model.Caixa;
 import com.dsys.appfood.domain.model.Pedido;
-import com.dsys.appfood.dto.response.CaixaStatusResponse;
 import com.dsys.appfood.dto.response.IndicadoresDiariosResponse;
 import com.dsys.appfood.dto.response.PedidoResumoResponse;
 import com.dsys.appfood.dto.response.ProdutoVendidoResponse;
-import com.dsys.appfood.exception.NenhumCaixaAbertoException;
 import com.dsys.appfood.repository.PedidoRepository;
 
 /**
@@ -43,15 +40,13 @@ import com.dsys.appfood.repository.PedidoRepository;
 @Service
 public class DashboardService {
 
-    private final CaixaService caixaService;
 	private final PedidoRepository pedidoRepository;
     private final RelatorioService relatorioService; // reutilizamos alguns relatórios
 
     public DashboardService(PedidoRepository pedidoRepository,
-                            RelatorioService relatorioService, CaixaService caixaService) {
+                            RelatorioService relatorioService, SessaoCaixaService sessaoCaixaService) {
         this.pedidoRepository = pedidoRepository;
         this.relatorioService = relatorioService;
-        this.caixaService = caixaService;
     }
 
     /**
@@ -129,14 +124,14 @@ public class DashboardService {
     /**
      * Status dos caixas abertos (se houver) - resumo rápido.
      */
-    @Transactional(readOnly = true)
-    public CaixaStatusResponse statusCaixaAtual() {
+    /*@Transactional(readOnly = true)
+    public SessaoCaixaStatusResponse statusCaixaAtual() {
     	try {
-			Caixa caixaAberto = caixaService.buscarCaixaAbertoAtual();
-			return new CaixaStatusResponse(true, caixaAberto.getOperador().getNome(), caixaAberto.getSaldo());
+			SessaoCaixa caixaAberto = sessaoCaixaService.listarSessoesAbertas();
+			return new SessaoCaixaStatusResponse(true, caixaAberto.getOperador().getNome(), caixaAberto.getSaldo());
 		} catch (NenhumCaixaAbertoException e) {
-			return new CaixaStatusResponse(false, null, BigDecimal.ZERO);
+			return new SessaoCaixaStatusResponse(false, null, BigDecimal.ZERO);
 		}
-    }
+    }*/
 
 }

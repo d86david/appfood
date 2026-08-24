@@ -1,5 +1,6 @@
 package com.dsys.appfood.service;
 
+import com.dsys.appfood.repository.SessaoCaixaRepository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -8,10 +9,13 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.dsys.appfood.domain.enums.StatusCaixa;
 import com.dsys.appfood.domain.model.MovimentacaoCaixa;
+import com.dsys.appfood.domain.model.SessaoCaixa;
 import com.dsys.appfood.dto.response.MovimentacaoCaixaResponse;
 import com.dsys.appfood.dto.response.ResumoCaixaResponse;
 import com.dsys.appfood.exception.CaixaNaoEncontradoException;
+import com.dsys.appfood.exception.SemSessaoAbertaException;
 import com.dsys.appfood.repository.CaixaRepository;
 import com.dsys.appfood.repository.MovimentacaoCaixaRepository;
 
@@ -29,13 +33,15 @@ import com.dsys.appfood.repository.MovimentacaoCaixaRepository;
 @Service
 public class MovimentacaoCaixaService {
 
+	private final SessaoCaixaRepository sessaoCaixaRepository;
 	private final CaixaRepository caixaRepository;
 	private final MovimentacaoCaixaRepository movimentacaoRepository;
 
 	public MovimentacaoCaixaService(MovimentacaoCaixaRepository movimentacaoRepository,
-			CaixaRepository caixaRepository) {
+			CaixaRepository caixaRepository, SessaoCaixaRepository sessaoCaixaRepository) {
 		this.movimentacaoRepository = movimentacaoRepository;
 		this.caixaRepository = caixaRepository;
+		this.sessaoCaixaRepository = sessaoCaixaRepository;
 	}
 
 	/**
@@ -43,32 +49,42 @@ public class MovimentacaoCaixaService {
 	 *
 	 */
 	@Transactional(readOnly = true)
-	public List<MovimentacaoCaixa> extratoPorCaixa(Integer caixaId) {
+	public List<MovimentacaoCaixa> extratoPorSessaoCaixa(SessaoCaixa sessao) {
 
-		// Verifica se o caixa existe antes de consultar as movimentações
-		if (!caixaRepository.existsById(caixaId)) {
-			throw new CaixaNaoEncontradoException(caixaId);
+		// Verifica se o caixa existe 
+		if (!caixaRepository.existsById(sessao.getId())) {
+			throw new CaixaNaoEncontradoException(sessao.getId());
+		}
+		
+		// Verifica se o caixa tem sessão aberta antes de consultar movimentações
+		if(!sessaoCaixaRepository.existsByCaixaAndStatus(sessao.getCaixa(), StatusCaixa.ABERTO)) {
+			throw new SemSessaoAbertaException(sessao.getCaixa().getNome());
 		}
 
-		return movimentacaoRepository.findByCaixaIdOrderByDataHoraMovimentoDesc(caixaId);
+		return movimentacaoRepository.findBySessaoCaixaOrderByDataHoraMovimentoDesc(sessao);
 	}
 
 	/**
 	 * Consulta movimentação de um caixa, dentro de um período específico.
 	 */
 	@Transactional(readOnly = true)
-	public List<MovimentacaoCaixa> extratoPorCaixaPeriodo(Integer caixaId, LocalDateTime inicio, LocalDateTime fim) {
+	public List<MovimentacaoCaixa> extratoPorSessaoPeriodo(SessaoCaixa sessao, LocalDateTime inicio, LocalDateTime fim) {
 
-		// Verifica se o caixa existe antes de consultar movimentações
-		if (!caixaRepository.existsById(caixaId)) {
-			throw new CaixaNaoEncontradoException(caixaId);
+		// Verifica se o caixa existe 
+		if (!sessaoCaixaRepository.existsById(sessao.getId())) {
+			throw new CaixaNaoEncontradoException(sessao.getId());
+		}
+		
+		// Verifica se o caixa tem sessão aberta antes de consultar movimentações
+		if(!sessaoCaixaRepository.existsByCaixaAndStatus(sessao.getCaixa(), StatusCaixa.ABERTO)) {
+			throw new SemSessaoAbertaException(sessao.getCaixa().getNome());
 		}
 
 		if (inicio.isAfter(fim)) {
 			throw new IllegalArgumentException("Data inicial não pode ser posterior à data final.");
 		}
 
-		return movimentacaoRepository.findByCaixaIdAndDataHoraMovimentoBetweenOrderByDataHoraMovimentoDesc(caixaId,
+		return movimentacaoRepository.findBySessaoCaixaAndDataHoraMovimentoBetweenOrderByDataHoraMovimentoDesc(sessao,
 				inicio, fim);
 	}
 
@@ -76,9 +92,9 @@ public class MovimentacaoCaixaService {
 	 * Calcula o total de entradas de um caixa (vendas e aportes)
 	 */
 	@Transactional(readOnly = true)
-	public BigDecimal totalEntradas(Integer caixaId) {
+	public BigDecimal totalEntradas(Integer sessaoCaixaId) {
 
-		BigDecimal totalEntradas = movimentacaoRepository.totalEntradas(caixaId);
+		BigDecimal totalEntradas = movimentacaoRepository.totalEntradas(sessaoCaixaId);
 
 		// Se o banco não encontrar nada, o SUM retorna null.
 		// É boa prática garantir que retorne ZERO nesses casos.
@@ -89,9 +105,9 @@ public class MovimentacaoCaixaService {
 	 * Calcula o total de saídas de um caixa (sangrias e fechamento)
 	 */
 	@Transactional(readOnly = true)
-	public BigDecimal totalSaidas(Integer caixaId) {
+	public BigDecimal totalSaidas(Integer sessaoCaixaId) {
 
-		BigDecimal totalSaidas = movimentacaoRepository.totalSaidas(caixaId);
+		BigDecimal totalSaidas = movimentacaoRepository.totalSaidas(sessaoCaixaId);
 
 		// Se o banco não encontrar nada, o SUM retorna null.
 		// É boa prática garantir que retorne ZERO nesses casos.
@@ -161,15 +177,15 @@ public class MovimentacaoCaixaService {
 	// MÉTODOS DTO (conversão dentro da transação)
 	// =============================================================
 	@Transactional(readOnly = true)
-	public List<MovimentacaoCaixaResponse> listarMovimentacoesResponse(Integer caixaId,
+	public List<MovimentacaoCaixaResponse> listarMovimentacoesResponse(SessaoCaixa sessao,
 			LocalDateTime inicio,LocalDateTime fim){
 
 		List<MovimentacaoCaixa> movs;
 
 		if(inicio != null && fim != null) {
-			movs = extratoPorCaixaPeriodo(caixaId, inicio, fim);
+			movs = extratoPorSessaoPeriodo(sessao, inicio, fim);
 		}else {
-			movs = extratoPorCaixa(caixaId);
+			movs = extratoPorSessaoCaixa(sessao);
 		}
 
 		return movs.stream()

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.dsys.appfood.config.AutorizacaoUtil;
 import com.dsys.appfood.domain.enums.StatusPedido;
 import com.dsys.appfood.domain.enums.TipoPedido;
 import com.dsys.appfood.exception.NegocioException;
@@ -61,8 +62,6 @@ public class Pedido {
 
 	@Enumerated(EnumType.STRING)
 	private StatusPedido status;
-
-	private boolean pedidoPago;
 
 	@OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL)
 	private List<StatusPedidoHistorico> historicoStatus = new ArrayList<>();
@@ -211,14 +210,6 @@ public class Pedido {
 
 	public void setStatus(StatusPedido status) {
 		this.status = status;
-	}
-
-	public boolean isPedidoPago() {
-		return pedidoPago;
-	}
-
-	public void setPedidoPago(boolean pedidoPago) {
-		this.pedidoPago = pedidoPago;
 	}
 
 	public List<StatusPedidoHistorico> getHistoricoStatus() {
@@ -444,10 +435,6 @@ public class Pedido {
 
 		pagamentos.add(pagamento);
 
-		if (isPago()) {
-			this.pedidoPago = true;
-		}
-
 	}
 
 	/**
@@ -479,16 +466,16 @@ public class Pedido {
 
 		// REGRA 1: O pedido não pode ja estar finalizado ou cancelado
 		if (statusAtual == StatusPedido.FINALIZADO) {
-			throw new NegocioException("O Pedido #" + numeroPedido + "já está finalizado");
+			throw new NegocioException("O Pedido #" + numeroPedido + " já está finalizado");
 		}
 
 		if (statusAtual == StatusPedido.CANCELADO) {
-			throw new NegocioException("O Pedido #" + numeroPedido + "está cancelado e não pode ser finalizado.");
+			throw new NegocioException("O Pedido #" + numeroPedido + " está cancelado e não pode ser finalizado.");
 		}
 
 		// REGRA 2: O pedido deve estar totalmente pago
 		if (!isPago()) {
-			throw new NegocioException(String.format("Pedido #/d não pode ser finalizado. Valor restante R$ %.2f",
+			throw new NegocioException(String.format("Pedido #%d não pode ser finalizado. Valor restante R$ %.2f",
 					numeroPedido, getValorRestante()));
 		}
 
@@ -535,8 +522,6 @@ public class Pedido {
 	 */
 	public void cancelarPedido(Usuario operador, Usuario gerente, String motivo) {
 
-		Usuario gerAutorizador = gerente;
-
 		// VALIDAÇÕES
 
 		// Verifica se o pedido já está finalizado, se estiver lança exceção
@@ -551,14 +536,13 @@ public class Pedido {
 
 		// Se já houve pagamento, exige autorização do gerente
 		if (!this.getPagamentos().isEmpty()) {
-			if (gerAutorizador == null) {
+			if (gerente == null) {
 				throw new NegocioException("Este pedido possui pagamentos registrados. "
 						+ "É necessária autorização de um gerente para cancelar.");
 			}
 
-			if (!gerAutorizador.isGerente()) {
-				throw new NegocioException("Apenas gerentes podem autorizar o cancelamento de pedidos com pagamento.");
-			}
+			// Valida Gerente
+			AutorizacaoUtil.exigirPapelGerente(gerente);;
 		}
 
 		// Valida motivo do cancelamento
@@ -588,9 +572,7 @@ public class Pedido {
 		// VALIDAÇÕES
 
 		// Valida Gerente
-		if (!gerente.isGerente()) {
-			throw new NegocioException("Apenas gerentes podem reabrir pedidos cancelados.");
-		}
+		AutorizacaoUtil.exigirPapelGerente(gerente);
 
 		// Valida se o pedido está mesmo cancelado
 		if (this.getStatus() != StatusPedido.CANCELADO) {
@@ -624,12 +606,19 @@ public class Pedido {
 	}
 
 	/**
-	 * Método para somar todos os pagamentos
-	 *
+	 * Soma os pagamentos VÁLIDOS do pedido — ou seja, ignora qualquer
+	 * pagamento que já tenha sido estornado.
+	 * Por que filtrar aqui, e não em outro lugar?
+	 * Porque isPago() e getValorRestante() dependem deste método — corrigir
+	 * a soma na origem propaga a correção para os dois automaticamente,
+	 * sem precisar duplicar o filtro em cada um deles.
 	 * @return o valor dos pagamentos somados
 	 */
 	public BigDecimal getTotalPago() {
-		return pagamentos.stream().map(Pagamento::getValor).reduce(BigDecimal.ZERO, BigDecimal::add);
+		return pagamentos.stream()
+				.filter(p -> !p.isEstornado())
+				.map(Pagamento::getValor)
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
 	}
 
 	/**
@@ -672,7 +661,7 @@ public class Pedido {
 
 		// Verifica se o pedido está pronto
 		if (this.getStatus() != StatusPedido.PRONTO) {
-			throw new NegocioException("O pedido #" + this.getId() + "não está pronto.");
+			throw new NegocioException("O pedido #" + this.getId() + " não está pronto.");
 		}
 
 		// VINCULA O ENTREGADOR AO PEDIDO

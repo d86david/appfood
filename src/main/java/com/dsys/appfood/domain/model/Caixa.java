@@ -1,136 +1,147 @@
 package com.dsys.appfood.domain.model;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.Objects;
-
-import com.dsys.appfood.domain.enums.StatusCaixa;
-import com.dsys.appfood.domain.enums.TipoMovimentacao;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 /**
- * Entidade que representa o Caixa Pizzaria Esta classe é importante para o
- * registrar o fuxo de entrada e saida das movimentações. - Um Caixa quando
- * fechado não é possivel fazer lançamento - Quando Aberto é nessecário ter um
- * operador. - A Abertura e fechamento depende da autorização do Gerente - Ao
- * abrir um Caixa poderá ser informado um valor de abertura que será creditdo no
- * Caixa. - Ao fecha um caixa o saldo que o caixa estiver no momento do
- * fechamento será debitado e o caixa ficará com saldo zerado
+ * ENTIDADE: CAIXA FÍSICO (CADASTRO)
+ * 
+ * Entidade de Domínio que Representa o CAIXA FÍSICO em si (Master Data)
+ * 
+ *  O equipamento/gaveta que existe
+ * independentemente de estar aberto ou fechado.
+ * 
+ * - Permite ter múltiplos caixas físicos n
+ * - Cada caixa físico pode ter múltiplas sessões de abertura/fechamento
+ * - Separa o cadastro (estático) da operação (dinâmico)
+ * 
+ * @author David de Sousa
  */
 @Entity
 @Table(name = "caixa")
 public class Caixa {
-
+	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
-
-	@Enumerated(EnumType.STRING)
-	private StatusCaixa status = StatusCaixa.FECHADO;
-
-	private BigDecimal saldo;
-
-	@Column(name = "data_abertura")
-	private LocalDateTime dataAbertura;
-
-	@Column(name = "valor_inicial")
-	private BigDecimal valorInicial;
-
-	@Column(name = "data_fechamento")
-	private LocalDateTime dataFechamento;
-
-	@Column(name = "valor_fechamento")
-	private BigDecimal valorFechamento;
-
-	@ManyToOne
-	@JoinColumn(name = "operador_id")
-	private Usuario operador;
-
-	@ManyToOne
-	@JoinColumn(name = "gerente_id")
-	private Usuario gerente;
-
-	//===========================================
-	// Construtores
-	//===========================================
-
-	public Caixa() {
-
-	}
-
-	public Caixa(StatusCaixa status, BigDecimal valorInicial, Usuario operador) {
-
-		this.status = status;
-		this.valorInicial = valorInicial;
-		this.operador = operador;
-	}
-
-	//===========================================
-	//Getters e Setters
-	//===========================================
+	
+	/**
+     * Nome/identificação do caixa físico
+     * Ex: "Caixa 01", "Caixa Principal", "Caixa Delivery"
+     * 
+     * - Unique Constraint
+     * Garante que não haja dois caixas com o mesmo nome
+     */
+	@Column( nullable = false, unique = true, length = 50)
+	private String nome;
+	
+	/**
+     * Descrição opcional do caixa
+     * Ex: "Caixa principal do balcão", "Caixa exclusivo para entregas"
+     */
+	@Column(length = 200)
+	private String descricao;
+	
+	/**
+     * Localização física do caixa
+     * Ex: "Balcão", "Delivery", "Reserva"
+     */
+	@Column(length = 100)
+	private String localizacao;
+	
+	 /**
+     * Flag para ativar/desativar o caixa físico
+     * 
+     * CONCEITO: Soft Delete (Inativação Lógica)
+     * Se um caixa físico quebrar ou for substituído, você o desativa
+     * em vez de excluí-lo. Isso mantém o histórico de movimentos.
+     * 
+     * POR QUE NÃO EXCLUIR?
+     * - Preserva o histórico de movimentações
+     * - Evita erros de integridade referencial (foreign keys)
+     * - Permite reativação futura se necessário
+     */
+    @Column(nullable = false)
+	private Boolean ativo;
+	
+    // ===========================================
+    // CONSTRUTORES
+    // ===========================================
+    public Caixa() {}
+    
+    public Caixa(String nome, String descricao, String localizacao) {
+        this.nome = nome;
+        this.descricao = descricao;
+        this.localizacao = localizacao;
+    }
+    
+    // ===========================================
+    // GETTERS E SETTERS
+    // ===========================================
 
 	public Integer getId() {
 		return id;
 	}
 
-	public StatusCaixa getStatus() {
-		return status;
+	public String getNome() {
+		return nome;
 	}
 
-	public BigDecimal getSaldo() {
-		return saldo;
+	public void setNome(String nome) {
+		this.nome = nome;
 	}
 
-	public LocalDateTime getDataAbertura() {
-		return dataAbertura;
+	public String getDescricao() {
+		return descricao;
 	}
 
-
-	public BigDecimal getValorInicial() {
-		return valorInicial;
+	public void setDescricao(String descricao) {
+		this.descricao = descricao;
 	}
 
-	public LocalDateTime getDataFechamento() {
-		return dataFechamento;
+	public String getLocalizacao() {
+		return localizacao;
 	}
 
-	public BigDecimal getValorFechamento() {
-		return valorFechamento;
+	public void setLocalizacao(String localizacao) {
+		this.localizacao = localizacao;
+	}
+	
+	public void setAtivo(Boolean ativo) {
+		this.ativo = ativo;
 	}
 
-	public void setValorFechamento(BigDecimal valorFechamento) {
-		this.valorFechamento = valorFechamento;
+	public Boolean isAtivo() {
+		return ativo;
 	}
-
-	public Usuario getOperador() {
-		return operador;
-	}
-
-	public void setOperador(Usuario operador) {
-		this.operador = operador;
-	}
-
-	public Usuario getGerente() {
-		return gerente;
-	}
-
-	public void setGerente(Usuario gerente) {
-		this.gerente = gerente;
-	}
-
-	//===========================================
-	// HASHCODE E EQUALS
-	//===========================================
+    
+	 // ===========================================
+    // MÉTODOS AUXILIARES
+    // ===========================================
+    
+    /**
+     * Ativa o caixa físico
+     */
+    public void ativar() {
+        this.ativo = true;
+    }
+    
+    /**
+     * Inativa o caixa físico
+     */
+    public void inativar() {
+        this.ativo = false;
+    }
+    
+    // ===========================================
+    // HASHCODE E EQUALS
+    // ===========================================
 
 	@Override
 	public int hashCode() {
@@ -139,69 +150,13 @@ public class Caixa {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj) {
+		if (this == obj)
 			return true;
-		}
-		if ((obj == null) || (getClass() != obj.getClass())) {
+		if (obj == null)
 			return false;
-		}
+		if (getClass() != obj.getClass())
+			return false;
 		Caixa other = (Caixa) obj;
 		return Objects.equals(id, other.id);
 	}
-
-	//===========================================
-	// Métodos Auxiliares
-	//===========================================
-
-	/**
-	 * Método responsavel por abrir o Caixa quando o mesmo estiver fechado,
-	 *
-	 * @param valorInicial O valor em dinheiro que inicia no fundo de caixa
-	 * @param gerente      O gerente que está autorizando a abertura
-	 */
-	public void abrirCaixa(BigDecimal valorInicial, Usuario gerente) {
-		if (status.equals(StatusCaixa.ABERTO)) {
-			throw new IllegalArgumentException("O Caixa já está aberto");
-		}
-		this.gerente = gerente; // Registra o gerente autorizador
-		this.valorInicial = valorInicial;
-		this.saldo = valorInicial;
-		this.status = StatusCaixa.ABERTO;
-		this.dataAbertura = LocalDateTime.now();
-	}
-
-
-	/**
-	 * Fecha o caixa, limpa o saldo e registra o valor inicial
-	 * @param gerente O gerente que valida o fechamento
-	 */
-	public void fecharCaixa(Usuario gerente) {
-		if (status.equals(StatusCaixa.FECHADO)) {
-			throw new IllegalArgumentException("O Caixa já está fechado");
-		}
-
-		this.gerente = gerente;
-		this.valorFechamento = this.saldo;
-		this.saldo = BigDecimal.ZERO;
-		this.status = StatusCaixa.FECHADO;
-		this.dataFechamento = LocalDateTime.now();
-
-	}
-
-	/**
-	 * Atualiza o saldo atual do caixa baseando-se em uma nova movimentação.
-	 * Este método é chamado pela Service após persistir uma movimentação
-	 */
-	public void atualizarSaldo(BigDecimal valorMovimentacao, TipoMovimentacao tipo ) {
-		if(this.status.equals(StatusCaixa.FECHADO)) {
-			throw new IllegalStateException("Não é possível atualizar saldo de um caixa fechado.");
-		}
-
-		if(tipo.equals(TipoMovimentacao.ENTRADA)) {
-			this.saldo = this.saldo.add(valorMovimentacao);
-		}else {
-			this.saldo = this.saldo.subtract(valorMovimentacao);
-		}
-	}
-
 }

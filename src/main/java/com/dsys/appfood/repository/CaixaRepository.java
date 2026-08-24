@@ -1,16 +1,19 @@
 package com.dsys.appfood.repository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.dsys.appfood.domain.enums.StatusCaixa;
 import com.dsys.appfood.domain.model.Caixa;
-import com.dsys.appfood.domain.model.Usuario;
 
+/**
+ * Repository para a entidade Caixa que representa o caixa físico
+ * 
+ * CONCEITO: Repository Pattern
+ * Abstrai o acesso ao banco de dados
+ */
 @Repository
 public interface CaixaRepository extends JpaRepository<Caixa, Integer>{
 
@@ -31,14 +34,14 @@ public interface CaixaRepository extends JpaRepository<Caixa, Integer>{
 	 *
 	 */
 
-	//--- PESQUISAR POR DATA ---
-	List<Caixa> findByDataAberturaBetween(LocalDateTime inicio, LocalDateTime fim);
-
-	//--- BUSCA O CAIXA ABERTO MAIS RECENTE ---
-	Optional<Caixa> findFirstByStatusOrderByDataAberturaDesc(StatusCaixa status);
-
-	//--- PESQUISA POR OPERADOR ---
-	Optional<Caixa> findByOperadorAndStatus(Usuario operador, StatusCaixa status);
+	//--- PESQUISAR CAIXA POR NOME  ---
+	Optional<Caixa> findByNomeIgnoreCase(String nome);
+	
+	// LISTA APENAS CAIXAS ATIVOS ---
+	List<Caixa> findByAtivoTrue();
+	
+	// LISTA CAIXAS POR LOCALIZAÇÃO ---
+	List<Caixa> findByLocalizacaoIgnoreCase(String localizacao);
 
 
 }

@@ -46,9 +46,8 @@ public class Usuario {
 
 	}
 
-	public Usuario(Integer id, String nome, String login, String senha, String telefone, TipoUsuario tipo) {
+	public Usuario(String nome, String login, String senha, String telefone, TipoUsuario tipo) {
 		super();
-		this.id = id;
 		this.nome = nome;
 		this.login = login;
 		this.senha = senha;
